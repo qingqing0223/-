@@ -50,6 +50,9 @@ def _attitude_from_v2(status: str, type_: str | None) -> str:
 
 
 def _source_label(row: dict) -> str:
+    content_type = row.get("video_content_type") or row.get("source_type")
+    if content_type:
+        return f"MediaCrawler·{content_type}"
     record_type = row.get("record_type")
     if record_type == "video":
         return "MediaCrawler视频发布内容监测"
@@ -70,6 +73,12 @@ def to_suqi_record(row: dict) -> dict:
         notes_parts.append(f"v2_type={v2_type}")
     if row.get("record_type"):
         notes_parts.append(f"record_type={row['record_type']}")
+    if row.get("source_type"):
+        notes_parts.append(f"source_type={row['source_type']}")
+    if row.get("video_content_type"):
+        notes_parts.append(f"video_content_type={row['video_content_type']}")
+    if row.get("source_type_method"):
+        notes_parts.append(f"source_type_method={row['source_type_method']}")
     if row.get("attitude_target"):
         notes_parts.append(f"attitude_target={row['attitude_target']}")
     if row.get("analysis_basis"):
