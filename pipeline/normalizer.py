@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 
+
 def _first(d: dict, *keys):
     for k in keys:
         v = d.get(k)
@@ -9,8 +10,10 @@ def _first(d: dict, *keys):
             return v
     return None
 
+
 def _str(v):
     return "" if v is None else str(v)
+
 
 def _to_int(v):
     if v is None or v == "":
@@ -28,6 +31,7 @@ def _to_int(v):
         return int(float(s))
     except Exception:
         return 0
+
 
 def _to_iso_time(v):
     if v is None or v == "":
@@ -51,10 +55,49 @@ def _to_iso_time(v):
             pass
     return s
 
+
+def _tag_text(raw: dict) -> str:
+    tags = _first(raw, "tag_list", "tags", "hashtags", "topic_list")
+    if not tags:
+        return ""
+    if isinstance(tags, str):
+        return tags.strip()
+    names = []
+    if isinstance(tags, list):
+        for item in tags:
+            if isinstance(item, dict):
+                name = item.get("name") or item.get("title") or item.get("tag_name")
+                if name:
+                    names.append(str(name).strip())
+            elif item:
+                names.append(str(item).strip())
+    return " ".join(x for x in names if x)
+
+
+def _join_unique(parts: list[str]) -> str:
+    out = []
+    seen = set()
+    for part in parts:
+        text = _str(part).strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        out.append(text)
+    return "\n".join(out)
+
+
 def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") -> dict | None:
     title = _first(raw, "title", "note_title", "video_title")
     desc = _first(raw, "desc", "description", "aweme_desc")
     body = _first(raw, "content", "text", "note_text", "content_text", "comment_text")
+    tags = _tag_text(raw)
+
+    # Optional future enrichment fields. They are consumed automatically if a later
+    # ASR/OCR stage writes them into the record, while today's fast path still works
+    # from title/description/tags alone.
+    asr_text = _first(raw, "asr_text", "transcript_text", "speech_text")
+    ocr_text = _first(raw, "ocr_text", "subtitle_text", "screen_text")
+
     content = body or desc or title
     if content is None or not _str(content).strip():
         return None
@@ -63,15 +106,47 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     content_id = _first(raw, "content_id", "aweme_id", "note_id", "video_id", "photo_id", "id", "mid")
     comment_id = _first(raw, "comment_id", "cid")
     platform = _first(raw, "platform", "source_platform", "source") or platform_hint
+    platform = _str(platform).strip()
     region = _first(raw, "ip_location", "region", "province", "ip_region")
     publish_time = _first(raw, "publish_time", "create_time", "created_at", "create_date_time", "time")
     url = _first(raw, "url", "note_url", "video_url", "aweme_url", "share_url", "detail_url")
     author = _first(raw, "author", "nickname", "user_name", "user_nickname", "sec_user_name")
     source_keyword = _first(raw, "source_keyword", "keyword", "search_keyword")
 
-    likes = _first(raw, "likes", "like_count", "liked_count", "digg_count", "liked_count", "thumbs_count")
+    likes = _first(raw, "likes", "like_count", "liked_count", "digg_count", "thumbs_count")
     comments = _first(raw, "comments", "comment_count", "comments_count", "comment_num")
     shares = _first(raw, "shares", "share_count", "shared_count", "repost_count", "forward_count")
+
+    if comment_id:
+        record_type = "comment"
+        attitude_target = "audience_comment"
+    elif platform in {"dy", "ks"}:
+        record_type = "video"
+        attitude_target = "publisher_video"
+    else:
+        record_type = "post"
+        attitude_target = "publisher_post"
+
+    # For Douyin/Kuaishou, attitude classification should represent the video's own
+    # published message, not the audience. We combine all text evidence available on
+    # the fast path. If ASR/OCR are added later, they are included automatically.
+    if record_type == "video":
+        analysis_text = _join_unique([
+            _str(title), _str(desc), _str(body), tags, _str(asr_text), _str(ocr_text)
+        ])
+        evidence = []
+        if title or desc or body:
+            evidence.append("caption")
+        if tags:
+            evidence.append("tags")
+        if asr_text:
+            evidence.append("asr")
+        if ocr_text:
+            evidence.append("ocr")
+        analysis_basis = "+".join(evidence) or "caption"
+    else:
+        analysis_text = _join_unique([_str(content), _str(context)])
+        analysis_basis = "comment_text" if record_type == "comment" else "post_text"
 
     sample_id = _first(raw, "sample_id", "comment_id", "cid", "content_id", "aweme_id", "note_id", "video_id", "photo_id", "id", "mid")
     if sample_id is None:
@@ -79,15 +154,21 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         sample_id = hashlib.sha256(basis.encode("utf-8", "ignore")).hexdigest()[:24]
 
     now = datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
-    platform = _str(platform).strip()
     return {
         "sample_id": _str(sample_id),
         "dedupe_key": f"{platform}:{_str(sample_id)}",
         "platform": platform,
         "content_id": _str(content_id),
         "comment_id": _str(comment_id),
+        "record_type": record_type,
+        "attitude_target": attitude_target,
+        "analysis_basis": analysis_basis,
+        "analysis_text": analysis_text,
         "content": _str(content).strip(),
         "context": _str(context).strip(),
+        "tag_text": tags,
+        "asr_text": _str(asr_text).strip(),
+        "ocr_text": _str(ocr_text).strip(),
         "source_keyword": _str(source_keyword),
         "publish_time": _to_iso_time(publish_time),
         "first_seen_time": now,
