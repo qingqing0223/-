@@ -12,5 +12,5 @@ python .\scripts\check_suqi_dashboard.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "[2/2] Running one-platform, one-keyword end-to-end smoke test..." -ForegroundColor Cyan
-python .\run_monitor.py --config .\config\monitoring.smoke.windows.json --once
+python .\scripts\smoke_test.py
 exit $LASTEXITCODE
