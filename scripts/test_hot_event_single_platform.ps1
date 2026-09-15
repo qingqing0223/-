@@ -3,12 +3,22 @@ param(
     [ValidateSet("xhs","dy","wb","ks")]
     [string]$Platform,
 
-    [string]$Keyword = "男子停止资助学生后遭威胁"
+    [string]$Keyword = ""
 )
 
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path "$PSScriptRoot\..").Path
 Set-Location $root
+
+# Windows PowerShell 5.1 may misread UTF-8 scripts without BOM. Keep this file
+# ASCII-only and construct the default Chinese test keyword from Unicode codepoints.
+if ([string]::IsNullOrWhiteSpace($Keyword)) {
+    $Keyword = -join @(
+        [char]0x7537, [char]0x5B50, [char]0x505C, [char]0x6B62,
+        [char]0x8D44, [char]0x52A9, [char]0x5B66, [char]0x751F,
+        [char]0x540E, [char]0x906D, [char]0x5A01, [char]0x80C1
+    )
+}
 
 if (-not $env:DASHSCOPE_API_KEY) {
     Write-Host "ERROR: DASHSCOPE_API_KEY is not set." -ForegroundColor Red
@@ -40,5 +50,6 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Running one-shot full-chain hot-event test" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "Keyword:  $Keyword" -ForegroundColor Cyan
+Write-Host "If the platform opens a CAPTCHA/verification page, finish it manually first. If this run exits while verification is still open, finish verification, keep the saved login session, then rerun once." -ForegroundColor Yellow
 
 python "$root\run_single_platform.py" --platform $Platform --keyword $Keyword --once
