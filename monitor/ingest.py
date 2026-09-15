@@ -36,4 +36,7 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "new_records": len(fresh),
         "classified_records": len(classified),
         "total_seen": len(seen),
+        # Private in-memory payload for the dashboard bridge. The orchestrator removes
+        # this before writing status JSON, so a whole data batch is not duplicated there.
+        "_classified_rows": classified,
     }
