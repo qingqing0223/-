@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PublicOpinionMonitorV2Output",
+  "type": "object",
+  "required": ["status", "type"],
+  "additionalProperties": false,
+  "properties": {
+    "status": {"enum": ["normal", "neutral", "attention", "problematic"]},
+    "type": {
+      "type": ["string", "null"],
+      "enum": ["support", "information_gap", "consultation", "concern", "criticism", "skepticism", "implementation_issue", "fairness_dispute", "complaint_rights", "discriminatory_expression", null]
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "normal"}}}, "then": {"properties": {"type": {"const": "support"}}}},
+    {"if": {"properties": {"status": {"const": "neutral"}}}, "then": {"properties": {"type": {"type": "null"}}}},
+    {"if": {"properties": {"status": {"const": "attention"}}}, "then": {"properties": {"type": {"enum": ["information_gap", "consultation"]}}}},
+    {"if": {"properties": {"status": {"const": "problematic"}}}, "then": {"properties": {"type": {"enum": ["concern", "criticism", "skepticism", "implementation_issue", "fairness_dispute", "complaint_rights", "discriminatory_expression"]}}}}
+  ]
+}
