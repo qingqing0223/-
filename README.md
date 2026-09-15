@@ -2,7 +2,7 @@
 
 当前端到端链路：
 
-**微博 / 小红书 / 抖音 / 快手 → MediaCrawler关键词搜索 → 增量去重 → 志鹏 v2 分类 → 苏琦实时大屏后端 `/api/ingest` → `/api/bootstrap` + SSE → 大屏**
+**微博 / 小红书 / 抖音 / 快手 → MediaCrawler关键词搜索 → 增量去重 → v2 分类 → 实时大屏后端 `/api/ingest` → `/api/bootstrap` + SSE → 大屏**
 
 ## 当前6个重点关键词
 
