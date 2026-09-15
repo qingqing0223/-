@@ -16,7 +16,24 @@ if (-not $env:DASHSCOPE_API_KEY) {
 
 Write-Host "Checking Suqi dashboard backend..." -ForegroundColor Cyan
 python .\scripts\check_suqi_dashboard.py
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Dashboard backend is not running. Starting the latest Suqi dashboard..." -ForegroundColor Yellow
+    .\scripts\open_latest_dashboard_windows.ps1
+
+    $ok = $false
+    for ($i = 0; $i -lt 12; $i++) {
+        Start-Sleep -Seconds 1
+        python .\scripts\check_suqi_dashboard.py
+        if ($LASTEXITCODE -eq 0) {
+            $ok = $true
+            break
+        }
+    }
+    if (-not $ok) {
+        Write-Host "ERROR: Suqi dashboard backend still unavailable after startup attempt." -ForegroundColor Red
+        exit 1
+    }
+}
 
 Write-Host "Running one-shot full-chain hot-event test" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
