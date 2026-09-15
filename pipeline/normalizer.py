@@ -86,15 +86,42 @@ def _join_unique(parts: list[str]) -> str:
     return "\n".join(out)
 
 
+def _detect_record_type(raw: dict, platform: str, comment_id) -> str:
+    if comment_id:
+        return "comment"
+
+    raw_type = _str(_first(
+        raw, "type", "note_type", "media_type", "content_type", "aweme_type", "item_type"
+    )).strip().lower()
+
+    # Explicit image/note evidence wins over platform defaults.
+    image_list = _first(raw, "image_list", "images", "note_images", "pictures", "pics")
+    if image_list and raw_type not in {"video", "short_video", "aweme", "movie"}:
+        return "post"
+
+    video_evidence = _first(
+        raw, "video_url", "video_download_url", "play_url", "video_play_addr",
+        "video_duration", "duration", "video_id"
+    )
+    if raw_type in {"video", "short_video", "aweme", "movie"} or video_evidence:
+        return "video"
+
+    # XHS and Weibo can both contain video posts; their exported type fields are
+    # used when available. Douyin/Kuaishou default to video only when no image-note
+    # evidence is present.
+    if platform in {"dy", "ks"}:
+        return "video"
+    return "post"
+
+
 def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") -> dict | None:
     title = _first(raw, "title", "note_title", "video_title")
     desc = _first(raw, "desc", "description", "aweme_desc")
     body = _first(raw, "content", "text", "note_text", "content_text", "comment_text")
     tags = _tag_text(raw)
 
-    # Optional future enrichment fields. They are consumed automatically if a later
-    # ASR/OCR stage writes them into the record, while today's fast path still works
-    # from title/description/tags alone.
+    # Optional enrichment fields. A later generic video ASR/OCR stage can write
+    # them for any platform; classification then consumes them automatically.
     asr_text = _first(raw, "asr_text", "transcript_text", "speech_text")
     ocr_text = _first(raw, "ocr_text", "subtitle_text", "screen_text")
 
@@ -117,19 +144,17 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     comments = _first(raw, "comments", "comment_count", "comments_count", "comment_num")
     shares = _first(raw, "shares", "share_count", "shared_count", "repost_count", "forward_count")
 
-    if comment_id:
-        record_type = "comment"
+    record_type = _detect_record_type(raw, platform, comment_id)
+    if record_type == "comment":
         attitude_target = "audience_comment"
-    elif platform in {"dy", "ks"}:
-        record_type = "video"
+    elif record_type == "video":
         attitude_target = "publisher_video"
     else:
-        record_type = "post"
         attitude_target = "publisher_post"
 
-    # For Douyin/Kuaishou, attitude classification should represent the video's own
-    # published message, not the audience. We combine all text evidence available on
-    # the fast path. If ASR/OCR are added later, they are included automatically.
+    # Any platform's video uses publisher-side evidence. Today the fast path has
+    # caption/tags; when ASR/OCR are added, those signals are merged without changing
+    # the downstream v2 interface.
     if record_type == "video":
         analysis_text = _join_unique([
             _str(title), _str(desc), _str(body), tags, _str(asr_text), _str(ocr_text)
