@@ -8,6 +8,7 @@ import time
 from .crawler_runner import run_platform, find_content_jsonl
 from .ingest import ingest_and_classify
 from pipeline.io_utils import write_json
+from dashboard_adapter.suqi_pusher import push_records
 
 def load_config(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -32,6 +33,7 @@ def run_one_cycle(cfg: dict) -> dict:
             runs.append(future.result())
 
     ingests = []
+    new_classified_rows = []
     for run in runs:
         if run.status != "ok":
             ingests.append({
@@ -53,12 +55,12 @@ def run_one_cycle(cfg: dict) -> dict:
             continue
 
         try:
-            ingests.append(
-                ingest_and_classify(
-                    run.platform, files, state_path, classified_path,
-                    int(cfg.get("classifier_concurrency", 4))
-                )
+            summary = ingest_and_classify(
+                run.platform, files, state_path, classified_path,
+                int(cfg.get("classifier_concurrency", 4))
             )
+            new_classified_rows.extend(summary.pop("_classified_rows", []))
+            ingests.append(summary)
         except Exception as exc:
             ingests.append({
                 "platform": run.platform,
@@ -67,10 +69,28 @@ def run_one_cycle(cfg: dict) -> dict:
                 "skipped_reason": f"classifier_error:{type(exc).__name__}:{exc}"
             })
 
+    dashboard_cfg = cfg.get("dashboard", {}) or {}
+    dashboard_push = {
+        "enabled": bool(dashboard_cfg.get("enabled", False)),
+        "sent": 0,
+        "ok": None,
+    }
+    if dashboard_push["enabled"]:
+        if new_classified_rows:
+            dashboard_push = push_records(
+                new_classified_rows,
+                ingest_url=str(dashboard_cfg.get("ingest_url", "")),
+                timeout_seconds=int(dashboard_cfg.get("timeout_seconds", 15)),
+            )
+            dashboard_push["enabled"] = True
+        else:
+            dashboard_push.update({"ok": True, "reason": "no_new_records"})
+
     result = {
         "cycle_finished_at": datetime.now().isoformat(timespec="seconds"),
         "platform_runs": [r.__dict__ for r in runs],
         "ingest": ingests,
+        "dashboard_push": dashboard_push,
         "classified_output": str(classified_path),
     }
     write_json(status_path, result)
