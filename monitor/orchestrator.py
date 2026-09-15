@@ -8,7 +8,7 @@ import time
 from .crawler_runner import run_platform, find_content_jsonl
 from .ingest import ingest_and_classify
 from pipeline.io_utils import write_json
-from dashboard_adapter.suqi_pusher import push_records
+from dashboard_adapter.suqi_pusher import deliver_with_outbox
 
 def load_config(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -22,6 +22,7 @@ def run_one_cycle(cfg: dict) -> dict:
     state_path = data_root / "state" / "seen_ids.json"
     classified_path = data_root / "classified" / "classified_results.jsonl"
     status_path = data_root / "status" / "latest_status.json"
+    dashboard_outbox_path = data_root / "outbox" / "suqi_pending.jsonl"
 
     enabled = [p for p in cfg["platforms"] if p.get("enabled", True)]
     workers = max(1, int(cfg.get("max_parallel_platforms", 1)))
@@ -76,15 +77,13 @@ def run_one_cycle(cfg: dict) -> dict:
         "ok": None,
     }
     if dashboard_push["enabled"]:
-        if new_classified_rows:
-            dashboard_push = push_records(
-                new_classified_rows,
-                ingest_url=str(dashboard_cfg.get("ingest_url", "")),
-                timeout_seconds=int(dashboard_cfg.get("timeout_seconds", 15)),
-            )
-            dashboard_push["enabled"] = True
-        else:
-            dashboard_push.update({"ok": True, "reason": "no_new_records"})
+        dashboard_push = deliver_with_outbox(
+            new_classified_rows,
+            ingest_url=str(dashboard_cfg.get("ingest_url", "")),
+            outbox_path=dashboard_outbox_path,
+            timeout_seconds=int(dashboard_cfg.get("timeout_seconds", 15)),
+        )
+        dashboard_push["enabled"] = True
 
     result = {
         "cycle_finished_at": datetime.now().isoformat(timespec="seconds"),
@@ -92,6 +91,7 @@ def run_one_cycle(cfg: dict) -> dict:
         "ingest": ingests,
         "dashboard_push": dashboard_push,
         "classified_output": str(classified_path),
+        "dashboard_outbox": str(dashboard_outbox_path),
     }
     write_json(status_path, result)
     return result
