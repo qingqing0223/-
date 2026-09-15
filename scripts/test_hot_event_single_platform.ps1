@@ -7,7 +7,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-Set-Location "$PSScriptRoot\.."
+$root = (Resolve-Path "$PSScriptRoot\..").Path
+Set-Location $root
 
 if (-not $env:DASHSCOPE_API_KEY) {
     Write-Host "ERROR: DASHSCOPE_API_KEY is not set." -ForegroundColor Red
@@ -15,15 +16,16 @@ if (-not $env:DASHSCOPE_API_KEY) {
 }
 
 Write-Host "Checking Suqi dashboard backend..." -ForegroundColor Cyan
-python .\scripts\check_suqi_dashboard.py
+python "$root\scripts\check_suqi_dashboard.py"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Dashboard backend is not running. Starting the latest Suqi dashboard..." -ForegroundColor Yellow
-    .\scripts\open_latest_dashboard_windows.ps1
+    & "$root\scripts\open_latest_dashboard_windows.ps1"
+    Set-Location $root
 
     $ok = $false
     for ($i = 0; $i -lt 12; $i++) {
         Start-Sleep -Seconds 1
-        python .\scripts\check_suqi_dashboard.py
+        python "$root\scripts\check_suqi_dashboard.py"
         if ($LASTEXITCODE -eq 0) {
             $ok = $true
             break
@@ -39,4 +41,4 @@ Write-Host "Running one-shot full-chain hot-event test" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "Keyword:  $Keyword" -ForegroundColor Cyan
 
-python .\run_single_platform.py --platform $Platform --keyword $Keyword --once
+python "$root\run_single_platform.py" --platform $Platform --keyword $Keyword --once
