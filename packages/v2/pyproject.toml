@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "public-opinion-monitor-v2"
+version = "2.1.0"
+description = "Fixed-taxonomy public opinion status/type classifier using Qwen3.8 Flash API"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+opinion-monitor-v2 = "opinion_monitor_v2.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["opinion_monitor_v2*"]
+
+[tool.setuptools.package-data]
+opinion_monitor_v2 = ["prompts_v2_1.json", "schemas/*.json"]
