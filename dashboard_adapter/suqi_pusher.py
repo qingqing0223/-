@@ -4,6 +4,7 @@ import json
 import os
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any
 
 PLATFORM_LABELS = {
@@ -134,3 +135,79 @@ def push_records(
             "sent": len(records),
             "error": f"{type(exc).__name__}: {exc}",
         }
+
+
+def _read_outbox(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    rows = []
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+                if isinstance(obj, dict):
+                    rows.append(obj)
+            except Exception:
+                continue
+    return rows
+
+
+def _write_outbox(path: Path, rows: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not rows:
+        if path.exists():
+            path.unlink()
+        return
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    tmp.replace(path)
+
+
+def deliver_with_outbox(
+    new_records: list[dict],
+    ingest_url: str,
+    outbox_path: Path,
+    timeout_seconds: int = 15,
+) -> dict:
+    """Retry prior failed dashboard deliveries, then add the current batch.
+
+    Suqi's backend deduplicates on uid, so retrying a full batch is idempotent.
+    """
+    pending = _read_outbox(outbox_path)
+    combined = pending + list(new_records)
+
+    # Deduplicate locally by platform + sample_id while preserving order.
+    unique = []
+    seen = set()
+    for row in combined:
+        key = row.get("dedupe_key") or f"{row.get('platform','')}:{row.get('sample_id','')}"
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(row)
+
+    if not unique:
+        return {
+            "ok": True,
+            "sent": 0,
+            "inserted": 0,
+            "skipped": 0,
+            "outbox_before": len(pending),
+            "outbox_after": 0,
+        }
+
+    result = push_records(unique, ingest_url=ingest_url, timeout_seconds=timeout_seconds)
+    if result.get("ok"):
+        _write_outbox(outbox_path, [])
+        result["outbox_before"] = len(pending)
+        result["outbox_after"] = 0
+    else:
+        _write_outbox(outbox_path, unique)
+        result["outbox_before"] = len(pending)
+        result["outbox_after"] = len(unique)
+    return result
