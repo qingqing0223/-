@@ -43,11 +43,19 @@ def _attitude_from_v2(status: str, type_: str | None) -> str:
     if status == "neutral":
         return "中性信息"
     if status == "attention":
-        # v2 attention = information gap / consultation, not an explicit problem judgement.
         return "中性信息"
     if status == "problematic":
         return "非支持/非肯定"
     return "待核实"
+
+
+def _source_label(row: dict) -> str:
+    record_type = row.get("record_type")
+    if record_type == "video":
+        return "MediaCrawler视频发布内容监测"
+    if record_type == "comment":
+        return "MediaCrawler评论监测"
+    return "MediaCrawler帖子监测"
 
 
 def to_suqi_record(row: dict) -> dict:
@@ -60,6 +68,18 @@ def to_suqi_record(row: dict) -> dict:
     notes_parts = [f"v2_status={v2_status or 'unknown'}"]
     if v2_type:
         notes_parts.append(f"v2_type={v2_type}")
+    if row.get("record_type"):
+        notes_parts.append(f"record_type={row['record_type']}")
+    if row.get("attitude_target"):
+        notes_parts.append(f"attitude_target={row['attitude_target']}")
+    if row.get("analysis_basis"):
+        notes_parts.append(f"analysis_basis={row['analysis_basis']}")
+    if row.get("video_attitude_scope"):
+        notes_parts.append(f"video_attitude_scope={row['video_attitude_scope']}")
+    if row.get("record_type") == "video":
+        notes_parts.append(
+            "video_multimodal_complete=" + str(bool(row.get("video_multimodal_complete"))).lower()
+        )
     if row.get("source_keyword"):
         notes_parts.append(f"keyword={row['source_keyword']}")
 
@@ -68,7 +88,7 @@ def to_suqi_record(row: dict) -> dict:
         "collected_at": row.get("first_seen_time") or "",
         "published_at": row.get("publish_time") or "",
         "platform": platform,
-        "source": "MediaCrawler关键词监测",
+        "source": _source_label(row),
         "account": row.get("author") or "",
         "text": row.get("content") or "",
         "url": row.get("url") or "",
@@ -181,7 +201,6 @@ def deliver_with_outbox(
     pending = _read_outbox(outbox_path)
     combined = pending + list(new_records)
 
-    # Deduplicate locally by platform + sample_id while preserving order.
     unique = []
     seen = set()
     for row in combined:
