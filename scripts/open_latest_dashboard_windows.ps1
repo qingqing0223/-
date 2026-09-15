@@ -1,5 +1,6 @@
 $ErrorActionPreference = "Stop"
 
+$callerLocation = Get-Location
 $repo = "E:\Real-time-situation-map"
 $live = Join-Path $repo "yuqing-v1\03_live_system"
 $url = "http://127.0.0.1:8765/"
@@ -10,22 +11,27 @@ if (-not (Test-Path $repo)) {
     exit 1
 }
 
-Write-Host "Updating Suqi dashboard repo..." -ForegroundColor Cyan
-Set-Location $repo
-git pull
-
-$running = $false
 try {
-    $r = Invoke-RestMethod $health -TimeoutSec 2
-    if ($r.ok) { $running = $true }
-} catch {}
+    Write-Host "Updating Suqi dashboard repo..." -ForegroundColor Cyan
+    Set-Location $repo
+    git pull
 
-if (-not $running) {
-    Write-Host "Starting dashboard backend in a new PowerShell window..." -ForegroundColor Cyan
-    $cmd = "Set-Location '$live'; python server.py --no-sim"
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", $cmd
-    Start-Sleep -Seconds 4
+    $running = $false
+    try {
+        $r = Invoke-RestMethod $health -TimeoutSec 2
+        if ($r.ok) { $running = $true }
+    } catch {}
+
+    if (-not $running) {
+        Write-Host "Starting dashboard backend in a new PowerShell window..." -ForegroundColor Cyan
+        $cmd = "Set-Location '$live'; python server.py --no-sim"
+        Start-Process powershell -ArgumentList "-NoExit", "-Command", $cmd
+        Start-Sleep -Seconds 4
+    }
+
+    Write-Host "Opening latest dashboard: $url" -ForegroundColor Green
+    Start-Process $url
 }
-
-Write-Host "Opening latest dashboard: $url" -ForegroundColor Green
-Start-Process $url
+finally {
+    Set-Location $callerLocation
+}
