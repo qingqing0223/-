@@ -1,19 +1,10 @@
 $ErrorActionPreference = "Stop"
 Set-Location "$PSScriptRoot\.."
 
-if (-not $env:DASHSCOPE_API_KEY) {
-    Write-Host "ERROR: DASHSCOPE_API_KEY is not set." -ForegroundColor Red
-    exit 1
-}
-
-Write-Host "[1/3] Checking Suqi dashboard backend..." -ForegroundColor Cyan
-python .\scripts\check_suqi_dashboard.py
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-Write-Host "[2/3] Opening realtime dashboard..." -ForegroundColor Cyan
-Start-Process "http://127.0.0.1:8765/"
-
-Write-Host "[3/3] Starting 5-minute realtime loop: XHS + Douyin..." -ForegroundColor Cyan
-Write-Host "Douyin should only be enabled after the one-shot attitude test passes without CAPTCHA/soft-empty." -ForegroundColor Yellow
-Write-Host "Press Ctrl+C to stop. Keep this PowerShell window open." -ForegroundColor Yellow
-python .\run_monitor.py --config .\config\monitoring.realtime.xhs_dy.windows.json
+Write-Host "This combined XHS + Douyin launcher is deprecated for the current deployment plan." -ForegroundColor Yellow
+Write-Host "Run one platform per PowerShell instead:" -ForegroundColor Cyan
+Write-Host "  .\scripts\start_single_platform_windows.ps1 -Platform xhs"
+Write-Host "  .\scripts\start_single_platform_windows.ps1 -Platform dy"
+Write-Host "  .\scripts\start_single_platform_windows.ps1 -Platform wb"
+Write-Host "  .\scripts\start_single_platform_windows.ps1 -Platform ks"
+exit 1
