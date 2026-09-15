@@ -1,5 +1,6 @@
 from __future__ import annotations
 from opinion_monitor_v2 import OpinionMonitorV2
+from .content_source_classifier import classify_source_types
 
 
 def classify_records(records: list[dict], concurrency: int = 4) -> list[dict]:
@@ -39,4 +40,7 @@ def classify_records(records: list[dict], concurrency: int = 4) -> list[dict]:
             row["post_attitude_type"] = decision.get("type")
 
         merged.append(row)
-    return merged
+
+    # Independent auxiliary classification for the five content-source categories
+    # used in the reporting table. This does not alter v2 status/type.
+    return classify_source_types(merged)
