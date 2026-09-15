@@ -18,7 +18,7 @@
   "platforms": [
     {"code": "wb", "name": "微博", "enabled": false},
     {"code": "xhs", "name": "小红书", "enabled": true},
-    {"code": "dy", "name": "抖音", "enabled": true},
+    {"code": "dy", "name": "抖音", "enabled": false},
     {"code": "ks", "name": "快手", "enabled": false}
   ],
   "keywords": [
