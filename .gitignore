@@ -1,0 +1,17 @@
+.env
+*.key
+__pycache__/
+*.pyc
+.venv/
+venv/
+logs/
+data/inbox/*
+data/out/*
+data/state/*
+data/raw_runs/
+data/status/
+browser_data/
+cookies/
+*.log
+.DS_Store
+config/monitoring.local.json
