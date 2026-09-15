@@ -5,13 +5,15 @@ from pathlib import Path
 import json
 import time
 
-from .crawler_runner import run_platform, find_content_jsonl
+from .crawler_runner import run_platform, find_ingest_jsonl
 from .ingest import ingest_and_classify
 from pipeline.io_utils import write_json
 from dashboard_adapter.suqi_pusher import deliver_with_outbox
 
+
 def load_config(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
 
 def run_one_cycle(cfg: dict) -> dict:
     data_root = Path(cfg["data_root"])
@@ -35,23 +37,28 @@ def run_one_cycle(cfg: dict) -> dict:
 
     ingests = []
     new_classified_rows = []
+    include_comments = bool(cfg.get("ingest_comments", False))
     for run in runs:
         if run.status != "ok":
             ingests.append({
                 "platform": run.platform,
                 "new_records": 0,
                 "classified_records": 0,
+                "region_records": 0,
+                "region_rate": 0.0,
                 "skipped_reason": f"crawler_{run.status}"
             })
             continue
 
-        files = find_content_jsonl(Path(run.output_dir))
+        files = find_ingest_jsonl(Path(run.output_dir), include_comments=include_comments)
         if not files:
             ingests.append({
                 "platform": run.platform,
                 "new_records": 0,
                 "classified_records": 0,
-                "skipped_reason": "no_content_jsonl"
+                "region_records": 0,
+                "region_rate": 0.0,
+                "skipped_reason": "no_ingest_jsonl"
             })
             continue
 
@@ -61,12 +68,15 @@ def run_one_cycle(cfg: dict) -> dict:
                 int(cfg.get("classifier_concurrency", 4))
             )
             new_classified_rows.extend(summary.pop("_classified_rows", []))
+            summary["ingest_comments"] = include_comments
             ingests.append(summary)
         except Exception as exc:
             ingests.append({
                 "platform": run.platform,
                 "new_records": 0,
                 "classified_records": 0,
+                "region_records": 0,
+                "region_rate": 0.0,
                 "skipped_reason": f"classifier_error:{type(exc).__name__}:{exc}"
             })
 
@@ -96,6 +106,7 @@ def run_one_cycle(cfg: dict) -> dict:
     write_json(status_path, result)
     return result
 
+
 def run_forever(cfg: dict) -> None:
     interval = int(cfg.get("interval_seconds", 300))
     if interval < 60:
@@ -110,8 +121,8 @@ def run_forever(cfg: dict) -> None:
         if elapsed > interval:
             print(
                 f"[monitor] cycle took {elapsed:.1f}s, longer than {interval}s. "
-                "The next round starts immediately; true 5-minute four-platform "
-                "coverage is not yet proven on this computer."
+                "The next round starts immediately; the requested interval was missed "
+                "for this platform/cycle."
             )
         else:
             print(f"[monitor] sleep {sleep_for:.1f}s")
