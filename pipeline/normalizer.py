@@ -12,6 +12,45 @@ def _first(d: dict, *keys):
 def _str(v):
     return "" if v is None else str(v)
 
+def _to_int(v):
+    if v is None or v == "":
+        return 0
+    if isinstance(v, (int, float)):
+        return int(v)
+    s = str(v).strip().replace(",", "").replace("，", "")
+    try:
+        if s.lower().endswith("w"):
+            return int(float(s[:-1]) * 10000)
+        if s.endswith("万"):
+            return int(float(s[:-1]) * 10000)
+        if s.lower().endswith("k"):
+            return int(float(s[:-1]) * 1000)
+        return int(float(s))
+    except Exception:
+        return 0
+
+def _to_iso_time(v):
+    if v is None or v == "":
+        return ""
+    if isinstance(v, (int, float)):
+        ts = float(v)
+        if ts > 1e12:
+            ts /= 1000.0
+        try:
+            return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone().isoformat(timespec="seconds")
+        except Exception:
+            return str(v)
+    s = str(v).strip()
+    if s.isdigit():
+        try:
+            ts = float(s)
+            if ts > 1e12:
+                ts /= 1000.0
+            return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone().isoformat(timespec="seconds")
+        except Exception:
+            pass
+    return s
+
 def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") -> dict | None:
     title = _first(raw, "title", "note_title", "video_title")
     desc = _first(raw, "desc", "description", "aweme_desc")
@@ -30,6 +69,10 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     author = _first(raw, "author", "nickname", "user_name", "user_nickname", "sec_user_name")
     source_keyword = _first(raw, "source_keyword", "keyword", "search_keyword")
 
+    likes = _first(raw, "likes", "like_count", "liked_count", "digg_count", "liked_count", "thumbs_count")
+    comments = _first(raw, "comments", "comment_count", "comments_count", "comment_num")
+    shares = _first(raw, "shares", "share_count", "shared_count", "repost_count", "forward_count")
+
     sample_id = _first(raw, "sample_id", "comment_id", "cid", "content_id", "aweme_id", "note_id", "video_id", "photo_id", "id", "mid")
     if sample_id is None:
         basis = f"{platform}|{source_file}|{content}|{context}|{publish_time}|{author}"
@@ -46,10 +89,13 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "content": _str(content).strip(),
         "context": _str(context).strip(),
         "source_keyword": _str(source_keyword),
-        "publish_time": _str(publish_time),
+        "publish_time": _to_iso_time(publish_time),
         "first_seen_time": now,
         "ip_location": _str(region),
         "author": _str(author),
         "url": _str(url),
+        "likes": _to_int(likes),
+        "comments": _to_int(comments),
+        "shares": _to_int(shares),
         "source_file": source_file,
     }
