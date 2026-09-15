@@ -1,0 +1,32 @@
+{
+  "media_crawler_root": "E:\\MediaCrawler_clean",
+  "data_root": "E:\\MediaCrawlerData\\promotion_week_realtime_pilot",
+  "interval_seconds": 300,
+  "max_parallel_platforms": 1,
+  "classifier_concurrency": 4,
+  "login_type": "qrcode",
+  "crawler_max_notes_count": 20,
+  "max_concurrency_num": 1,
+  "get_comment": "no",
+  "get_sub_comment": "no",
+  "save_data_option": "jsonl",
+  "dashboard": {
+    "enabled": true,
+    "ingest_url": "http://127.0.0.1:8765/api/ingest",
+    "timeout_seconds": 15
+  },
+  "platforms": [
+    {"code": "wb", "name": "微博", "enabled": false},
+    {"code": "xhs", "name": "小红书", "enabled": true},
+    {"code": "dy", "name": "抖音", "enabled": true},
+    {"code": "ks", "name": "快手", "enabled": false}
+  ],
+  "keywords": [
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "促进民族团结进步，奋进伟大复兴征程",
+    "民族团结进步倡议",
+    "民族团结进步宣传周主场活动",
+    "石榴花开——铸牢中华民族共同体意识"
+  ]
+}
