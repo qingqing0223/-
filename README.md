@@ -55,9 +55,8 @@ python -m pip install -r requirements.txt
 $env:DASHSCOPE_API_KEY="YOUR_NEW_KEY"
 ```
 
-不要使用已经暴露在聊天截图中的旧Key。
 
-## 苏琦实时大屏对接
+## 实时大屏对接
 
 已核对 `singernavyblue/Real-time-situation-map` 当前实时后端代码，其 `server.py` 已提供：
 
@@ -77,9 +76,9 @@ GET  /api/events   # SSE
 http://127.0.0.1:8765/api/ingest
 ```
 
-这只适用于苏琦后端和本监测程序运行在同一台电脑。
+这只适用于后端和本监测程序运行在同一台电脑。
 
-如果苏琦后端在另一台电脑或服务器上，设置：
+如果后端在另一台电脑或服务器上，设置：
 
 ```powershell
 $env:SUQI_INGEST_URL="http://<后端IP或域名>:8765/api/ingest"
@@ -134,11 +133,10 @@ MediaCrawler 四平台搜索
 "max_parallel_platforms": 1
 ```
 
-这是保守设置。老师要求的“单机能并行几个”需要先比较1、2、3个平台并行的耗时、CPU/内存、验证码和风控，再决定是否把它改成2或更高。
 
 ## v2分类
 
-保留志鹏当前v2原始口径：
+保留当前v2原始口径：
 
 - status: `normal / neutral / attention / problematic`
 - type: `support / information_gap / consultation / concern / criticism / skepticism / implementation_issue / fairness_dispute / complaint_rights / discriminatory_expression / null`
