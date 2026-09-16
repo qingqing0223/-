@@ -33,18 +33,39 @@ if (-not $pythonCmd) {
 $PythonExe = $pythonCmd.Source
 Write-Host "Python:   $PythonExe" -ForegroundColor Cyan
 
+# PowerShell 5.1 can turn stderr from a native executable into a terminating
+# NativeCommandError when ErrorActionPreference=Stop. That prevented the intended
+# self-repair from running when opinion_monitor_v2 was missing. Probe/install with
+# native stderr treated as ordinary process output and decide from $LASTEXITCODE.
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
 & $PythonExe -c "import opinion_monitor_v2" 2>$null
-if ($LASTEXITCODE -ne 0) {
+$importCode = $LASTEXITCODE
+$ErrorActionPreference = $previousErrorActionPreference
+
+if ($importCode -ne 0) {
     Write-Host "Local classifier package is missing in the current Python; installing packages/v2..." -ForegroundColor Yellow
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     & $PythonExe -m pip install -e (Join-Path $RepoRoot "packages\v2")
-    if ($LASTEXITCODE -ne 0) {
+    $installCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+
+    if ($installCode -ne 0) {
         Write-Host "ERROR: failed to install local classifier package packages/v2." -ForegroundColor Red
-        exit $LASTEXITCODE
+        exit $installCode
     }
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     & $PythonExe -c "import opinion_monitor_v2; print('opinion_monitor_v2 import OK:', opinion_monitor_v2.__file__)"
-    if ($LASTEXITCODE -ne 0) {
+    $verifyCode = $LASTEXITCODE
+    $ErrorActionPreference = $previousErrorActionPreference
+
+    if ($verifyCode -ne 0) {
         Write-Host "ERROR: classifier package still cannot be imported by $PythonExe." -ForegroundColor Red
-        exit $LASTEXITCODE
+        exit $verifyCode
     }
 }
 
