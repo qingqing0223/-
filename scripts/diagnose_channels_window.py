@@ -37,10 +37,13 @@ def main() -> None:
             if len(texts) >= 40:
                 break
 
-        score = 0
         joined = " ".join(texts)
+        is_wechatish = title in {"微信", "WeChat"} or "视频号" in joined or "Channels" in joined
+        score = 0
         if class_name == "Chrome_WidgetWin_0":
             score += 2
+        if title in {"微信", "WeChat"}:
+            score += 3
         if edits:
             score += 4
         if documents:
@@ -58,13 +61,22 @@ def main() -> None:
             "descendant_count": len(descendants),
             "edit_count": len(edits),
             "document_count": len(documents),
+            "is_wechatish": is_wechatish,
             "sample_texts": texts,
             "candidate_score": score,
         })
 
     rows.sort(key=lambda x: x["candidate_score"], reverse=True)
-    diagnosis = "CHANNELS_UIA_WINDOW_VISIBLE" if rows and rows[0]["candidate_score"] >= 8 else "CHANNELS_UIA_WINDOW_NOT_FOUND"
-    print(json.dumps({"diagnosis": diagnosis, "candidates": rows[:10]}, ensure_ascii=False, indent=2))
+    good = [
+        r for r in rows
+        if r["is_wechatish"]
+        and r["class_name"] == "Chrome_WidgetWin_0"
+        and r["edit_count"] > 0
+        and r["document_count"] > 0
+        and r["candidate_score"] >= 10
+    ]
+    diagnosis = "CHANNELS_UIA_WINDOW_VISIBLE" if good else "CHANNELS_UIA_WINDOW_NOT_FOUND"
+    print(json.dumps({"diagnosis": diagnosis, "channels_candidates": good[:5], "all_candidates": rows[:10]}, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
