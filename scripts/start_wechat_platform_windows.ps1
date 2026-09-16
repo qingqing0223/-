@@ -42,10 +42,20 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "wechat_mp_max_results_per_keyword" 100000
     Set-ConfigProperty $cfgObj "wechat_channels_scroll_pages" 1000
     Set-ConfigProperty $cfgObj "wechat_channels_max_results_per_keyword" 100000
+    if ($Platform -eq "wechat_mp") {
+        Set-ConfigProperty $cfgObj "interval_seconds" 300
+        Set-ConfigProperty $cfgObj "wechat_mp_interval_seconds" 300
+        $dashboardObj = [PSCustomObject]@{
+            enabled = $true
+            ingest_url = "http://127.0.0.1:8765/api/ingest"
+            timeout_seconds = 15
+        }
+        Set-ConfigProperty $cfgObj "dashboard" $dashboardObj
+    }
     $json = $cfgObj | ConvertTo-Json -Depth 100
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($resolvedConfig, $json, $utf8NoBom)
-    Write-Host "WeChat local config upgraded for deep paging." -ForegroundColor Green
+    Write-Host "WeChat local config upgraded for realtime/deep paging." -ForegroundColor Green
 }
 
 if ($Platform -eq "wechat_channels") {
