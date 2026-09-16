@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","wb","ks")]
+    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu")]
     [string]$Platform,
 
     [string]$Keyword = ""
@@ -50,6 +50,6 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Running one-shot full-chain hot-event test" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "Keyword:  $Keyword" -ForegroundColor Cyan
-Write-Host "If the platform opens a CAPTCHA/verification page, finish it manually first. If this run exits while verification is still open, finish verification, keep the saved login session, then rerun once." -ForegroundColor Yellow
+Write-Host "If the platform opens an official CAPTCHA/verification page, finish it manually. Do not repeatedly rerun while verification is pending." -ForegroundColor Yellow
 
 python "$root\run_single_platform.py" --platform $Platform --keyword $Keyword --once
