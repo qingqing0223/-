@@ -6,13 +6,13 @@
   "results_date": "2026-09-16",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-16T18:03:37+08:00",
+  "generated_at": "2026-09-16T18:08:57+08:00",
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba"
   ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T18:03:37+08:00",
+    "generated_at": "2026-09-16T18:08:57+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
@@ -42,11 +42,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
-        "cycle_finished_at": "2026-09-16T17:59:24",
+        "cycle_finished_at": "2026-09-16T18:04:41",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 315.2,
+        "duration_seconds": 316.25,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
