@@ -109,11 +109,16 @@ def _detect_record_type(raw: dict, platform: str, comment_id) -> str:
     if raw_type in video_types or video_evidence:
         return "video"
 
-    # Douyin/Kuaishou exports are video-first. Other platforms are mixed and only
-    # become video when their exported type/URL/id gives explicit evidence.
     if platform in {"dy", "ks"}:
         return "video"
     return "post"
+
+
+def _nonzero_id(value) -> str:
+    text = _str(value).strip()
+    if text.lower() in {"", "0", "none", "null", "false"}:
+        return ""
+    return text
 
 
 def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") -> dict | None:
@@ -135,6 +140,13 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "dynamic_id", "id", "mid"
     )
     comment_id = _first(raw, "comment_id", "cid", "rpid")
+    parent_comment_id = _nonzero_id(_first(
+        raw, "parent_comment_id", "parent_id", "reply_comment_id",
+        "reply_to_comment_id", "reply_to_id", "parent_rpid"
+    ))
+    root_comment_id = _nonzero_id(_first(raw, "root_comment_id", "root_id", "root_rpid"))
+    sub_comment_count = _to_int(_first(raw, "sub_comment_count", "sub_comments_count", "reply_count"))
+
     platform = _first(raw, "platform", "source_platform", "source") or platform_hint
     platform = _str(platform).strip()
     region = _first(raw, "ip_location", "region", "province", "ip_region")
@@ -147,11 +159,15 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "share_url", "detail_url"
     )
     author = _first(raw, "author", "nickname", "user_name", "user_nickname", "sec_user_name")
+    author_id = _first(raw, "creator_hash", "user_id", "author_id", "uid", "sec_uid", "mid")
+    author_avatar = _first(raw, "avatar", "avatar_url", "user_avatar", "head_url")
+    author_profile_url = _first(raw, "user_url", "author_url", "profile_url", "creator_url")
+    reply_to_author = _first(raw, "reply_to_nickname", "reply_user_name", "reply_to_user_name")
     source_keyword = _first(raw, "source_keyword", "keyword", "search_keyword")
 
     likes = _first(
         raw, "likes", "like_count", "liked_count", "digg_count", "thumbs_count",
-        "voteup_count", "total_liked"
+        "voteup_count", "total_liked", "comment_like_count"
     )
     comments = _first(
         raw, "comments", "comment_count", "comments_count", "comment_num",
@@ -161,18 +177,23 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         raw, "shares", "share_count", "shared_count", "repost_count", "forward_count",
         "video_share_count", "total_forwards"
     )
-    views = _first(raw, "views", "view_count", "play_count", "video_play_count")
-    favorites = _first(raw, "favorites", "favorite_count", "video_favorite_count")
+    views = _first(raw, "views", "view_count", "play_count", "video_play_count", "viewd_count")
+    favorites = _first(raw, "favorites", "favorite_count", "video_favorite_count", "collected_count")
     danmaku = _first(raw, "danmaku", "danmaku_count", "video_danmaku")
     coins = _first(raw, "coins", "coin_count", "video_coin_count")
 
     record_type = _detect_record_type(raw, platform, comment_id)
     if record_type == "comment":
         attitude_target = "audience_comment"
+        if not root_comment_id:
+            root_comment_id = parent_comment_id or _str(comment_id)
+        comment_level = 2 if parent_comment_id else 1
     elif record_type == "video":
         attitude_target = "publisher_video"
+        comment_level = 0
     else:
         attitude_target = "publisher_post"
+        comment_level = 0
 
     if record_type == "video":
         analysis_text = _join_unique([
@@ -209,6 +230,10 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "platform": platform,
         "content_id": _str(content_id),
         "comment_id": _str(comment_id),
+        "parent_comment_id": parent_comment_id,
+        "root_comment_id": root_comment_id,
+        "comment_level": comment_level,
+        "sub_comment_count": sub_comment_count,
         "record_type": record_type,
         "attitude_target": attitude_target,
         "analysis_basis": analysis_basis,
@@ -227,6 +252,10 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "language_confidence": language_info["language_confidence"],
         "language_script": language_info["language_script"],
         "author": _str(author),
+        "author_id": _str(author_id),
+        "author_avatar": _str(author_avatar),
+        "author_profile_url": _str(author_profile_url),
+        "reply_to_author": _str(reply_to_author),
         "url": _str(url),
         "likes": _to_int(likes),
         "comments": _to_int(comments),
