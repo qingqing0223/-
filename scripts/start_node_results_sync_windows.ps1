@@ -12,8 +12,8 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location "$PSScriptRoot\.."
 
-if ($IntervalSeconds -lt 300) {
-    Write-Host "ERROR: IntervalSeconds must be >= 300." -ForegroundColor Red
+if ($IntervalSeconds -ne 300) {
+    Write-Host "ERROR: IntervalSeconds must be exactly 300 seconds for this monitoring task." -ForegroundColor Red
     exit 1
 }
 if (-not $NodeId) {
@@ -27,8 +27,10 @@ if (-not (Test-Path $Config)) {
 Write-Host "Starting distributed GitHub result sync" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
-Write-Host "Interval: $IntervalSeconds seconds" -ForegroundColor Cyan
-Write-Host "GitHub receives aggregate monitoring JSON: counts, attitude, comments/replies, public IP-region labels when exposed, engagement, language, video-analysis completeness, and public publisher account aggregate statistics. Raw post/comment text and URLs are not published." -ForegroundColor Yellow
+Write-Host "Interval: $IntervalSeconds seconds (fixed five-minute sync)" -ForegroundColor Cyan
+Write-Host "GitHub receives aggregate monitoring JSON plus privacy-safe raw diagnostics: raw JSONL filenames, row counts, file hashes, field/schema samples, stable hashes for content/comment/reply links, public coarse IP-region fields, and nested field names." -ForegroundColor Yellow
+Write-Host "Raw post/comment text, raw user identifiers, raw URLs, real IP addresses, and precise locations are NOT published to this public repository." -ForegroundColor Yellow
+Write-Host "Full original JSONL remains on the student machine for local retention; use a separate PRIVATE data repository if full raw archival is later required." -ForegroundColor Yellow
 
 $argsList = @(
     ".\scripts\publish_node_result_to_github.py",
@@ -42,7 +44,7 @@ if ($Push) {
     $argsList += "--push"
     Write-Host "Git push enabled. This computer must authenticate with its own GitHub account that has write access." -ForegroundColor Yellow
 } else {
-    Write-Host "Git push disabled; summaries will only be generated locally." -ForegroundColor Yellow
+    Write-Host "Git push disabled; summaries/diagnostics will only be generated locally." -ForegroundColor Yellow
 }
 
 python @argsList
