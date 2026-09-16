@@ -6,24 +6,24 @@
   "results_date": "2026-09-16",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-16T16:05:09+08:00",
+  "generated_at": "2026-09-16T16:07:47+08:00",
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy"
   ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T16:05:09+08:00",
+    "generated_at": "2026-09-16T16:07:47+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-16T15:52:12+08:00",
+    "latest_seen_time": "2026-09-16T16:07:03+08:00",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
     "totals": {
-      "unique_records": 10,
+      "unique_records": 11,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
-      "likes": 52935,
+      "likes": 52936,
       "comments": 112,
       "shares": 1025,
       "views": 0,
@@ -32,45 +32,47 @@
       "coins": 0
     },
     "platforms": {
-      "dy": 10
+      "dy": 11
     },
     "languages": {
-      "汉语": 10
+      "汉语": 11
     },
     "minority_languages": {},
     "regions": {},
     "v2_status": {
-      "neutral": 9,
+      "neutral": 10,
       "normal": 1
     },
     "v2_type": {
-      "null": 9,
+      "null": 10,
       "support": 1
     },
     "source_types": {
-      "权威媒体/新闻评论": 7,
+      "权威媒体/新闻评论": 8,
       "律师/专家解读": 1,
       "自媒体观点": 1,
       "普通用户舆情": 1
     },
     "record_types": {
-      "video": 10
+      "video": 11
     },
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-16T16:01:56",
+        "cycle_finished_at": "2026-09-16T16:07:13",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 136.33,
-        "new_records": 0,
-        "filtered_before_start": 11,
-        "classified_records": 0,
+        "duration_seconds": 143.6,
+        "new_records": 1,
+        "filtered_before_start": 6,
+        "classified_records": 1,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 1
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
