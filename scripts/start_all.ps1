@@ -7,8 +7,10 @@ param(
     [switch]$Multilingual,
     [switch]$EnableGithubSync,
     [switch]$PushGithub,
+    [switch]$EnableKeyAccounts,
     [switch]$PullLatest,
-    [switch]$NoWatchdog
+    [switch]$NoWatchdog,
+    [switch]$SkipPreflight
 )
 
 $ErrorActionPreference = "Stop"
@@ -52,6 +54,15 @@ Write-Host "=== Realtime Opinion Monitor ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "Config:   $Config" -ForegroundColor Cyan
 
+if (-not $SkipPreflight) {
+    Write-Host "Running deployment preflight..." -ForegroundColor Cyan
+    python .\scripts\preflight.py
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Preflight has required failures. Fix them before deployment." -ForegroundColor Red
+        exit 1
+    }
+}
+
 # 1) Ensure the Suqi backend is available. If not, start it in a dedicated window.
 python .\scripts\check_suqi_dashboard.py *> $null
 if ($LASTEXITCODE -ne 0) {
@@ -94,7 +105,20 @@ if ($EnableGithubSync) {
     }
 }
 
-# 4) Run the selected platform. The watchdog restarts ordinary failures but stops
+# 4) Optional key-account creator-mode monitoring. The local account list is
+# intentionally gitignored; only start this worker after verified creator IDs are configured.
+if ($EnableKeyAccounts) {
+    if (Test-Path ".\config\key_accounts.json") {
+        $keyCmd = "Set-Location '$RepoRoot'; .\scripts\start_key_accounts_windows.ps1 -Platform $Platform"
+        Start-Process powershell -ArgumentList "-NoExit", "-Command", $keyCmd
+        Write-Host "Key-account monitor: started for $Platform" -ForegroundColor Green
+    } else {
+        Write-Host "Key-account monitor not started: config\key_accounts.json is missing." -ForegroundColor Yellow
+        Write-Host "Copy config\key_accounts.example.json and fill verified creator IDs first." -ForegroundColor Yellow
+    }
+}
+
+# 5) Run the selected platform. The watchdog restarts ordinary failures but stops
 # on official login/verification requirements to avoid repeatedly triggering risk controls.
 if ($NoWatchdog) {
     Write-Host "Starting monitor without watchdog..." -ForegroundColor Cyan
