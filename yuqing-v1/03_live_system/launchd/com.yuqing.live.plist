@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.yuqing.live</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/Zhuanz/Desktop/文件夹/态势图/yuqing-v1/03_live_system/run_live_server.sh</string>
+  </array>
+
+  <!-- 登录后自动启动；进程退出会自动拉起（KeepAlive） -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>LIVE_PLATFORM_ENABLED</key>
+    <string>1</string>
+    <key>LIVE_PYTHON</key>
+    <string>/Users/Zhuanz/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3</string>
+    <key>LIVE_PORT</key>
+    <string>8765</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/Zhuanz/Desktop/文件夹/态势图/yuqing-v1/03_live_system/logs/live_server.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/Zhuanz/Desktop/文件夹/态势图/yuqing-v1/03_live_system/logs/live_server.err.log</string>
+</dict>
+</plist>

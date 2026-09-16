@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>态势大屏自动刷新包装页</title>
+  <style>
+    html,body{margin:0;height:100%;background:#04121f;overflow:hidden}
+    iframe{display:block;width:100%;height:100%;border:0}
+  </style>
+</head>
+<body>
+  <!-- 原 index.html 不做任何修改，由本包装页定时重新加载它 -->
+  <iframe id="dash" src="index.html" title="态势大屏"></iframe>
+  <script>
+    // 直接打开本文件即可：默认每 300 秒刷新一次；
+    // 也可带参数：大屏自动刷新.html?seconds=600
+    var seconds = parseInt(new URLSearchParams(location.search).get("seconds") || "300", 10);
+    if (!(seconds > 0)) seconds = 300;
+    setInterval(function () {
+      var f = document.getElementById("dash");
+      f.src = f.src; // 重新加载 iframe 里的原大屏
+    }, seconds * 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/weibo_exports/
+inbox/processed/
+__pycache__/
+.env

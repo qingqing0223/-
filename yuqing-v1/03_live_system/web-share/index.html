@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>网络舆情态势感知系统</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root{
+      --bg:#071624;--panel:rgba(12,32,49,.8);--line:rgba(119,190,226,.24);
+      --text:#eef8ff;--muted:#9cc9df;--hot:#eecb72;--red:#d96f6a;--cyan:#38bde8;
+      font-family:"Microsoft YaHei UI","PingFang SC",Arial,sans-serif;color:var(--text);background:var(--bg);
+    }
+    *{box-sizing:border-box} html,body{width:100%;height:100%;margin:0;overflow:hidden;background:
+      radial-gradient(circle at 22% 16%,rgba(56,145,196,.18),transparent 26%),
+      radial-gradient(circle at 82% 20%,rgba(91,166,204,.1),transparent 20%),
+      linear-gradient(180deg,#06121f,#0a1d2d 52%,#071624)}
+    body{color:var(--text)}
+    .screen{width:100vw;height:100vh;max-width:1920px;margin:0 auto;padding:5px 7px;display:grid;
+      grid-template-rows:34px 36px minmax(0,1fr) 202px;gap:5px;overflow:hidden}
+    .topbar{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-width:0}
+    .topbar::before{content:"";position:absolute;left:22%;right:22%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,232,.78),rgba(120,205,218,.48),transparent)}
+    .title{text-align:center;grid-column:2;position:relative;padding:0 30px}.title::before,.title::after{content:"";position:absolute;top:50%;width:58px;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,232,.7))}.title::before{right:100%;transform:translateY(-50%)}.title::after{left:100%;transform:translateY(-50%) rotate(180deg)}
+    .title h1{margin:0;font-size:23px;line-height:1.05;letter-spacing:1px;color:#f5fbff;text-shadow:0 0 14px rgba(56,189,232,.45)}
+    .live-status{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:11px;color:var(--muted);white-space:nowrap;min-width:0;overflow:hidden}
+    .live-status .dot{width:8px;height:8px;border-radius:50%;background:#9cc9df;box-shadow:0 0 8px rgba(156,201,223,.7);flex:0 0 auto}
+    .live-status.on .dot{background:#3fe08a;box-shadow:0 0 10px rgba(63,224,138,.95)}
+    .live-status.off .dot{background:#d96f6a;box-shadow:none}
+    .live-status.pending .dot{background:#eecb72;box-shadow:0 0 8px rgba(238,203,114,.8)}
+    .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+    .kpi,.panel,.map-panel{border:1px solid var(--line);background:var(--panel);border-radius:8px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px rgba(0,0,0,.18);min-width:0;min-height:0}
+    .kpi{display:flex;align-items:center;justify-content:center;gap:7px;padding:4px 8px;overflow:hidden}
+    .kpi span{font-size:12px;color:var(--muted);white-space:nowrap}.kpi b{font-size:15px;color:#fff;white-space:nowrap}
+    .main{position:relative;min-height:0;overflow:hidden;border:1px solid rgba(127,197,236,.14);border-radius:8px;background:rgba(4,15,29,.28)}
+    .rail{position:absolute;top:5px;bottom:5px;z-index:5;display:grid;grid-template-rows:minmax(0,1fr) 110px;gap:5px;min-height:0}
+    .rail-left{left:5px;width:286px}.rail-right{right:5px;width:318px;grid-template-rows:minmax(0,1.15fr) minmax(0,.85fr)}
+    .bottom{display:grid;grid-template-columns:1.16fr 1fr 1fr 1.16fr;gap:6px;min-height:0}
+    .panel{display:flex;flex-direction:column;overflow:hidden;background:rgba(12,32,49,.72)}
+    .panel-title{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px 0;min-width:0}
+    .panel-title h2{font-size:13px;line-height:1.1;margin:0;white-space:nowrap}
+    .panel-title h2 a{color:inherit;text-decoration:none;cursor:pointer}
+    .panel-title h2 a:hover{color:var(--hot)}
+    .panel-title span{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chart{flex:1;min-height:0;width:100%}.split{display:grid;grid-template-rows:minmax(0,1fr) 66px;gap:4px;flex:1;min-height:0;padding:4px 5px 5px}
+    .platform-tip{position:absolute;z-index:20;display:none;width:198px;padding:8px;border-radius:6px;background:#f8fbff;color:#64717a;box-shadow:0 10px 24px rgba(0,0,0,.24);pointer-events:none}
+    .platform-tip .tip-name{font-size:14px;font-weight:700;margin-bottom:6px;color:#5f6b73;white-space:normal;line-height:1.2}
+    .platform-tip .tip-total{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.platform-tip b{font-size:20px;color:#5f6b73}
+    .tip-bar{height:10px;border-radius:999px;overflow:hidden;background:#e7eef4;display:flex}.tip-bar span{height:100%}.tip-foot{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:#74808a;gap:6px}.tip-foot span{white-space:nowrap}
+    .split>div{min-height:0;display:flex;flex-direction:column}.split>div:first-child .chart{min-height:150px}
+    .mini-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:0 4px 4px}
+    .mini-meta div{border:1px solid rgba(127,197,236,.15);background:rgba(10,28,47,.55);border-radius:6px;padding:3px 5px;min-width:0}
+    .mini-meta span{display:block;color:var(--muted);font-size:9px}.mini-meta b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .feed{display:flex;flex-direction:column;gap:5px;min-height:0;overflow:hidden}
+    .feed-item{padding:7px 8px;border:1px solid rgba(119,190,226,.16);background:linear-gradient(180deg,rgba(15,42,64,.82),rgba(8,25,40,.88));border-radius:7px;min-height:0;flex:1}
+    .feed-head{display:flex;align-items:center;gap:7px;color:#a9d8ef;font-size:10px;white-space:nowrap;overflow:hidden}
+    .feed-head span{overflow:hidden;text-overflow:ellipsis}.feed-head b{margin-left:auto;color:var(--hot);font-weight:700;flex:0 0 auto}
+    .feed-item p{margin:4px 0 0;color:#f4fbff;font-size:10px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+    .empty{padding:12px;color:var(--muted);font-size:11px;text-align:center}
+    .map-panel{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;overflow:hidden;border:0;background:transparent;box-shadow:none}
+    .map-head{position:absolute;z-index:6;left:304px;top:8px;right:auto;display:flex;justify-content:flex-start;align-items:start;pointer-events:none}
+    .map-head h2,.map-head span{display:none}
+    .map-card{pointer-events:auto;width:168px;border:1px solid rgba(255,207,102,.3);background:rgba(15,35,55,.68);border-radius:7px;padding:6px 8px}
+    .map-card .name{font-size:12px;color:#fff}.map-card .num{font-size:22px;font-weight:800;line-height:1.05;color:var(--hot);margin-top:2px}
+    .map-card .meta{font-size:9px;color:#bce5fa;line-height:1.3}.map-wrap{position:relative;flex:1;min-height:0;padding:0}
+    #chinaMap{width:100%;height:100%;min-height:0}.nanhai{position:absolute;right:24px;bottom:16px;width:118px;height:92px;border:1px dashed rgba(190,226,245,.68);border-radius:4px;color:#b9e3f8;font-size:10px;display:grid;place-items:end center;padding-bottom:8px;background:rgba(5,19,34,.28);pointer-events:none}
+    .ripple-layer{position:absolute;inset:0;pointer-events:none;z-index:4}.ripple{position:absolute;width:10px;height:10px;border-radius:50%;transform:translate(-50%,-50%)}.ripple::before,.ripple::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:1.5px solid rgba(255,207,95,.8);animation:ripplePulse 2.6s ease-out infinite}.ripple::after{animation-delay:1.3s}.ripple .core{position:absolute;inset:2px;border-radius:50%;background:radial-gradient(circle,#fff7d6 0%,#ffd666 55%,rgba(255,122,69,.9) 100%);box-shadow:0 0 8px rgba(255,214,102,.75)}.ripple.low{width:8px;height:8px}.ripple.low::before,.ripple.low::after{border-color:rgba(155,216,245,.52)}.ripple.low .core{background:#9bd8f5;box-shadow:0 0 7px rgba(155,216,245,.55)}.ripple.hot{width:18px;height:18px}.ripple.hot::before,.ripple.hot::after{border-color:rgba(255,255,255,.92);border-width:2px}.ripple.hot .core{background:radial-gradient(circle,#fff 0%,#ffef9b 48%,#ff9f43 100%)}@keyframes ripplePulse{0%{transform:scale(.5);opacity:1}100%{transform:scale(2.5);opacity:0}}
+    .ripple-label{position:absolute;left:12px;top:-12px;display:flex;flex-direction:column;align-items:flex-start;white-space:nowrap;color:#f3fbff;font-size:10px;font-weight:400;line-height:1.05;letter-spacing:0;text-shadow:0 1px 2px rgba(6,18,34,.85);pointer-events:none}
+    .ripple-label .count{font-size:10px;font-weight:400;line-height:1}
+    .ripple-label.centered{left:50%;top:-25px;transform:translateX(-50%);align-items:center}
+    .toggle{border:1px solid rgba(127,197,236,.34);background:rgba(24,68,100,.72);color:#cdeeff;border-radius:999px;padding:3px 9px;font:inherit;font-size:10px;line-height:1.2;cursor:pointer}
+    .toggle.paused{color:var(--hot);border-color:rgba(255,207,102,.55);background:rgba(76,55,18,.65)}
+    .lang-box{display:grid;grid-template-rows:minmax(0,.76fr) minmax(0,1fr);gap:4px;flex:1;min-height:0;padding:4px 6px 6px}
+    .lang-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;min-height:0}
+    .lang-card{border:1px solid rgba(127,197,236,.16);background:rgba(11,35,58,.68);border-radius:7px;padding:6px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+    .lang-card.active{border-color:rgba(255,207,102,.56);background:rgba(56,45,20,.72)}.lang-card b{display:block;font-size:12px}.lang-card em{font-style:normal;font-size:11px;color:#ffcf66}.lang-card span{display:none}
+    @media(max-width:1500px){.screen{grid-template-rows:32px 34px minmax(0,1fr) 184px}.rail{grid-template-rows:minmax(0,1fr) 100px}.rail-left{width:260px}.rail-right{width:292px;grid-template-rows:minmax(0,1.15fr) minmax(0,.85fr)}.map-head{left:276px}.title{padding:0 22px}.title h1{font-size:20px}.title::before,.title::after{width:38px}.bottom{grid-template-columns:1.1fr 1fr 1fr 1.1fr}.split>div:first-child .chart{min-height:126px}.kpi span{font-size:11px}.kpi b{font-size:14px}}
+  </style>
+</head>
+<body>
+  <div id="app" class="screen">
+    <header class="topbar">
+      <div></div>
+      <div class="title"><h1>网络舆情态势感知系统</h1></div>
+      <div class="live-status" id="liveStatus"><span class="dot"></span>连接中</div>
+    </header>
+    <section id="kpis" class="kpis"></section>
+    <main class="main">
+      <aside class="rail rail-left">
+        <section class="panel">
+          <div class="panel-title"><h2><a href="region-detail.html" title="查看地区态度统计详情">当前地区态度统计</a></h2><button id="pauseBtn" class="toggle">暂停轮播</button></div>
+          <div class="split">
+            <div><div id="regionChart" class="chart"></div></div>
+            <div id="regionMeta" class="mini-meta"></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-title"><h2>地区信息流</h2><span id="regionFeedTag">真实原话</span></div>
+          <div id="regionFeed" class="feed" style="padding:6px"></div>
+        </section>
+      </aside>
+      <section class="map-panel">
+        <div class="map-head">
+          <div><h2>全国分省舆情热力态势</h2><span>省级热力 · 数字标注 · 点击下钻联动</span></div>
+          <div id="mapCard" class="map-card"></div>
+        </div>
+        <div class="map-wrap"><div id="chinaMap"></div><div id="rippleLayer" class="ripple-layer"></div></div>
+      </section>
+      <aside class="rail rail-right">
+        <section class="panel">
+          <div class="panel-title"><h2><a href="platform-detail.html" title="查看平台舆情量详情">平台舆情量分布</a></h2><span id="platformTag"></span></div>
+          <div class="split">
+            <div><div id="platformChart" class="chart"></div><div id="platformTip" class="platform-tip"></div></div>
+            <div id="platformMeta" class="mini-meta"></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-title"><h2>平台信息流</h2><span id="platformFeedTag">真实原话</span></div>
+          <div id="platformFeed" class="feed" style="padding:6px"></div>
+        </section>
+      </aside>
+    </main>
+    <section class="bottom">
+      <section class="panel">
+        <div class="panel-title"><h2>舆情量随时间变化</h2><span id="timelineTag">7月1日起 · 全部网络实时信息</span></div>
+        <div id="timelineChart" class="chart"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-title"><h2>总体态度</h2><span></span></div>
+        <div id="attitudeChart" class="chart"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-title"><h2>非正向态度</h2><span></span></div>
+        <div id="nonSupportChart" class="chart"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-title"><h2>少数民族语言聚焦</h2><span id="languageTag"></span></div>
+        <div class="lang-box"><div id="languageCards" class="lang-cards"></div><div id="languageFeed" class="feed"></div></div>
+      </section>
+    </section>
+  </div>
+  <script src="assets/echarts.min.js"></script>
+  <script src="assets/china.js"></script>
+  <script src="assets/data.js"></script>
+  <script>
+  (function(){
+    "use strict";
+    const $=id=>document.getElementById(id);
+    const fmt=n=>Number(n||0).toLocaleString("zh-CN");
+    const percent=(part,total)=>total?((Number(part||0)/Number(total||1))*100).toFixed(1)+"%":"0%";
+    const ATT_KEYS=[
+      ["support","支持认可"],["neutral","中性信息"],["qa","咨询疑问"],["worry","担忧影响"],
+      ["criticism","明确批评"],["complaint","投诉维权"],["implement","实施问题"],
+      ["fairness","公平争议"],["discrimination","歧视偏见"],["pending","待核实"]
+    ];
+    const COLORS=["#38bde8","#78cdda","#9fb9c8","#eecb72","#5aa8c8","#8fc7bf","#6f97b1","#b7c9d5","#d96f6a","#7f9caf"];
+    const MUTED_BAR_COLORS=["#78cdda","#67bdd2","#56adca","#469dbf","#3f8eae","#5aa8c8","#7fb9c5","#9fb9c8"];
+    const REGION_PLAT={
+      "四川、甘肃民族地区":"快手","内蒙古、河北及东北":"抖音等视频平台","新疆":"微信/视频号",
+      "青海、西藏":"微信/视频号","云南西部民族地区":"微信公众号/视频号","云南东中部民族地区":"抖音等视频平台",
+      "北京":"微博/热榜","天津":"抖音等视频平台","河南":"抖音等视频平台","江西":"抖音等视频平台",
+      "广西":"微信公众号/视频号","广东":"抖音等视频平台"
+    };
+    const PLAT_KEYS={
+      "微博/热榜":["微博","热榜"],
+      "抖音等视频平台":["抖音","视频平台","视频"],
+      "快手":["快手"],
+      "小红书/豆瓣等平台":["小红书","豆瓣"],
+      "知乎/B站/百度知道":["知乎","哔哩哔哩","B站","百度知道"],
+      "贴吧/头条/新闻评论":["贴吧","头条","新闻"],
+      "微信公众号/视频号":["微信","公众号","视频号"],
+      "省市政务/媒体网站":["政务网站","新闻网站","省市政务","媒体网站"]
+    };
+    const PROVINCE_ALIASES={"内蒙古自治区":"内蒙古","广西壮族自治区":"广西","西藏自治区":"西藏","宁夏回族自治区":"宁夏","新疆维吾尔自治区":"新疆","香港特别行政区":"香港","澳门特别行政区":"澳门","台湾省":"台湾"};
+    const REGION_SOURCE_GROUPS={
+      "四川":"四川、甘肃民族地区","甘肃":"四川、甘肃民族地区","内蒙古":"内蒙古、河北及东北","河北":"内蒙古、河北及东北","辽宁":"内蒙古、河北及东北","吉林":"内蒙古、河北及东北","黑龙江":"内蒙古、河北及东北",
+      "青海":"青海、西藏","西藏":"青海、西藏","云南":"云南东中部民族地区","浙江":"宁夏、贵州、重庆、湖南、湖北、浙江","湖北":"宁夏、贵州、重庆、湖南、湖北、浙江","湖南":"宁夏、贵州、重庆、湖南、湖北、浙江","重庆":"宁夏、贵州、重庆、湖南、湖北、浙江","贵州":"宁夏、贵州、重庆、湖南、湖北、浙江","宁夏":"宁夏、贵州、重庆、湖南、湖北、浙江"
+    };
+    let D=null;
+    const state={regionIndex:0,platformIndex:0,languageIndex:0,timelineIndex:0,paused:false};
+    let charts={};
+    let regionFocusRows=[];
+
+    function loadDashboardData(){
+      if(location.protocol==="file:"){
+        return Promise.resolve(window.DASH_DATA);
+      }
+      return fetch("/api/bootstrap",{cache:"no-store"})
+        .then(r=>{if(!r.ok)throw new Error("API "+r.status);return r.json()})
+        .catch(()=>Promise.resolve(window.DASH_DATA));
+    }
+    let liveItems=[];
+    let refreshTimer=null;
+    function setLiveStatus(mode,text){
+      const el=$("liveStatus");
+      if(!el)return;
+      el.className="live-status "+(mode||"off");
+      el.innerHTML=`<span class="dot"></span>${escapeHtml(text||"")}`;
+    }
+    function refreshFromServer(){
+      if(refreshTimer)return;
+      refreshTimer=setTimeout(()=>{
+        refreshTimer=null;
+        fetch("/api/bootstrap",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(data=>{
+          if(!data)return;
+          D=data;
+          liveItems=(data.live&&data.live.incidents||[]).slice(0,50);
+          renderAll();
+        }).catch(()=>{});
+      },600);
+    }
+    function startLive(){
+      if(typeof EventSource==="undefined"){setLiveStatus("off","浏览器不支持实时推送");return}
+      let src;
+      try{src=new EventSource("/api/events")}catch(e){setLiveStatus("off","实时连接失败");return}
+      src.onopen=()=>setLiveStatus("on","实时在线");
+      src.onerror=()=>setLiveStatus("off","实时连接中断");
+      src.onmessage=ev=>{
+        let msg;
+        try{msg=JSON.parse(ev.data)}catch(e){return}
+        if(!msg)return;
+        if(msg.type==="heartbeat"){setLiveStatus("on","实时在线 · "+msg.ts);return}
+        if(msg.type==="incident"&&msg.incident){
+          liveItems.unshift(msg.incident);
+          if(liveItems.length>50)liveItems.pop();
+          refreshFromServer();
+        }else if(msg.type==="refresh"){
+          refreshFromServer();
+        }
+      };
+    }
+    function normalizeProvince(name){
+      if(!name)return "";
+      if(PROVINCE_ALIASES[name])return PROVINCE_ALIASES[name];
+      return String(name).replace(/省|市|壮族自治区|回族自治区|维吾尔自治区|自治区|特别行政区/g,"");
+    }
+    function provinceValue(name){
+      return provinceStats(name).total;
+    }
+    function provinceStats(name){
+      const short=normalizeProvince(name);
+      const hit=(D.provinces||[]).find(p=>normalizeProvince(p.name||p.short)===short);
+      const focus=regionFocusRows.find(r=>r.name===short || (r.provinces||[]).some(p=>normalizeProvince(p)===short));
+      if(hit){
+        return {
+          total:Number(hit.value ?? hit.total ?? focus?.total ?? 0),
+          support:Number(hit.support ?? focus?.support ?? 0),
+          neutral:Number(hit.neutral ?? focus?.neutral ?? 0)
+        };
+      }
+      if(focus)return {total:Number(focus.total||0),support:Number(focus.support||0),neutral:Number(focus.neutral||0)};
+      return {total:0,support:0,neutral:0};
+    }
+    function provinceFullName(shortName){
+      const hit=((window.CHINA_GEO&&window.CHINA_GEO.features)||[]).find(f=>normalizeProvince(f.properties&&f.properties.name)===shortName);
+      return hit?.properties?.name||shortName;
+    }
+    function rotationProvinceSet(){
+      const set=new Set();
+      regionFocusRows.forEach(r=>(r.provinces||[]).forEach(p=>set.add(normalizeProvince(p))));
+      return set;
+    }
+    function baseRegionProvinces(regionName){
+      return (D.provinces||[]).filter(p=>
+        p.group===regionName || (p.groups||[]).some(g=>g.group===regionName)
+      ).map(p=>normalizeProvince(p.name||p.short));
+    }
+    function regionProvinces(regionName){
+      const focus=regionFocusRows.find(r=>r.name===regionName);
+      if(focus&&focus.provinces)return focus.provinces;
+      return baseRegionProvinces(regionName);
+    }
+    function buildRegionFocusRows(){
+      const byRegion=new Map((D.regions||[]).map(r=>[normalizeProvince(r.name),r]));
+      const byProvince=new Map((D.provinces||[]).map(p=>[normalizeProvince(p.name||p.short),p]));
+      const geoNames=((window.CHINA_GEO&&window.CHINA_GEO.features)||[]).map(f=>normalizeProvince(f.properties&&f.properties.name)).filter(Boolean);
+      regionFocusRows=geoNames.map(short=>{
+        const r=byRegion.get(short)||{};
+        const p=byProvince.get(short)||{};
+        const total=Number(r.total ?? p.total ?? p.value ?? 0);
+        const support=Number(r.support ?? p.support ?? 0);
+        const neutral=Number(r.neutral ?? p.neutral ?? 0);
+        return {
+          name:short,total,support,neutral,
+          qa:Number(r.qa ?? p.qa ?? 0),worry:Number(r.worry ?? p.worry ?? 0),criticism:Number(r.criticism ?? p.criticism ?? 0),complaint:Number(r.complaint ?? p.complaint ?? 0),
+          implement:Number(r.implement ?? p.implement ?? 0),fairness:Number(r.fairness ?? p.fairness ?? 0),discrimination:Number(r.discrimination ?? p.discrimination ?? 0),
+          suggest:Number(r.suggest ?? p.suggest ?? 0),other:Number(r.other ?? p.other ?? 0),pending:Number(r.pending ?? p.pending ?? 0),
+          provinces:[short],sourceGroup:r.sourceGroup||REGION_SOURCE_GROUPS[short]||"",fullName:provinceFullName(short)
+        };
+      });
+    }
+    function activeRegion(){return regionFocusRows[state.regionIndex]||regionFocusRows[0]||{}}
+    function activePlatform(){return platformRows()[state.platformIndex]||platformRows()[0]||{}}
+    function activeLanguage(){return languageRows()[state.languageIndex]||languageRows()[0]||{}}
+    function activeTimeline(){return (D.trend||[])[state.timelineIndex]||D.trend[0]||{}}
+    function platformRows(){return [...(D.platforms||[])].sort((a,b)=>(b.total||0)-(a.total||0)).slice(0,7)}
+    function isMinorityLanguageName(name){
+      return !!name && !/中文|普通话/.test(String(name));
+    }
+    function languageRows(){
+      return (D.languagePlatform||D.langSpotlight||[])
+        .map(x=>({name:String(x.name||x.lang||"").replace(/\/文/g,""),value:x.value||x.count||0,record:x.record||""}))
+        .filter(x=>isMinorityLanguageName(x.name));
+    }
+    function attitudeRows(row){
+      return ATT_KEYS.map(([key,name],idx)=>({name,value:Number(row[key]||0),itemStyle:{color:COLORS[idx%COLORS.length]}})).filter(x=>x.value>0);
+    }
+    function quotesByRegion(regionOrGroup){
+      const name=typeof regionOrGroup==="string"?regionOrGroup:(regionOrGroup&&regionOrGroup.name)||"";
+      const provs=new Set(regionProvinces(name));
+      const focus=regionFocusRows.find(r=>r.name===name);
+      const sourceGroup=focus?.sourceGroup;
+      const provinceTokens=new Set([name, provinceFullName(name), ...provs].map(normalizeProvince));
+      return (D.quotes||[]).filter(q=>
+        q.group===name || q.region===name || provinceTokens.has(normalizeProvince(q.region)) || String(q.region||"").includes(name)
+      );
+    }
+    function quotesByPlatform(platformName){
+      const keys=PLAT_KEYS[platformName]||String(platformName||"").split(/[\/、]/).filter(Boolean);
+      return (D.quotes||[]).filter(q=>{
+        if(q.platformGroup&&q.platformGroup===platformName)return true;
+        const text=`${q.platform||""} ${q.platformGroup||""}`;
+        return keys.some(key=>text.includes(key));
+      });
+    }
+    function quotesByLang(languageToken){
+      const token=String(languageToken||"").replace("（含原未标注语言）","").replace("/文","").replace("/普通话","").replace("中文","");
+      if(!token||!/[^普通话中文\s/]/.test(token))return [];
+      return (D.quotes||[]).filter(q=>String(q.language||"").includes(token)||String(q.text||"").includes(token));
+    }
+    function latestDate(rows){
+      return rows.map(q=>q.date).filter(Boolean).sort().pop()||"未标注";
+    }
+    function topPlatformOfRegion(region){
+      if(REGION_PLAT[region])return REGION_PLAT[region];
+      const counts=new Map();
+      quotesByRegion(region).forEach(q=>{const p=q.platform||"未标注";counts.set(p,(counts.get(p)||0)+1)});
+      return [...counts.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||"暂无样本";
+    }
+    function randomPick(rows,count){
+      const pool=[...rows];
+      for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+      return pool.slice(0,Math.min(count,pool.length));
+    }
+    function byTimeline(rows){
+      const t=activeTimeline();
+      if(!t.date)return rows;
+      const exact=rows.filter(q=>q.date===t.date);
+      return exact.length?exact:rows;
+    }
+    function renderFeed(id,rows,emptyText,count){
+      const box=$(id);
+      const items=randomPick(byTimeline(rows),count);
+      box.innerHTML=items.length?items.map(q=>`<article class="feed-item"><div class="feed-head"><span>${q.collectedAt||q.date||"样本"}</span><span>${q.platform||"未标注平台"}</span><span>${q.region||q.group||"未标注地区"}</span><b>${q.attitude||"态度"}</b></div><p>${escapeHtml(q.text||"")}</p></article>`).join(""):`<div class="empty">${emptyText}</div>`;
+    }
+    function escapeHtml(text){
+      return String(text).replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
+    }
+    function setFocusState(next){
+      if(Number.isInteger(next.regionIndex))state.regionIndex=(next.regionIndex+regionFocusRows.length)%regionFocusRows.length;
+      if(Number.isInteger(next.platformIndex))state.platformIndex=(next.platformIndex+platformRows().length)%platformRows().length;
+      if(Number.isInteger(next.languageIndex)&&languageRows().length)state.languageIndex=(next.languageIndex+languageRows().length)%languageRows().length;
+      if(Number.isInteger(next.timelineIndex))state.timelineIndex=(next.timelineIndex+D.trend.length)%D.trend.length;
+      renderAll();
+    }
+    function renderKpis(){
+      const T=D.topStats||{};
+      const rows=[
+        ["全部网络实时信息",T.totalOpinions],
+        [T.regionOpinionsLabel||"可归属地区",T.regionOpinions],
+        ["支持认可",T.supportCount],
+        [T.nonSupportLabel||"非支持/非肯定",T.nonSupport],
+        [T.monitorSourcesLabel||"监测来源数",T.monitorSources],
+        [T.viewedInfoLabel||"查看信息数",T.viewedInfo]
+      ];
+      $("kpis").innerHTML=rows.map(([label,value])=>`<div class="kpi"><span>${label}</span><b>${typeof value==="number"?fmt(value):value}</b></div>`).join("");
+    }
+    function renderRegionPanel(){
+      const r=activeRegion();
+      const q=quotesByRegion(r.name);
+      const top=topPlatformOfRegion(r.name);
+      $("regionMeta").innerHTML=[
+        ["地区",r.name],["支持率",percent(r.support,r.total)],["主要平台",top],
+        ["总量",fmt(r.total)],["样本最近",latestDate(q)],["样本数",fmt(q.length)]
+      ].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("");
+      charts.region.setOption(barOption(attitudeRows(r),r.name,{left:70,right:18,top:8,bottom:4,barWidth:9}),true);
+      renderFeed("regionFeed",q,"当前地区暂无可展示样本",1);
+      $("regionFeedTag").textContent=`${r.name}｜${q.length} 条`;
+    }
+    function renderPlatformPanel(){
+      const rows=platformRows();
+      const p=activePlatform();
+      charts.platform.setOption(stackedPlatformOption(rows,p.name),true);
+      const q=quotesByPlatform(p.name);
+      $("platformMeta").innerHTML=[
+        ["平台",p.name],["总量",fmt(p.total)],["占比",percent(p.total,D.topStats.totalOpinions)],
+        ["支持率",percent(p.support,p.total)],["非支持",fmt(p.nonSupport)],["样本数",fmt(q.length)]
+      ].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("");
+      renderFeed("platformFeed",q,"当前平台暂无可展示样本",1);
+      $("platformTag").textContent="";
+      $("platformFeedTag").textContent=`${p.name}｜${q.length} 条`;
+    }
+    function renderLanguagePanel(){
+      const rows=languageRows();
+      const active=activeLanguage();
+      $("languageCards").innerHTML=rows.slice(0,4).map((x,i)=>{
+        const idx=rows.findIndex(r=>r.name===x.name);
+        return `<div class="lang-card ${x.name===active.name?"active":""}" data-lang-index="${idx}"><b>${x.name}</b><em>${fmt(x.value)} 条</em></div>`;
+      }).join("")||`<div class="empty">暂无少语样本</div>`;
+      document.querySelectorAll(".lang-card").forEach(node=>node.onclick=()=>setFocusState({languageIndex:Number(node.dataset.langIndex)}));
+      const q=quotesByLang(active.name);
+      renderFeed("languageFeed",q,"当前语种暂无可展示样本",1);
+      $("languageTag").textContent="";
+    }
+    function renderMap(){
+      const r=activeRegion();
+      const provSet=new Set(regionProvinces(r.name));
+      const rotationSet=rotationProvinceSet();
+      const geoNames=((window.CHINA_GEO&&window.CHINA_GEO.features)||[]).map(f=>f.properties&&f.properties.name).filter(Boolean);
+      charts.map.setOption({
+        backgroundColor:"transparent",
+        tooltip:{trigger:"item",backgroundColor:"rgba(4,14,34,.94)",borderColor:"rgba(127,197,236,.45)",textStyle:{color:"#eef8ff"},formatter:p=>`${p.name}<br>舆情量 ${fmt(p.value||0)}`},
+        visualMap:{show:false,type:"piecewise",seriesIndex:0,pieces:[
+          {min:501,color:"#0b4d72"},{min:201,max:500,color:"#126187"},{min:101,max:200,color:"#1b78a0"},
+          {min:31,max:100,color:"#2b91b6"},{min:1,max:30,color:"#54aec9"},{value:0,color:"rgba(127,203,224,.68)"}
+        ]},
+        series:[{id:"map_main",type:"map",map:"china_main",roam:false,zoom:1,aspectScale:1.08,layoutCenter:["49%","49%"],layoutSize:"171%",selectedMode:false,
+          label:{show:true,color:"#f4fbff",fontSize:10,formatter:p=>{
+            const short=normalizeProvince(p.name);
+            if(short==="河北")return "";
+            if(short==="甘肃")return "";
+            return p.value||rotationSet.has(short)?`${short}\n${fmt(p.value||0)}`:"";
+          }},
+          labelLayout:p=>{
+            const short=normalizeProvince(p.name);
+            if(short==="河北")return {dx:14,dy:-1};
+            if(short==="香港")return {dx:24,dy:-10};
+            if(short==="澳门")return {dx:18,dy:16};
+            return {dy:-14};
+          },
+          itemStyle:{areaColor:"#173555",borderColor:"#0d3857",borderWidth:1},
+          emphasis:{label:{show:true,color:"#fff",fontSize:11},itemStyle:{areaColor:"#2b91b6",borderColor:"#d7f5ff",borderWidth:1.4}},
+          data:geoNames.map(name=>{
+            const short=normalizeProvince(name);
+            const stats=provinceStats(short);
+            return {name,value:stats.total,support:stats.support,neutral:stats.neutral,itemStyle:provSet.has(short)?{areaColor:"#ffcf66",borderColor:"#fff7c9",borderWidth:2.2,shadowBlur:18,shadowColor:"rgba(255,207,102,.72)"}:undefined};
+          })},
+          {id:"map_nanhai",type:"map",map:"china_nanhai",roam:false,aspectScale:.95,layoutCenter:["71%","80%"],layoutSize:"15%",silent:true,
+            label:{show:false},itemStyle:{areaColor:"#163a66",borderColor:"#5aa3e0",borderWidth:1.5},data:[{name:"南海诸岛",value:0}]
+          }
+        ]
+      },true);
+      renderNanhaiFrame();
+      renderRipples();
+      document.querySelectorAll(".ripple").forEach(el=>el.classList.toggle("hot",provSet.has(normalizeProvince(el.dataset.prov))));
+      $("mapCard").innerHTML=`<div class="name">${r.name||"当前地区"}</div><div class="num">${fmt(r.total)}</div><div class="meta">支持 ${fmt(r.support)}｜非支持 ${fmt((r.total||0)-(r.support||0)-(r.neutral||0))}<br>主要平台：${topPlatformOfRegion(r.name)}</div>`;
+    }
+    function renderRipples(){
+      const layer=$("rippleLayer");
+      if(!layer||!charts.map||!window.CHINA_GEO)return;
+      layer.innerHTML="";
+      const rows=new Map();
+      ((window.CHINA_GEO&&window.CHINA_GEO.features)||[]).forEach(f=>{
+        const short=normalizeProvince(f.properties&&f.properties.name);
+        const stats=provinceStats(short);
+        if(stats.total>0)rows.set(short,{name:short,value:stats.total,total:stats.total});
+      });
+      rotationProvinceSet().forEach(short=>{
+        if(!rows.has(short))rows.set(short,{name:short,value:0,total:0});
+      });
+      [...rows.entries()].forEach(([short,p])=>{
+        const full=provinceFullName(short);
+        const feature=(window.CHINA_GEO.features||[]).find(f=>f.properties&&f.properties.name===full);
+        const c=feature?.properties?.centroid||feature?.properties?.center;
+        if(!c)return;
+        const pt=charts.map.convertToPixel({seriesIndex:0},c);
+        if(!pt||pt[0]<0||pt[1]<0||pt[0]>layer.clientWidth||pt[1]>layer.clientHeight)return;
+          const d=document.createElement("div");
+          d.className=(p.total||p.value||0)>0?"ripple":"ripple low";
+          d.dataset.prov=full;
+          d.style.left=pt[0]+"px";
+          d.style.top=pt[1]+"px";
+          const label = short==="河北"
+            ? `<span class="ripple-label"><span>河北</span><span class="count">${fmt(p.total||p.value||0)}</span></span>`
+            : short==="甘肃"
+              ? `<span class="ripple-label centered"><span>甘肃</span><span class="count">${fmt(p.total||p.value||0)}</span></span>`
+              : "";
+          d.innerHTML=`<span class="core"></span>${label}`;
+          layer.appendChild(d);
+        });
+      }
+    function renderNanhaiFrame(){
+      if(!charts.map)return;
+      try{
+        const tl=charts.map.convertToPixel({seriesIndex:1},[108.2,24.6]);
+        const br=charts.map.convertToPixel({seriesIndex:1},[122.8,3.4]);
+        if(!tl||!br||tl.some(Number.isNaN)||br.some(Number.isNaN))return;
+        const x1=Math.min(tl[0],br[0]),x2=Math.max(tl[0],br[0]);
+        const y1=Math.min(tl[1],br[1]),y2=Math.max(tl[1],br[1]);
+        const pad=8;
+        charts.map.setOption({graphic:{elements:[
+          {id:"nanhaiBox",type:"rect",shape:{x:x1-pad,y:y1-pad,width:x2-x1+pad*2,height:y2-y1+pad*2},style:{stroke:"rgba(150,211,245,.9)",lineWidth:1.3,lineDash:[6,5],fill:"rgba(22,58,102,.08)"},silent:true,z:20},
+          {id:"nanhaiLabel",type:"text",x:(x1+x2)/2,y:y2+pad+3,style:{text:"南海诸岛",textAlign:"center",textVerticalAlign:"top",fill:"rgba(185,227,248,.68)",fontSize:9,fontWeight:400},silent:true,z:21}
+        ]}});
+      }catch(e){}
+    }
+    function renderBottomCharts(){
+      charts.attitude.setOption(ringOption(D.attitude?.macro||[],"支持率"),true);
+      charts.nonSupport.setOption(barOption((D.nonSupport||[]).map((x,i)=>({...x,itemStyle:{color:MUTED_BAR_COLORS[i%MUTED_BAR_COLORS.length]}})),"非正向态度",{left:82,right:18,top:12,bottom:8,barWidth:10}),true);
+      charts.timeline.setOption(timelineOption(),true);
+      const t=activeTimeline();
+      $("timelineTag").textContent=t.date?`${t.date}｜${fmt(t.value)} 条｜全部网络实时信息`:"7月1日起 · 全部网络实时信息";
+    }
+    function renderAll(){renderRegionPanel();renderPlatformPanel();renderLanguagePanel();renderMap();renderBottomCharts()}
+    function barOption(rows,title,cfg={}){
+      const max=Math.max(...rows.map(x=>x.value||0),1);
+      return {grid:{left:cfg.left||80,right:cfg.right||20,top:cfg.top||14,bottom:cfg.bottom||8,containLabel:false},
+        xAxis:{type:"value",max:max*1.18,axisLabel:{show:false},axisTick:{show:false},axisLine:{show:false},splitLine:{lineStyle:{color:"rgba(127,197,236,.1)"}}},
+        yAxis:{type:"category",inverse:true,data:rows.map(x=>x.name),axisLabel:{color:"#d8f0ff",fontSize:10,width:cfg.left||80,overflow:"truncate"},axisTick:{show:false},axisLine:{show:false}},
+        series:[{type:"bar",barWidth:cfg.barWidth||11,data:rows,label:{show:true,position:"right",color:"#fff",fontSize:10,formatter:p=>fmt(p.value)}}]};
+    }
+    function stackedPlatformOption(rows,activeName){
+      const max=Math.max(...rows.map(x=>x.total||0),1);
+      return {grid:{left:104,right:52,top:8,bottom:6},tooltip:{show:false},
+        xAxis:{type:"value",max:max*1.16,axisLabel:{show:false},axisTick:{show:false},axisLine:{show:false},splitLine:{lineStyle:{color:"rgba(119,190,226,.1)"}}},
+        yAxis:{type:"category",inverse:true,triggerEvent:true,data:rows.map(x=>x.name),axisLabel:{fontSize:10,color:value=>value===activeName?"#ffcf66":"#d8f0ff",fontWeight:value=>value===activeName?700:400},axisTick:{show:false},axisLine:{show:false}},
+        series:[{name:"总量",type:"bar",barWidth:11,data:rows.map(x=>({
+          value:x.total||0,
+          name:x.name,
+          itemStyle:x.name===activeName
+            ?{color:"#eecb72",shadowBlur:9,shadowColor:"rgba(238,203,114,.5)"}
+            :{color:"#38bde8"}
+        })),label:{show:true,position:"right",color:"#35c3ff",fontWeight:400,fontSize:10,formatter:p=>`${fmt(p.value)} / ${percent(p.value,D.topStats.totalOpinions)}`},emphasis:{focus:"series"}}]};
+    }
+    function showPlatformTip(name){
+      const tip=$("platformTip");
+      if(!tip||!charts.platform)return;
+      const rows=platformRows();
+      const row=rows.find(x=>x.name===name);
+      const idx=rows.findIndex(x=>x.name===name);
+      if(!row||idx<0){hidePlatformTip();return}
+      const total=Math.max(Number(row.total||0),1);
+      const support=Number(row.support||0),neutral=Number(row.neutral||0),nonSupport=Number(row.nonSupport||0);
+      const sW=(support/total*100).toFixed(2),nW=(neutral/total*100).toFixed(2),nsW=Math.max(0,100-Number(sW)-Number(nW)).toFixed(2);
+      tip.innerHTML=`<div class="tip-name">${escapeHtml(row.name)}</div><div class="tip-total"><span>总量</span><b>${fmt(row.total||0)}</b></div><div class="tip-bar"><span style="width:${sW}%;background:#38bde8"></span><span style="width:${nW}%;background:#8fc7bf"></span><span style="width:${nsW}%;background:#d96f6a"></span></div><div class="tip-foot"><span>支持 ${percent(support,total)}</span><span>中性 ${percent(neutral,total)}</span><span>非支持 ${percent(nonSupport,total)}</span></div>`;
+      const chartBox=$("platformChart").getBoundingClientRect();
+      const wrapBox=tip.parentElement.getBoundingClientRect();
+      const rowH=(chartBox.height-14)/Math.max(rows.length,1);
+      tip.style.display="block";
+      const w=tip.offsetWidth||214,h=tip.offsetHeight||112;
+      const left=Math.max(4,Math.min(112,wrapBox.width-w-4));
+      const top=Math.max(4,Math.min(8+rowH*(idx+.5)-h/2,wrapBox.height-h-4));
+      tip.style.left=left+"px";
+      tip.style.top=top+"px";
+    }
+    function hidePlatformTip(){
+      const tip=$("platformTip");
+      if(tip)tip.style.display="none";
+    }
+    function ringOption(rows,centerLabel){
+      const total=rows.reduce((s,x)=>s+Number(x.value||0),0)||1;
+      return {tooltip:{trigger:"item"},legend:{bottom:0,itemWidth:14,itemHeight:8,textStyle:{color:"#d8f0ff",fontSize:9},formatter:name=>{const r=rows.find(x=>x.name===name);return r?`${name} ${percent(r.value,total)}`:name}},
+        series:[{type:"pie",radius:["42%","62%"],center:["50%","38%"],avoidLabelOverlap:true,label:{color:"#fff",fontSize:9,formatter:"{b}\n{c}"},labelLine:{length:10,length2:8},data:rows.map((x,i)=>({...x,itemStyle:{color:COLORS[i%COLORS.length]}}))}],
+        graphic:{type:"text",left:"center",top:"35%",style:{text:centerLabel?`${centerLabel}\n${percent(rows[0]?.value,total)}`:"",fill:"#fff",fontSize:12,fontWeight:700,textAlign:"center"}}};
+    }
+    function timelineOption(){
+      const rows=D.trend||[];
+      return {grid:{left:34,right:14,top:16,bottom:26},tooltip:{trigger:"axis"},xAxis:{type:"category",data:rows.map(x=>String(x.date||"").slice(5)),axisLabel:{color:"#9bd8f5",fontSize:10},axisLine:{lineStyle:{color:"rgba(127,197,236,.34)"}}},
+        yAxis:{type:"value",axisLabel:{color:"#9bd8f5",fontSize:10},splitLine:{lineStyle:{color:"rgba(127,197,236,.1)"}}},
+        series:[{type:"line",smooth:true,data:rows.map(x=>x.value||0),symbolSize:rows.map((_,i)=>i===state.timelineIndex?9:4),lineStyle:{color:"#35c3ff",width:2.5},itemStyle:{color:"#ffcf66"},areaStyle:{color:"rgba(53,195,255,.16)"}}]};
+    }
+    function initCharts(){
+      if(window.CHINA_GEO&&!echarts.getMap("china_main")){
+        echarts.registerMap("china_main",window.CHINA_GEO);
+      }
+      if(window.NANHAI_GEO&&!echarts.getMap("china_nanhai")){
+        echarts.registerMap("china_nanhai",window.NANHAI_GEO);
+      }
+      charts.region=echarts.init($("regionChart"));
+      charts.platform=echarts.init($("platformChart"));
+      charts.map=echarts.init($("chinaMap"));
+      charts.timeline=echarts.init($("timelineChart"));
+      charts.attitude=echarts.init($("attitudeChart"));
+      charts.nonSupport=echarts.init($("nonSupportChart"));
+      charts.platform.on("click",p=>{const idx=platformRows().findIndex(x=>x.name===p.name);if(idx>=0)setFocusState({platformIndex:idx})});
+      charts.platform.on("mouseover",p=>{
+        if(p.componentType==="series"){
+          hidePlatformTip();
+          return;
+        }
+        if(p.componentType!=="yAxis")return;
+        showPlatformTip(p.value);
+      });
+      charts.platform.on("globalout",hidePlatformTip);
+      charts.map.on("click",p=>{
+        const province=normalizeProvince(p.name);
+        const idx=regionFocusRows.findIndex(r=>regionProvinces(r.name).includes(province)||r.name===province);
+        if(idx>=0)setFocusState({regionIndex:idx});
+      });
+      charts.timeline.on("click",p=>{const idx=(D.trend||[]).findIndex(x=>String(x.date||"").slice(5)===p.name||x.date===p.name);if(idx>=0)setFocusState({timelineIndex:idx})});
+      window.addEventListener("resize",()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}));
+      window.addEventListener("resize",()=>{try{renderNanhaiFrame();renderRipples()}catch(e){}});
+    }
+    function startRotation(){
+      setInterval(()=>{if(!state.paused)setFocusState({regionIndex:state.regionIndex+1})},7000);
+      setInterval(()=>{if(!state.paused)setFocusState({platformIndex:state.platformIndex+1})},9000);
+      setInterval(()=>{if(!state.paused)setFocusState({languageIndex:state.languageIndex+1})},11000);
+      setInterval(()=>{if(!state.paused)setFocusState({timelineIndex:state.timelineIndex+1})},3200);
+      $("pauseBtn").onclick=()=>{state.paused=!state.paused;$("pauseBtn").textContent=state.paused?"继续轮播":"暂停轮播";$("pauseBtn").classList.toggle("paused",state.paused)};
+      setInterval(()=>{if(!state.paused)renderAll()},15000);
+    }
+    loadDashboardData().then(data=>{
+      D=data;
+      if(!D)throw new Error("DASH_DATA 未加载");
+      buildRegionFocusRows();
+      const firstMinorityLang=languageRows().findIndex(x=>x.name&&x.name!=="中文/普通话");
+      if(firstMinorityLang>=0)state.languageIndex=firstMinorityLang;
+      renderKpis();
+      initCharts();
+      renderAll();
+      startRotation();
+      if(D.live){
+        liveItems=(D.live.incidents||[]).slice(0,50);
+        startLive();
+      }else{
+        setLiveStatus("off","离线模式（静态数据）");
+      }
+    }).catch(err=>{
+      document.body.innerHTML=`<div class="empty">大屏加载失败：${escapeHtml(err.message)}</div>`;
+      console.error(err);
+    });
+  })();
+  </script>
+</body>
+</html>

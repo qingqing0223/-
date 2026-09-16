@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.yuqing.pipeline</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/Zhuanz/Desktop/文件夹/态势图/yuqing-v1/03_live_system/run_pipeline.sh</string>
+  </array>
+
+  <!-- 每 300 秒（5 分钟）执行一次 -->
+  <key>StartInterval</key>
+  <integer>300</integer>
+
+  <!-- 加载时先执行一次 -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>ATOMIC_XLSX</key>
+    <string>/Users/Zhuanz/Desktop/文件夹/态势图/outputs/019ffa64-984c-77b3-b633-3c91c4524394/Excel数据库改造示例.xlsx</string>
+    <key>LIVE_PYTHON</key>
+    <string>/Users/Zhuanz/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/yuqing-launchd.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/yuqing-launchd.err.log</string>
+</dict>
+</plist>
