@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
+import json
 from pathlib import Path
 from pipeline.io_utils import read_jsonl, append_jsonl, read_json, write_json
 from pipeline.normalizer import normalize_record
@@ -46,13 +47,16 @@ def _prepare_region_aliases(raw: dict) -> dict:
         raw.get("author_province"), raw.get("region"), raw.get("region_name"),
         raw.get("comment_ip_location"), raw.get("user_ip_location"),
     ]
-    for parent_key in ("user", "author", "creator"):
+    for parent_key in ("user", "author", "creator", "member"):
         parent = raw.get(parent_key)
         if isinstance(parent, dict):
             candidates.extend([
                 parent.get("ip_location"), parent.get("ip_region"), parent.get("ip_label"),
-                parent.get("province"), parent.get("province_name"), parent.get("region"),
+                parent.get("ip_address"), parent.get("province"), parent.get("province_name"), parent.get("region"),
             ])
+    reply_control = raw.get("reply_control")
+    if isinstance(reply_control, dict):
+        candidates.append(reply_control.get("location"))
     for value in candidates:
         region = _canonical_public_region(value)
         if region:
@@ -95,12 +99,46 @@ def save_seen(path: Path, seen: set[str]) -> None:
     write_json(path, {"seen": sorted(seen)})
 
 
+def _merge_regions_into_existing(output_jsonl: Path, region_by_key: dict[str, str]) -> int:
+    """Backfill region labels into already-classified deduped rows.
+
+    A new crawler cycle may expose a public region for a record that was classified
+    in an older cycle. The record must not be reclassified, but its empty
+    ip_location should be enriched so aggregate region statistics can update.
+    """
+    if not region_by_key or not output_jsonl.exists():
+        return 0
+    rows = list(read_jsonl(output_jsonl))
+    updated = 0
+    for row in rows:
+        key = str(row.get("dedupe_key") or "").strip()
+        region = region_by_key.get(key, "")
+        if not key or not region:
+            continue
+        old = str(row.get("ip_location") or "").strip()
+        if old:
+            continue
+        row["ip_location"] = region
+        updated += 1
+    if not updated:
+        return 0
+
+    output_jsonl.parent.mkdir(parents=True, exist_ok=True)
+    tmp = output_jsonl.with_suffix(output_jsonl.suffix + ".region.tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    tmp.replace(output_jsonl)
+    return updated
+
+
 def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path,
                         output_jsonl: Path, concurrency: int = 4,
                         monitoring_start_time: str = "") -> dict:
     seen = load_seen(state_path)
     fresh = []
     filtered_before_start = 0
+    region_by_key: dict[str, str] = {}
 
     for path in jsonl_files:
         for raw in read_jsonl(path):
@@ -109,13 +147,23 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             if not rec:
                 continue
             key = rec["dedupe_key"]
+            region = _canonical_public_region(rec.get("ip_location"))
+            if region:
+                region_by_key[key] = region
             if key in seen:
                 continue
             seen.add(key)
             if _before_monitoring_start(rec, monitoring_start_time):
                 filtered_before_start += 1
                 continue
+            if region:
+                rec["ip_location"] = region
             fresh.append(rec)
+
+    # Important: dedupe must not prevent region enrichment. This lets a patched
+    # new crawler cycle add public region labels to records classified by an older
+    # collector version without calling the model again.
+    region_backfilled_records = _merge_regions_into_existing(output_jsonl, region_by_key)
 
     classified = classify_records(fresh, concurrency=concurrency)
     append_jsonl(output_jsonl, classified)
@@ -140,6 +188,7 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "classified_records": total,
         "region_records": region_records,
         "region_rate": round(region_records / total, 4) if total else 0.0,
+        "region_backfilled_records": region_backfilled_records,
         "minority_language_records": minority_language_records,
         "minority_language_rate": round(minority_language_records / total, 4) if total else 0.0,
         "language_counts": dict(sorted(language_counts.items(), key=lambda item: (-item[1], item[0]))),
