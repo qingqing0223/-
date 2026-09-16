@@ -6,13 +6,13 @@
   "results_date": "2026-09-16",
   "node_id": "zhihu01",
   "platform": "zhihu",
-  "generated_at": "2026-09-16T15:51:26+08:00",
+  "generated_at": "2026-09-16T15:57:07+08:00",
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_zhihu"
   ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T15:51:26+08:00",
+    "generated_at": "2026-09-16T15:57:07+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
@@ -42,11 +42,11 @@
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_zhihu",
-        "cycle_finished_at": "2026-09-16T15:50:16",
+        "cycle_finished_at": "2026-09-16T15:55:18",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 39.29,
+        "duration_seconds": 40.64,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
