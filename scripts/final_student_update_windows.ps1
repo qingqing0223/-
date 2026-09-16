@@ -7,21 +7,21 @@ param(
     [string]$NodeId,
 
     [string]$Config = ".\config\monitoring.local.json",
-    [switch]$Start
+    [switch]$Start,
+    [switch]$ArchiveRaw,
+    [string]$RawArchiveRepo = $env:PROMOTION_RAW_ARCHIVE_REPO,
+    [switch]$PrivateRepoConfirmed
 )
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path "$PSScriptRoot\..").Path
 Set-Location $RepoRoot
 
-Write-Host "=== FINAL student monitoring upgrade (frozen region-aware build) ===" -ForegroundColor Cyan
+Write-Host "=== FINAL student monitoring upgrade (five-minute realtime + region-aware build) ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host ""
 
-# Run the already-stabilized deployment/update logic first, but do not start the
-# collector yet. Public-region persistence must be patched and verified before
-# any new raw JSONL is created.
 & .\scripts\final_student_update_base_windows.ps1 `
     -Platform $Platform `
     -NodeId $NodeId `
@@ -58,23 +58,38 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host ""
-Write-Host "FINAL frozen build completed and verified." -ForegroundColor Green
-Write-Host "Region collection policy:" -ForegroundColor Cyan
-Write-Host "  - only platform-displayed coarse IP-location labels are retained" -ForegroundColor Yellow
-Write-Host "  - real IP addresses and precise locations are rejected" -ForegroundColor Yellow
-Write-Host "  - GitHub continues to receive aggregate region counts, not raw user-level region rows" -ForegroundColor Yellow
-Write-Host "  - old JSONL created before this patch cannot be repaired if the old collector never persisted region labels" -ForegroundColor Yellow
+Write-Host "FINAL build completed and verified." -ForegroundColor Green
+Write-Host "Collection policy:" -ForegroundColor Cyan
+Write-Host "  - one-time historical backfill is separate from the five-minute realtime loop" -ForegroundColor Yellow
+Write-Host "  - realtime loop prioritizes new-content discovery every 300 seconds and queues deep comment crawling" -ForegroundColor Yellow
+Write-Host "  - first-level + nested comments and parent/root links are retained when exposed" -ForegroundColor Yellow
+Write-Host "  - only platform-displayed coarse IP-location labels are retained; real IP/precise location are rejected" -ForegroundColor Yellow
+Write-Host "  - the public code repo receives aggregates + privacy-safe diagnostics only" -ForegroundColor Yellow
+Write-Host "  - full raw JSONL can be synchronized separately to an access-controlled PRIVATE Git repository" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Before realtime monitoring, run one historical catch-up if this node has not done so:" -ForegroundColor Cyan
+Write-Host ".\scripts\run_initial_backfill_windows.ps1 -Platform $Platform -Config $Config" -ForegroundColor Green
 Write-Host ""
 
 if ($Start) {
-    Write-Host "Starting final region-aware monitor now..." -ForegroundColor Green
-    & .\scripts\start_student_platform_windows.ps1 `
-        -Platform $Platform `
-        -NodeId $NodeId `
-        -Config $Config `
-        -PushGithub
+    Write-Host "Starting final five-minute realtime monitor now..." -ForegroundColor Green
+    $args = @(
+        "-Platform", $Platform,
+        "-NodeId", $NodeId,
+        "-Config", $Config,
+        "-PushGithub"
+    )
+    if ($ArchiveRaw) {
+        $args += @("-ArchiveRaw", "-RawArchiveRepo", $RawArchiveRepo)
+        if ($PrivateRepoConfirmed) { $args += "-PrivateRepoConfirmed" }
+    }
+    & .\scripts\start_student_platform_windows.ps1 @args
     exit $LASTEXITCODE
 }
 
-Write-Host "Start command:" -ForegroundColor Cyan
+Write-Host "Realtime start command:" -ForegroundColor Cyan
 Write-Host ".\scripts\start_student_platform_windows.ps1 -Platform $Platform -NodeId $NodeId -Config $Config -PushGithub" -ForegroundColor Green
+if ($ArchiveRaw) {
+    Write-Host "Realtime + private raw archive start command:" -ForegroundColor Cyan
+    Write-Host ".\scripts\start_student_platform_windows.ps1 -Platform $Platform -NodeId $NodeId -Config $Config -PushGithub -ArchiveRaw -RawArchiveRepo '$RawArchiveRepo' -PrivateRepoConfirmed" -ForegroundColor Green
+}
