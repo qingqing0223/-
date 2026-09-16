@@ -14,7 +14,6 @@
   "wechat_mp_search_until_exhausted": true,
   "wechat_mp_max_pages": 1000,
   "wechat_mp_max_results_per_keyword": 100000,
-  "wechat_mp_fetch_article_detail": true,
   "wechat_channels_keyword_delay_seconds": 3,
   "wechat_channels_load_delay_seconds": 6,
   "wechat_channels_scroll_pages": 1000,
