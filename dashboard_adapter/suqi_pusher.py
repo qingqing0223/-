@@ -75,9 +75,10 @@ def to_suqi_record(row: dict) -> dict:
         notes_parts.append(f"v2_type={v2_type}")
     for key in (
         "record_type", "source_type", "video_content_type", "source_type_method",
-        "attitude_target", "analysis_basis", "video_attitude_scope"
+        "attitude_target", "analysis_basis", "video_attitude_scope",
+        "comment_level", "parent_comment_id", "root_comment_id", "sub_comment_count",
     ):
-        if row.get(key):
+        if row.get(key) not in (None, "", 0):
             notes_parts.append(f"{key}={row[key]}")
     if row.get("record_type") == "video":
         notes_parts.append(
@@ -91,8 +92,6 @@ def to_suqi_record(row: dict) -> dict:
     if row.get("language_confidence"):
         notes_parts.append(f"language_confidence={row['language_confidence']}")
 
-    # Suqi's current schema has likes/comments/shares but not every platform's
-    # extra engagement counters. Preserve those metrics in notes for later UI use.
     for key in ("views", "favorites", "danmaku", "coins"):
         value = int(row.get(key) or 0)
         if value:
