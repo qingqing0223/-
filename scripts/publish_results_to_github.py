@@ -23,17 +23,31 @@ def _run_git(repo_root: Path, args: list[str]) -> subprocess.CompletedProcess:
 
 
 def generate(repo_root: Path, config_path: Path) -> dict:
-    cfg = json.loads(config_path.read_text(encoding="utf-8"))
+    cfg = json.loads(config_path.read_text(encoding="utf-8-sig"))
     base_data_root = Path(cfg["data_root"])
     roots = discover_data_roots(base_data_root, include_multilingual=True)
-    summary = build_summary(roots)
-    paths = write_summary(repo_root, summary)
-    return {"ok": True, "data_roots": [str(p) for p in roots], "summary": summary, "paths": paths}
+    summary = build_summary(
+        roots,
+        monitoring_start_time=str(cfg.get("monitoring_start_time") or ""),
+    )
+    paths = write_summary(
+        repo_root,
+        summary,
+        result_date=str(cfg.get("results_date") or ""),
+    )
+    return {
+        "ok": True,
+        "event_id": cfg.get("event_id"),
+        "event_name": cfg.get("event_name"),
+        "monitoring_start_time": cfg.get("monitoring_start_time"),
+        "results_date": cfg.get("results_date"),
+        "data_roots": [str(p) for p in roots],
+        "summary": summary,
+        "paths": paths,
+    }
 
 
 def git_commit_and_push(repo_root: Path) -> dict:
-    # Only the aggregate results directory is staged. Raw crawler files, API keys,
-    # cookies and browser profiles are never added by this script.
     add = _run_git(repo_root, ["add", "--", "results"])
     if add.returncode != 0:
         return {"ok": False, "stage": "git_add", "error": add.stderr.strip() or add.stdout.strip()}
