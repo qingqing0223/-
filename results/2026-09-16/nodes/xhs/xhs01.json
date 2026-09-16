@@ -6,13 +6,13 @@
   "results_date": "2026-09-16",
   "node_id": "xhs01",
   "platform": "xhs",
-  "generated_at": "2026-09-16T15:03:28+08:00",
+  "generated_at": "2026-09-16T15:08:33+08:00",
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_xhs"
   ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T15:03:28+08:00",
+    "generated_at": "2026-09-16T15:08:33+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-16T14:56:49+08:00",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
@@ -57,20 +57,18 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_xhs",
-        "cycle_finished_at": "2026-09-16T14:57:40",
+        "cycle_finished_at": "2026-09-16T15:05:05",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 517.78,
-        "new_records": 4,
-        "filtered_before_start": 92,
-        "classified_records": 4,
+        "duration_seconds": 445.36,
+        "new_records": 0,
+        "filtered_before_start": 9,
+        "classified_records": 0,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {
-          "汉语": 4
-        },
+        "language_counts": {},
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
