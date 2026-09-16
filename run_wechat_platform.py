@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from dashboard_adapter.suqi_pusher import deliver_with_outbox
 from monitor.ingest import ingest_and_classify
 from pipeline.io_utils import write_json
 from wechat.common import append_jsonl
@@ -49,6 +50,7 @@ def run_one_cycle(cfg: dict, platform: str) -> dict:
     state_path = root / "state" / "seen_ids.json"
     classified_path = root / "classified" / "classified_results.jsonl"
     status_path = root / "status" / "latest_status.json"
+    dashboard_outbox_path = root / "outbox" / "suqi_pending.jsonl"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
     keywords = [str(x).strip() for x in cfg.get("keywords", []) if str(x).strip()]
@@ -72,6 +74,7 @@ def run_one_cycle(cfg: dict, platform: str) -> dict:
         "language_counts": {},
         "total_seen": 0,
     }
+    new_classified_rows: list[dict] = []
     if records:
         ingest_summary = ingest_and_classify(
             platform,
@@ -81,7 +84,25 @@ def run_one_cycle(cfg: dict, platform: str) -> dict:
             int(cfg.get("classifier_concurrency", 4)),
             monitoring_start_time=monitoring_start_time,
         )
-        ingest_summary.pop("_classified_rows", None)
+        new_classified_rows = ingest_summary.pop("_classified_rows", [])
+
+    dashboard_cfg = cfg.get("dashboard", {}) or {}
+    dashboard_push = {
+        "enabled": bool(dashboard_cfg.get("enabled", False)),
+        "sent": 0,
+        "ok": None,
+        "inserted": 0,
+        "skipped": 0,
+        "outbox_after": 0,
+    }
+    if dashboard_push["enabled"]:
+        dashboard_push = deliver_with_outbox(
+            new_classified_rows,
+            ingest_url=str(dashboard_cfg.get("ingest_url", "")),
+            outbox_path=dashboard_outbox_path,
+            timeout_seconds=int(dashboard_cfg.get("timeout_seconds", 15)),
+        )
+        dashboard_push["enabled"] = True
 
     collector_state = str(collector_result.get("status") or "UNKNOWN")
     if collector_state == "SUCCESS":
@@ -118,16 +139,10 @@ def run_one_cycle(cfg: dict, platform: str) -> dict:
         "keyword_count": len(keywords),
         "platform_runs": [run],
         "ingest": [ingest_summary],
-        "dashboard_push": {
-            "enabled": False,
-            "sent": 0,
-            "ok": None,
-            "inserted": 0,
-            "skipped": 0,
-            "outbox_after": 0,
-        },
+        "dashboard_push": dashboard_push,
         "classified_output": str(classified_path),
         "raw_output": str(raw_file),
+        "dashboard_outbox": str(dashboard_outbox_path),
     }
     write_json(status_path, result)
     return result
