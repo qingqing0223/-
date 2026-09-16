@@ -1,0 +1,93 @@
+from __future__ import annotations
+
+import unittest
+
+from pipeline.normalizer import normalize_record
+
+
+class PlatformNormalizerTests(unittest.TestCase):
+    def test_bilibili_video_fields(self):
+        raw = {
+            "video_id": "12345",
+            "video_type": "video",
+            "title": "民族团结进步宣传周",
+            "desc": "示例视频",
+            "create_time": 1757971200,
+            "nickname": "示例UP主",
+            "liked_count": "88",
+            "video_comment": "12",
+            "video_share_count": "7",
+            "video_play_count": "1000",
+            "video_favorite_count": "30",
+            "video_danmaku": "9",
+            "video_coin_count": "15",
+            "video_url": "https://www.bilibili.com/video/av12345",
+            "source_keyword": "民族团结进步宣传周",
+        }
+        row = normalize_record(raw, source_file="search_contents.jsonl", platform_hint="bili")
+        self.assertIsNotNone(row)
+        self.assertEqual(row["platform"], "bili")
+        self.assertEqual(row["record_type"], "video")
+        self.assertEqual(row["sample_id"], "12345")
+        self.assertEqual(row["likes"], 88)
+        self.assertEqual(row["comments"], 12)
+        self.assertEqual(row["shares"], 7)
+        self.assertEqual(row["views"], 1000)
+        self.assertEqual(row["favorites"], 30)
+        self.assertEqual(row["danmaku"], 9)
+        self.assertEqual(row["coins"], 15)
+
+    def test_zhihu_article_fields(self):
+        raw = {
+            "content_id": "answer-001",
+            "content_type": "answer",
+            "content_text": "这是一条知乎回答正文",
+            "content_url": "https://www.zhihu.com/question/1/answer/2",
+            "title": "宣传周相关讨论",
+            "created_time": 1757971200,
+            "voteup_count": 66,
+            "comment_count": 8,
+            "user_nickname": "示例用户",
+            "source_keyword": "民族团结进步宣传周",
+        }
+        row = normalize_record(raw, source_file="search_contents.jsonl", platform_hint="zhihu")
+        self.assertIsNotNone(row)
+        self.assertEqual(row["record_type"], "post")
+        self.assertEqual(row["url"], raw["content_url"])
+        self.assertEqual(row["likes"], 66)
+        self.assertEqual(row["comments"], 8)
+        self.assertTrue(row["publish_time"])
+
+    def test_zhihu_zvideo_is_video(self):
+        raw = {
+            "content_id": "zvideo-001",
+            "content_type": "zvideo",
+            "title": "知乎视频",
+            "desc": "视频简介",
+            "created_time": 1757971200,
+        }
+        row = normalize_record(raw, platform_hint="zhihu")
+        self.assertEqual(row["record_type"], "video")
+
+    def test_tieba_note_fields(self):
+        raw = {
+            "note_id": "9988",
+            "title": "宣传周讨论帖",
+            "desc": "贴吧帖子正文摘要",
+            "note_url": "https://tieba.baidu.com/p/9988",
+            "publish_time": "2026-09-16 09:00:00",
+            "user_nickname": "示例吧友",
+            "tieba_name": "示例吧",
+            "total_replay_num": 23,
+            "source_keyword": "民族团结进步宣传周",
+        }
+        row = normalize_record(raw, source_file="search_contents.jsonl", platform_hint="tieba")
+        self.assertIsNotNone(row)
+        self.assertEqual(row["record_type"], "post")
+        self.assertEqual(row["sample_id"], "9988")
+        self.assertEqual(row["comments"], 23)
+        self.assertEqual(row["url"], raw["note_url"])
+
+
+if __name__ == "__main__":
+    unittest.main()
