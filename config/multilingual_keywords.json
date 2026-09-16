@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "purpose": "宣传周少数民族语言公开内容发现。只有 verified=true 的词会被自动加入搜索。",
   "languages": {
     "藏语": {
@@ -20,15 +20,20 @@
     },
     "蒙古语": {
       "enabled": true,
-      "verified": false,
-      "keywords": [],
-      "note": "已支持蒙古文 Unicode 自动识别；正式搜索词需由蒙古文材料/人员核准后填入，避免错误翻译造成漏检或误检。"
+      "verified": true,
+      "keywords": [
+        "ᠦᠨᠳᠦᠰᠦᠲᠡᠨ ᠤ ᠪᠦᠯᠬᠦᠮᠳᠡᠯ"
+      ],
+      "note": "通用的“民族团结”蒙古文表达，按内蒙古大学蒙古文数字图书馆公开文献关键词核对。不是“宣传周”整句翻译。"
     },
     "壮语": {
       "enabled": true,
-      "verified": false,
-      "keywords": [],
-      "note": "已支持壮语显式语言字段和保守词形识别；正式搜索词需由壮文材料/人员核准后填入。"
+      "verified": true,
+      "keywords": [
+        "minzcuz doxgiet",
+        "minzcuz doxgiet baenaj"
+      ],
+      "note": "广西民族报壮文版公开内容中对应“民族团结/民族团结进步”的规范用法。不是“宣传周”整句翻译。"
     },
     "哈萨克语": {
       "enabled": false,
