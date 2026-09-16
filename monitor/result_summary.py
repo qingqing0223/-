@@ -19,7 +19,7 @@ def _read_json(path: Path, default=None):
     if default is None:
         default = {}
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8-sig"))
     except Exception:
         return default
 
@@ -65,12 +65,11 @@ def _row_before_start(row: dict, monitoring_start_time: str) -> bool:
     return published < start
 
 
-def _comment_attitude_bucket(status: str, type_: str) -> str:
-    """Stable reporting bucket derived from the v2 taxonomy.
+def _attitude_bucket(status: str, type_: str) -> str:
+    """Reporting bucket derived from the fixed v2 taxonomy.
 
-    We keep the original v2 status/type unchanged. For reporting only:
-    normal/support -> support; neutral -> neutral; problematic -> non_support;
-    attention remains a separate attention bucket instead of being forced negative.
+    The original status/type are always preserved. We do not force attention
+    (information gap / consultation) into a negative bucket.
     """
     status = str(status or "").strip()
     type_ = str(type_ or "").strip()
@@ -86,7 +85,7 @@ def _comment_attitude_bucket(status: str, type_: str) -> str:
 
 
 def discover_data_roots(base_data_root: Path, include_multilingual: bool = True) -> list[Path]:
-    """Discover formal per-platform roots without including smoke/region test roots."""
+    """Discover formal per-platform roots without smoke/region test roots."""
     parent = base_data_root.parent
     base = base_data_root.name
     roots = []
@@ -136,7 +135,12 @@ def _merge_status(root: Path) -> dict:
 
 
 def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -> dict:
-    """Build a privacy-safe aggregate scoped to the formal monitoring start time."""
+    """Build an aggregate suitable for GitHub synchronization and reporting.
+
+    Raw text and URLs are never included. Public publisher account display names
+    are included only as aggregate account statistics so the daily report can name
+    which public accounts posted relevant material.
+    """
     latest_rows: dict[str, dict] = {}
     runtime = []
     filtered_existing = 0
@@ -156,20 +160,32 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
     language_counts = Counter()
     minority_language_counts = Counter()
     region_counts = Counter()
+    content_region_counts = Counter()
+    comment_region_counts_by_name = Counter()
     status_counts = Counter()
     type_counts = Counter()
-    source_type_counts = Counter()
-    record_type_counts = Counter()
+    attitude_counts = Counter()
     comment_status_counts = Counter()
     comment_type_counts = Counter()
     comment_attitude_counts = Counter()
+    source_type_counts = Counter()
+    record_type_counts = Counter()
+    keyword_counts = Counter()
     engagement = Counter()
+    platform_attitude: dict[str, Counter] = {}
+    account_stats: dict[str, dict] = {}
+    comment_author_keys: set[str] = set()
     latest_seen = ""
+
     comment_records = 0
     root_comment_records = 0
     reply_comment_records = 0
     parent_linked_comment_records = 0
     comment_region_records = 0
+    video_records = 0
+    video_with_asr = 0
+    video_with_ocr = 0
+    video_multimodal_complete = 0
 
     for row in latest_rows.values():
         platform = str(row.get("platform") or "unknown")
@@ -179,6 +195,8 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         type_ = str(row.get("type") or "null")
         source_type = str(row.get("source_type") or "未分类")
         record_type = str(row.get("record_type") or "unknown")
+        keyword = str(row.get("source_keyword") or "").strip()
+        attitude = _attitude_bucket(status, type_)
 
         platform_counts[platform] += 1
         language_counts[language] += 1
@@ -188,16 +206,21 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
             region_counts[region] += 1
         status_counts[status] += 1
         type_counts[type_] += 1
+        attitude_counts[attitude] += 1
         source_type_counts[source_type] += 1
         record_type_counts[record_type] += 1
+        if keyword:
+            keyword_counts[keyword] += 1
+        platform_attitude.setdefault(platform, Counter())[attitude] += 1
 
         if record_type == "comment":
             comment_records += 1
             comment_status_counts[status] += 1
             comment_type_counts[type_] += 1
-            comment_attitude_counts[_comment_attitude_bucket(status, type_)] += 1
+            comment_attitude_counts[attitude] += 1
             if region:
                 comment_region_records += 1
+                comment_region_counts_by_name[region] += 1
             level = int(row.get("comment_level") or 0)
             parent_id = str(row.get("parent_comment_id") or "").strip()
             if level >= 2 or parent_id:
@@ -206,6 +229,52 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
                 root_comment_records += 1
             if parent_id:
                 parent_linked_comment_records += 1
+            author_key = str(row.get("author_id") or row.get("author") or "").strip()
+            if author_key:
+                comment_author_keys.add(author_key)
+        else:
+            if region:
+                content_region_counts[region] += 1
+            public_author = str(row.get("author") or "").strip()
+            if public_author:
+                stat = account_stats.setdefault(public_author, {
+                    "account": public_author,
+                    "platforms": Counter(),
+                    "records": 0,
+                    "posts": 0,
+                    "videos": 0,
+                    "attitude": Counter(),
+                    "regions": Counter(),
+                    "likes": 0,
+                    "comments": 0,
+                    "shares": 0,
+                    "views": 0,
+                    "favorites": 0,
+                    "danmaku": 0,
+                    "coins": 0,
+                })
+                stat["platforms"][platform] += 1
+                stat["records"] += 1
+                if record_type == "video":
+                    stat["videos"] += 1
+                elif record_type == "post":
+                    stat["posts"] += 1
+                stat["attitude"][attitude] += 1
+                if region:
+                    stat["regions"][region] += 1
+                for k in ("likes", "comments", "shares", "views", "favorites", "danmaku", "coins"):
+                    stat[k] += int(row.get(k) or 0)
+
+        if record_type == "video":
+            video_records += 1
+            has_asr = bool(str(row.get("asr_text") or "").strip())
+            has_ocr = bool(str(row.get("ocr_text") or "").strip())
+            if has_asr:
+                video_with_asr += 1
+            if has_ocr:
+                video_with_ocr += 1
+            if has_asr and has_ocr:
+                video_multimodal_complete += 1
 
         for key in ("likes", "comments", "shares", "views", "favorites", "danmaku", "coins"):
             engagement[key] += int(row.get(key) or 0)
@@ -216,17 +285,42 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         if candidate > latest_seen:
             latest_seen = candidate
 
+    public_account_stats = []
+    for name, stat in account_stats.items():
+        public_account_stats.append({
+            "account": name,
+            "platforms": dict(stat["platforms"].most_common()),
+            "records": stat["records"],
+            "posts": stat["posts"],
+            "videos": stat["videos"],
+            "attitude": dict(stat["attitude"].most_common()),
+            "regions": dict(stat["regions"].most_common()),
+            "engagement": {
+                "likes": stat["likes"],
+                "comments": stat["comments"],
+                "shares": stat["shares"],
+                "views": stat["views"],
+                "favorites": stat["favorites"],
+                "danmaku": stat["danmaku"],
+                "coins": stat["coins"],
+            },
+        })
+    public_account_stats.sort(key=lambda x: (-int(x["records"]), str(x["account"])))
+    account_limit = 200
+    accounts_total = len(public_account_stats)
+    public_account_stats = public_account_stats[:account_limit]
+
     total = len(latest_rows)
     region_total = sum(region_counts.values())
     minority_total = sum(minority_language_counts.values())
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
 
     return {
-        "schema_version": 5,
+        "schema_version": 6,
         "generated_at": generated_at,
         "monitoring_start_time": monitoring_start_time,
         "latest_seen_time": latest_seen,
-        "privacy": "aggregate_only_no_raw_text_no_account_no_url",
+        "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
         "totals": {
             "unique_records": total,
             "filtered_before_start_from_existing_output": filtered_existing,
@@ -241,6 +335,8 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
             "comment_parent_link_rate": round(parent_linked_comment_records / reply_comment_records, 4) if reply_comment_records else 0.0,
             "comment_region_records": comment_region_records,
             "comment_region_coverage_rate": round(comment_region_records / comment_records, 4) if comment_records else 0.0,
+            "unique_comment_authors": len(comment_author_keys),
+            "public_publisher_accounts": accounts_total,
             "likes": engagement["likes"],
             "comments": engagement["comments"],
             "shares": engagement["shares"],
@@ -250,16 +346,31 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
             "coins": engagement["coins"],
         },
         "platforms": dict(platform_counts.most_common()),
+        "platform_attitude": {k: dict(v.most_common()) for k, v in platform_attitude.items()},
         "languages": dict(language_counts.most_common()),
         "minority_languages": dict(minority_language_counts.most_common()),
         "regions": dict(region_counts.most_common()),
+        "content_regions": dict(content_region_counts.most_common()),
+        "comment_regions": dict(comment_region_counts_by_name.most_common()),
         "v2_status": dict(status_counts.most_common()),
         "v2_type": dict(type_counts.most_common()),
+        "attitude": dict(attitude_counts.most_common()),
         "comment_v2_status": dict(comment_status_counts.most_common()),
         "comment_v2_type": dict(comment_type_counts.most_common()),
         "comment_attitude": dict(comment_attitude_counts.most_common()),
         "source_types": dict(source_type_counts.most_common()),
         "record_types": dict(record_type_counts.most_common()),
+        "keywords": dict(keyword_counts.most_common()),
+        "video_analysis": {
+            "video_records": video_records,
+            "with_asr": video_with_asr,
+            "with_ocr": video_with_ocr,
+            "multimodal_complete": video_multimodal_complete,
+            "multimodal_completion_rate": round(video_multimodal_complete / video_records, 4) if video_records else 0.0,
+        },
+        "public_account_stats": public_account_stats,
+        "public_account_stats_total": accounts_total,
+        "public_account_stats_truncated": accounts_total > account_limit,
         "runtime": runtime,
     }
 
