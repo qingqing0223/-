@@ -12,6 +12,9 @@ PLATFORM_LABELS = {
     "xhs": "小红书",
     "dy": "抖音",
     "ks": "快手",
+    "bili": "B站",
+    "tieba": "百度贴吧",
+    "zhihu": "知乎",
 }
 
 TYPE_TO_ISSUE = {
@@ -19,7 +22,6 @@ TYPE_TO_ISSUE = {
     "consultation": "咨询疑问",
     "concern": "担忧影响",
     "criticism": "明确批评",
-    # 苏琦当前 stats.py 仍把“质疑”并入“明确批评”；原始 v2_type 会保留在 notes 中。
     "skepticism": "明确批评",
     "implementation_issue": "实施问题",
     "fairness_dispute": "公平争议",
@@ -37,7 +39,6 @@ def _clean_region(value: Any) -> str:
 
 
 def _attitude_from_v2(status: str, type_: str | None) -> str:
-    """Keep the v2 decision as the source of truth, only translating for the dashboard schema."""
     if status == "normal":
         return "支持认可"
     if status == "neutral":
@@ -72,20 +73,12 @@ def to_suqi_record(row: dict) -> dict:
     notes_parts = [f"v2_status={v2_status or 'unknown'}"]
     if v2_type:
         notes_parts.append(f"v2_type={v2_type}")
-    if row.get("record_type"):
-        notes_parts.append(f"record_type={row['record_type']}")
-    if row.get("source_type"):
-        notes_parts.append(f"source_type={row['source_type']}")
-    if row.get("video_content_type"):
-        notes_parts.append(f"video_content_type={row['video_content_type']}")
-    if row.get("source_type_method"):
-        notes_parts.append(f"source_type_method={row['source_type_method']}")
-    if row.get("attitude_target"):
-        notes_parts.append(f"attitude_target={row['attitude_target']}")
-    if row.get("analysis_basis"):
-        notes_parts.append(f"analysis_basis={row['analysis_basis']}")
-    if row.get("video_attitude_scope"):
-        notes_parts.append(f"video_attitude_scope={row['video_attitude_scope']}")
+    for key in (
+        "record_type", "source_type", "video_content_type", "source_type_method",
+        "attitude_target", "analysis_basis", "video_attitude_scope"
+    ):
+        if row.get(key):
+            notes_parts.append(f"{key}={row[key]}")
     if row.get("record_type") == "video":
         notes_parts.append(
             "video_multimodal_complete=" + str(bool(row.get("video_multimodal_complete"))).lower()
@@ -97,6 +90,13 @@ def to_suqi_record(row: dict) -> dict:
         notes_parts.append(f"language_method={row['language_method']}")
     if row.get("language_confidence"):
         notes_parts.append(f"language_confidence={row['language_confidence']}")
+
+    # Suqi's current schema has likes/comments/shares but not every platform's
+    # extra engagement counters. Preserve those metrics in notes for later UI use.
+    for key in ("views", "favorites", "danmaku", "coins"):
+        value = int(row.get(key) or 0)
+        if value:
+            notes_parts.append(f"{key}={value}")
 
     return {
         "uid": f"mediacrawler-{platform_code}-{row.get('sample_id', '')}",
@@ -121,12 +121,7 @@ def to_suqi_record(row: dict) -> dict:
     }
 
 
-def push_records(
-    records: list[dict],
-    ingest_url: str,
-    timeout_seconds: int = 15,
-) -> dict:
-    """POST one classified batch to Suqi's /api/ingest endpoint."""
+def push_records(records: list[dict], ingest_url: str, timeout_seconds: int = 15) -> dict:
     if not records:
         return {"ok": True, "sent": 0, "inserted": 0, "skipped": 0}
 
@@ -209,10 +204,6 @@ def deliver_with_outbox(
     outbox_path: Path,
     timeout_seconds: int = 15,
 ) -> dict:
-    """Retry prior failed dashboard deliveries, then add the current batch.
-
-    Suqi's backend deduplicates on uid, so retrying a full batch is idempotent.
-    """
     pending = _read_outbox(outbox_path)
     combined = pending + list(new_records)
 
