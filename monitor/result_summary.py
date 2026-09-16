@@ -9,7 +9,10 @@ from typing import Iterable
 from pipeline.language_detector import is_minority_language
 
 
-PLATFORM_CODES = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
+PLATFORM_CODES = (
+    "xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu",
+    "wechat_mp", "wechat_channels",
+)
 
 
 def _read_json(path: Path, default=None):
