@@ -40,6 +40,21 @@ def _classify_state(return_code: int | None, stdout_log: Path, stderr_log: Path,
         return "SUCCESS"
 
     text = _tail_text(stdout_log, stderr_log)
+
+    # MediaCrawler's Weibo adapter currently raises DataFetchError/RetryError
+    # when a search page is simply exhausted (e.g. ok:0 + cards:[] +
+    # "这里还没有内容"). For our monitoring workflow this is a normal
+    # pagination terminator, not a network failure. Mark it explicitly so the
+    # wrapper can preserve and ingest the JSONL already collected on prior pages.
+    natural_end_markers = (
+        "这里还没有内容",
+        "'cards': []",
+        '"cards": []',
+        "cards=[]",
+    )
+    if any(marker in text for marker in natural_end_markers):
+        return "NATURAL_END"
+
     verify_markers = (
         "captcha", "security verification", "manual verify", "verify_required",
         "滑块", "验证码", "安全验证", "人工验证",
@@ -120,6 +135,11 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         status = "error"
 
     state = _classify_state(rc, stdout_log, stderr_log, runner_error=error)
+    if state == "NATURAL_END":
+        # Upstream may exit non-zero after reaching an empty terminal page.
+        # Treat the run as usable so already-written content/comments proceed to ingest.
+        status = "ok"
+
     return PlatformRun(
         platform=code,
         platform_name=name,
