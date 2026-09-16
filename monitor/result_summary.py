@@ -64,6 +64,7 @@ def _merge_status(root: Path) -> dict:
         "data_root": str(root),
         "cycle_finished_at": status.get("cycle_finished_at") or "",
         "crawler_status": run.get("status") or "unknown",
+        "crawler_state": run.get("state") or "unknown",
         "return_code": run.get("return_code"),
         "duration_seconds": run.get("duration_seconds"),
         "new_records": ingest.get("new_records", 0),
@@ -81,8 +82,22 @@ def _merge_status(root: Path) -> dict:
 
 
 def build_summary(data_roots: Iterable[Path]) -> dict:
-    """Build a privacy-safe aggregate. No raw text, account names or URLs are emitted."""
-    seen = set()
+    """Build a privacy-safe aggregate. No raw text, account names or URLs are emitted.
+
+    If a key-account monitor appends later engagement snapshots for the same
+    content, the most recent snapshot wins before aggregate counters are built.
+    """
+    latest_rows: dict[str, dict] = {}
+    runtime = []
+
+    for root in data_roots:
+        runtime.append(_merge_status(root))
+        classified = root / "classified" / "classified_results.jsonl"
+        for row in _iter_jsonl(classified) or []:
+            key = str(row.get("dedupe_key") or f"{row.get('platform','')}:{row.get('sample_id','')}")
+            if key:
+                latest_rows[key] = row
+
     platform_counts = Counter()
     language_counts = Counter()
     minority_language_counts = Counter()
@@ -93,45 +108,38 @@ def build_summary(data_roots: Iterable[Path]) -> dict:
     record_type_counts = Counter()
     engagement = Counter()
     latest_seen = ""
-    runtime = []
 
-    for root in data_roots:
-        runtime.append(_merge_status(root))
-        classified = root / "classified" / "classified_results.jsonl"
-        for row in _iter_jsonl(classified) or []:
-            key = str(row.get("dedupe_key") or f"{row.get('platform','')}:{row.get('sample_id','')}")
-            if not key or key in seen:
-                continue
-            seen.add(key)
+    for row in latest_rows.values():
+        platform = str(row.get("platform") or "unknown")
+        language = str(row.get("language") or "未知")
+        region = str(row.get("ip_location") or "").strip()
+        status = str(row.get("status") or "unknown")
+        type_ = str(row.get("type") or "null")
+        source_type = str(row.get("source_type") or "未分类")
+        record_type = str(row.get("record_type") or "unknown")
 
-            platform = str(row.get("platform") or "unknown")
-            language = str(row.get("language") or "未知")
-            region = str(row.get("ip_location") or "").strip()
-            status = str(row.get("status") or "unknown")
-            type_ = str(row.get("type") or "null")
-            source_type = str(row.get("source_type") or "未分类")
-            record_type = str(row.get("record_type") or "unknown")
+        platform_counts[platform] += 1
+        language_counts[language] += 1
+        if is_minority_language(language):
+            minority_language_counts[language] += 1
+        if region:
+            region_counts[region] += 1
+        status_counts[status] += 1
+        type_counts[type_] += 1
+        source_type_counts[source_type] += 1
+        record_type_counts[record_type] += 1
 
-            platform_counts[platform] += 1
-            language_counts[language] += 1
-            if is_minority_language(language):
-                minority_language_counts[language] += 1
-            if region:
-                region_counts[region] += 1
-            status_counts[status] += 1
-            type_counts[type_] += 1
-            source_type_counts[source_type] += 1
-            record_type_counts[record_type] += 1
+        engagement["likes"] += int(row.get("likes") or 0)
+        engagement["comments"] += int(row.get("comments") or 0)
+        engagement["shares"] += int(row.get("shares") or 0)
 
-            engagement["likes"] += int(row.get("likes") or 0)
-            engagement["comments"] += int(row.get("comments") or 0)
-            engagement["shares"] += int(row.get("shares") or 0)
+        first_seen = str(row.get("first_seen_time") or "")
+        refresh_seen = str(row.get("engagement_refresh_time") or "")
+        candidate = max(first_seen, refresh_seen)
+        if candidate > latest_seen:
+            latest_seen = candidate
 
-            first_seen = str(row.get("first_seen_time") or "")
-            if first_seen > latest_seen:
-                latest_seen = first_seen
-
-    total = len(seen)
+    total = len(latest_rows)
     region_total = sum(region_counts.values())
     minority_total = sum(minority_language_counts.values())
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
