@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -20,6 +21,23 @@ from monitor.result_summary import build_summary
 PLATFORMS = (
     "xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu",
     "wechat_mp", "wechat_channels",
+)
+
+_ID_KEYS = (
+    "comment_id", "parent_comment_id", "root_comment_id", "content_id",
+    "note_id", "aweme_id", "photo_id", "video_id", "bvid", "tieba_id",
+    "id", "rpid", "rootid",
+)
+_SAFE_VALUE_KEYS = (
+    "ip_location", "ip_region", "ip_label", "region_name", "province",
+    "comment_count", "comments_count", "comment_num", "video_comment",
+    "total_comments", "reply_count", "total_replay_num", "sub_comment_count",
+    "like_count", "liked_count", "share_count", "collect_count", "favorite_count",
+    "publish_time", "create_time", "last_modify_ts", "comment_level",
+    "content_type", "type", "source_keyword",
+)
+_NESTED_SCHEMA_KEYS = (
+    "user", "user_info", "author", "member", "reply_control", "photo_info",
 )
 
 
@@ -48,6 +66,154 @@ def _platform_roots(cfg: dict, platform: str) -> list[Path]:
     return [p for p in candidates if p.exists()]
 
 
+def _stable_hash(value, namespace: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    return hashlib.sha256(f"{namespace}:{text}".encode("utf-8")).hexdigest()[:20]
+
+
+def _file_sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    try:
+        with path.open("rb") as f:
+            while True:
+                chunk = f.read(1024 * 1024)
+                if not chunk:
+                    break
+                h.update(chunk)
+        return h.hexdigest()
+    except Exception:
+        return ""
+
+
+def _count_jsonl(path: Path) -> int:
+    total = 0
+    try:
+        with path.open("r", encoding="utf-8-sig", errors="replace") as f:
+            for line in f:
+                if line.strip():
+                    total += 1
+    except Exception:
+        return 0
+    return total
+
+
+def _safe_value(value):
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    text = str(value).strip()
+    if len(text) > 80:
+        text = text[:80]
+    # Diagnostic snapshots intentionally reject values that look like raw IPs.
+    if re.fullmatch(r"(?:\d{1,3}\.){3}\d{1,3}", text) or re.fullmatch(r"[0-9a-fA-F:]{6,}", text):
+        return ""
+    return text
+
+
+def _sanitize_raw_row(row: dict, platform: str) -> dict:
+    """Keep schema/structure for debugging without publishing user text or raw identifiers."""
+    sample = {
+        "fields": sorted(str(k) for k in row.keys()),
+        "field_types": {str(k): type(v).__name__ for k, v in row.items()},
+        "stable_id_hashes": {},
+        "safe_values": {},
+        "nested_fields": {},
+    }
+    for key in _ID_KEYS:
+        if key in row and row.get(key) not in (None, ""):
+            sample["stable_id_hashes"][key] = _stable_hash(row.get(key), f"{platform}:{key}")
+    for key in _SAFE_VALUE_KEYS:
+        if key in row and row.get(key) not in (None, ""):
+            sample["safe_values"][key] = _safe_value(row.get(key))
+    for key in _NESTED_SCHEMA_KEYS:
+        value = row.get(key)
+        if isinstance(value, dict):
+            sample["nested_fields"][key] = sorted(str(k) for k in value.keys())
+    return sample
+
+
+def _sample_jsonl(path: Path, platform: str, limit: int) -> list[dict]:
+    rows = []
+    try:
+        with path.open("r", encoding="utf-8-sig", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except Exception:
+                    continue
+                if isinstance(row, dict):
+                    rows.append(_sanitize_raw_row(row, platform))
+                if len(rows) >= limit:
+                    break
+    except Exception:
+        pass
+    return rows
+
+
+def _latest_raw_diagnostics(root: Path, platform: str, sample_limit: int) -> dict:
+    raw_root = root / "raw_runs"
+    if not raw_root.exists():
+        return {"available": False, "reason": "raw_runs_missing", "data_root": str(root)}
+    cycles = sorted((p for p in raw_root.iterdir() if p.is_dir()), key=lambda p: p.name)
+    if not cycles:
+        return {"available": False, "reason": "no_raw_cycles", "data_root": str(root)}
+    cycle = cycles[-1]
+    jsonl_files = sorted(cycle.rglob("*.jsonl"))
+    log_files = sorted([*cycle.rglob("stdout.log"), *cycle.rglob("stderr.log")])
+    files = []
+    for path in jsonl_files:
+        low = path.name.lower()
+        kind = "comment" if "comment" in low else ("content" if "content" in low else "other")
+        try:
+            stat = path.stat()
+            size = stat.st_size
+            modified_at = datetime.fromtimestamp(stat.st_mtime).astimezone().isoformat(timespec="seconds")
+        except Exception:
+            size = 0
+            modified_at = ""
+        files.append({
+            "kind": kind,
+            "name": path.name,
+            "relative_path": path.relative_to(root).as_posix(),
+            "bytes": size,
+            "rows": _count_jsonl(path),
+            "sha256": _file_sha256(path),
+            "modified_at": modified_at,
+            "sanitized_schema_samples": _sample_jsonl(path, platform, sample_limit),
+        })
+    logs = []
+    for path in log_files:
+        try:
+            stat = path.stat()
+            logs.append({
+                "name": path.name,
+                "relative_path": path.relative_to(root).as_posix(),
+                "bytes": stat.st_size,
+                "sha256": _file_sha256(path),
+            })
+        except Exception:
+            continue
+    return {
+        "available": True,
+        "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
+        "cycle": cycle.name,
+        "data_root": str(root),
+        "jsonl_files": files,
+        "log_files": logs,
+    }
+
+
+def _build_raw_diagnostics(cfg: dict, roots: list[Path], platform: str) -> list[dict]:
+    if not bool(cfg.get("github_diagnostic_samples", True)):
+        return []
+    limit = max(1, min(20, int(cfg.get("github_diagnostic_sample_rows_per_type", 5))))
+    return [_latest_raw_diagnostics(root, platform, limit) for root in roots]
+
+
 def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path, dict]:
     cfg = _load_config(config_path)
     roots = _platform_roots(cfg, platform)
@@ -55,7 +221,7 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
     result_date = str(cfg.get("results_date") or datetime.now().astimezone().date().isoformat())
     summary = build_summary(roots, monitoring_start_time=monitoring_start_time)
     payload = {
-        "schema_version": 3,
+        "schema_version": 4,
         "event_id": cfg.get("event_id"),
         "event_name": cfg.get("event_name"),
         "monitoring_start_time": monitoring_start_time,
@@ -63,8 +229,10 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
         "node_id": node_id,
         "platform": platform,
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "sync_target_seconds": 300,
         "data_roots": [str(p) for p in roots],
         "summary": summary,
+        "raw_diagnostics": _build_raw_diagnostics(cfg, roots, platform),
     }
     out = ROOT / "results" / result_date / "nodes" / platform / f"{_safe_name(node_id)}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -142,7 +310,12 @@ def commit_and_push(path: Path, retries: int = 5) -> dict:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Publish one tester/platform aggregate shard to GitHub without raw post/comment text or URLs.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Publish one tester/platform aggregate shard plus privacy-safe raw-schema diagnostics "
+            "to GitHub. Raw post/comment text, raw user identifiers, raw URLs and real IPs are never published."
+        )
+    )
     parser.add_argument("--platform", required=True, choices=PLATFORMS)
     parser.add_argument("--node-id", default=os.environ.get("MONITOR_NODE_ID") or socket.gethostname())
     parser.add_argument("--config", default=str(ROOT / "config" / "monitoring.student.windows.json"))
@@ -151,8 +324,8 @@ def main():
     parser.add_argument("--interval", type=int, default=300)
     args = parser.parse_args()
 
-    if args.interval < 300:
-        raise SystemExit("--interval must be >= 300 seconds")
+    if args.interval != 300:
+        raise SystemExit("--interval must be exactly 300 seconds for the promotion-week real-time monitoring task")
 
     config_path = Path(args.config).resolve()
     while True:
@@ -162,6 +335,11 @@ def main():
             totals = summary.get("totals", {})
             runtime = summary.get("runtime") or []
             last_runtime = runtime[-1] if runtime else {}
+            diagnostics = payload.get("raw_diagnostics") or []
+            diagnostic_files = sum(
+                len(row.get("jsonl_files") or [])
+                for row in diagnostics if isinstance(row, dict)
+            )
             result = {
                 "ok": True,
                 "platform": args.platform,
@@ -180,6 +358,7 @@ def main():
                 "attitude": summary.get("attitude") or {},
                 "comment_attitude": summary.get("comment_attitude") or {},
                 "video_analysis": summary.get("video_analysis") or {},
+                "raw_diagnostic_file_count": diagnostic_files,
                 "last_cycle": {
                     "cycle_finished_at": last_runtime.get("cycle_finished_at"),
                     "crawler_state": last_runtime.get("crawler_state"),
