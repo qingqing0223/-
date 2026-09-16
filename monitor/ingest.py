@@ -1,4 +1,5 @@
 from __future__ import annotations
+from datetime import datetime
 from pathlib import Path
 from pipeline.io_utils import read_jsonl, append_jsonl, read_json, write_json
 from pipeline.normalizer import normalize_record
@@ -30,19 +31,12 @@ def _canonical_public_region(value) -> str:
     for needle, province in PROVINCE_ALIASES:
         if needle in text:
             return province
-    # Keep a short public region label if the platform returns one we do not know;
-    # never derive or store a raw IP address here.
     if len(text) <= 16 and not any(ch.isdigit() for ch in text):
         return text
     return ""
 
 
 def _prepare_region_aliases(raw: dict) -> dict:
-    """Copy a platform-provided public region/province label into ip_location.
-
-    This does not geolocate users and does not accept raw IP addresses. It only
-    reuses coarse public labels already returned by the platform/export.
-    """
     if not isinstance(raw, dict):
         return raw
     out = dict(raw)
@@ -67,6 +61,31 @@ def _prepare_region_aliases(raw: dict) -> dict:
     return out
 
 
+def _parse_iso_datetime(value, default_tz=None):
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except Exception:
+        return None
+    if dt.tzinfo is None and default_tz is not None:
+        dt = dt.replace(tzinfo=default_tz)
+    return dt
+
+
+def _before_monitoring_start(rec: dict, monitoring_start_time: str) -> bool:
+    start = _parse_iso_datetime(monitoring_start_time)
+    if start is None:
+        return False
+    published = _parse_iso_datetime(rec.get("publish_time"), default_tz=start.tzinfo)
+    if published is None:
+        return False
+    return published < start
+
+
 def load_seen(path: Path) -> set[str]:
     data = read_json(path, {"seen": []})
     return set(map(str, data.get("seen", [])))
@@ -77,9 +96,11 @@ def save_seen(path: Path, seen: set[str]) -> None:
 
 
 def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path,
-                        output_jsonl: Path, concurrency: int = 4) -> dict:
+                        output_jsonl: Path, concurrency: int = 4,
+                        monitoring_start_time: str = "") -> dict:
     seen = load_seen(state_path)
     fresh = []
+    filtered_before_start = 0
 
     for path in jsonl_files:
         for raw in read_jsonl(path):
@@ -91,6 +112,9 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             if key in seen:
                 continue
             seen.add(key)
+            if _before_monitoring_start(rec, monitoring_start_time):
+                filtered_before_start += 1
+                continue
             fresh.append(rec)
 
     classified = classify_records(fresh, concurrency=concurrency)
@@ -109,8 +133,10 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     total = len(classified)
     return {
         "platform": platform,
+        "monitoring_start_time": monitoring_start_time,
         "input_files": [str(p) for p in jsonl_files],
         "new_records": len(fresh),
+        "filtered_before_start": filtered_before_start,
         "classified_records": total,
         "region_records": region_records,
         "region_rate": round(region_records / total, 4) if total else 0.0,
@@ -118,7 +144,5 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "minority_language_rate": round(minority_language_records / total, 4) if total else 0.0,
         "language_counts": dict(sorted(language_counts.items(), key=lambda item: (-item[1], item[0]))),
         "total_seen": len(seen),
-        # Private in-memory payload for the dashboard bridge. The orchestrator removes
-        # this before writing status JSON, so a whole data batch is not duplicated there.
         "_classified_rows": classified,
     }
