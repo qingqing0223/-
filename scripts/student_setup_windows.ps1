@@ -35,10 +35,6 @@ Write-Host "Python version:   $(& $PythonExe --version)" -ForegroundColor Cyan
 Write-Host "Node.js:          $(node --version)" -ForegroundColor Cyan
 Write-Host "Chrome:           $ChromePath" -ForegroundColor Cyan
 
-# Install the integration classifier first. This package is local to this repository
-# and must be importable by the same Python executable that will run the monitor.
-# Doing this before the MediaCrawler network clone prevents a transient Git failure
-# from leaving the classifier uninstalled.
 Write-Host "Installing integration classifier package..." -ForegroundColor Cyan
 & $PythonExe -m pip install -r .\requirements.txt
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -82,8 +78,8 @@ $uvCode = $LASTEXITCODE
 Pop-Location
 if ($uvCode -ne 0) { exit $uvCode }
 
-# Make the student's first login easier: keep a visible, persistent browser and
-# saved login state. Only change settings that exist in the checked-out version.
+# Keep a visible persistent browser and align upstream defaults with the project's
+# full monitoring matrix. Runtime CLI arguments still take precedence.
 $baseConfig = Join-Path $MediaCrawlerRoot "config\base_config.py"
 if (Test-Path $baseConfig) {
     $text = [System.IO.File]::ReadAllText($baseConfig, [System.Text.Encoding]::UTF8)
@@ -94,6 +90,11 @@ if (Test-Path $baseConfig) {
         'CDP_HEADLESS' = 'False'
         'CDP_CONNECT_EXISTING' = 'False'
         'AUTO_CLOSE_BROWSER' = 'False'
+        'ENABLE_GET_COMMENTS' = 'True'
+        'ENABLE_GET_SUB_COMMENTS' = 'True'
+        'CRAWLER_MAX_NOTES_COUNT' = '100000'
+        'CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES' = '100000'
+        'MAX_CONCURRENCY_NUM' = '1'
     }
     $changed = $false
     foreach ($name in $changes.Keys) {
@@ -108,15 +109,16 @@ if (Test-Path $baseConfig) {
     if ($changed) {
         $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
         [System.IO.File]::WriteAllText($baseConfig, $text, $utf8NoBom)
-        Write-Host "MediaCrawler browser/login-state settings prepared." -ForegroundColor Green
+        Write-Host "MediaCrawler full-matrix defaults prepared." -ForegroundColor Green
     }
 }
 
-Write-Host "" 
+Write-Host ""
 Write-Host "Base installation completed." -ForegroundColor Green
 Write-Host "Before monitoring:" -ForegroundColor Cyan
 Write-Host "  1. Set DASHSCOPE_API_KEY locally in PowerShell (do not commit it)." -ForegroundColor Yellow
 Write-Host "  2. Authenticate Git with your own GitHub account if you need -PushGithub." -ForegroundColor Yellow
 Write-Host "  3. Run: python .\scripts\preflight.py --config .\config\monitoring.local.json" -ForegroundColor Yellow
 Write-Host "  4. Run one assigned platform with scripts\start_student_platform_windows.ps1." -ForegroundColor Yellow
+Write-Host "Full matrix defaults: natural-end paging (100000 safety cap), first-level comments, nested comments and comment ingestion." -ForegroundColor Yellow
 Write-Host "Platform login/verification must be completed manually through the platform's official UI when requested." -ForegroundColor Yellow
