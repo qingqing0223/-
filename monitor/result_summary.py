@@ -9,7 +9,7 @@ from typing import Iterable
 from pipeline.language_detector import is_minority_language
 
 
-PLATFORM_CODES = ("wb", "xhs", "dy", "ks")
+PLATFORM_CODES = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
 
 
 def _read_json(path: Path, default=None):
@@ -82,11 +82,7 @@ def _merge_status(root: Path) -> dict:
 
 
 def build_summary(data_roots: Iterable[Path]) -> dict:
-    """Build a privacy-safe aggregate. No raw text, account names or URLs are emitted.
-
-    If a key-account monitor appends later engagement snapshots for the same
-    content, the most recent snapshot wins before aggregate counters are built.
-    """
+    """Build a privacy-safe aggregate. No raw text, account names or URLs are emitted."""
     latest_rows: dict[str, dict] = {}
     runtime = []
 
@@ -129,9 +125,8 @@ def build_summary(data_roots: Iterable[Path]) -> dict:
         source_type_counts[source_type] += 1
         record_type_counts[record_type] += 1
 
-        engagement["likes"] += int(row.get("likes") or 0)
-        engagement["comments"] += int(row.get("comments") or 0)
-        engagement["shares"] += int(row.get("shares") or 0)
+        for key in ("likes", "comments", "shares", "views", "favorites", "danmaku", "coins"):
+            engagement[key] += int(row.get(key) or 0)
 
         first_seen = str(row.get("first_seen_time") or "")
         refresh_seen = str(row.get("engagement_refresh_time") or "")
@@ -145,7 +140,7 @@ def build_summary(data_roots: Iterable[Path]) -> dict:
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": generated_at,
         "latest_seen_time": latest_seen,
         "privacy": "aggregate_only_no_raw_text_no_account_no_url",
@@ -158,6 +153,10 @@ def build_summary(data_roots: Iterable[Path]) -> dict:
             "likes": engagement["likes"],
             "comments": engagement["comments"],
             "shares": engagement["shares"],
+            "views": engagement["views"],
+            "favorites": engagement["favorites"],
+            "danmaku": engagement["danmaku"],
+            "coins": engagement["coins"],
         },
         "platforms": dict(platform_counts.most_common()),
         "languages": dict(language_counts.most_common()),
