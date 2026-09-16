@@ -67,6 +67,8 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
             $obj | Add-Member -NotePropertyName $name -NotePropertyValue $value
         }
     }
+    Set-ConfigProperty $cfgObj "results_date" ""
+    Set-ConfigProperty $cfgObj "results_date_mode" "auto"
     Set-ConfigProperty $cfgObj "interval_seconds" 300
     Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 60
     Set-ConfigProperty $cfgObj "soft_empty_cooldown_seconds" 3600
@@ -121,6 +123,7 @@ Write-Host "Realtime target: new monitoring cycle starts every 300 seconds when 
 Write-Host "If a crawl itself exceeds five minutes, the system records an SLA miss and does NOT overlap a second collector; verification/login/soft-empty states also use safe cooldowns." -ForegroundColor Yellow
 Write-Host "Enabled: 6-keyword search, natural-end paging, dedupe, details, first-level comments, nested comments, parent/reply links, public IP-region fields when exposed, language/minority-language detection, v2 attitude classification for posts/videos/comments, public publisher account statistics, engagement statistics, and GitHub aggregate sync." -ForegroundColor Yellow
 Write-Host "GitHub sync also carries privacy-safe raw JSONL diagnostics (schema/row-count/hash/structural linkage samples) every five minutes; full raw text stays local because this repository is public." -ForegroundColor Yellow
+Write-Host "GitHub result paths roll automatically by the current date; do not manually pin results_date to an old day." -ForegroundColor Yellow
 Write-Host "Video ASR/OCR is reported when those fields are available; missing ASR/OCR is explicitly visible in summary diagnostics." -ForegroundColor Yellow
 Write-Host "Official login/captcha/security verification must be completed manually when requested." -ForegroundColor Yellow
 
