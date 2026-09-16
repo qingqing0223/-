@@ -1,0 +1,30 @@
+{
+  "media_crawler_root": "E:\\MediaCrawler_clean",
+  "data_root": "E:\\MediaCrawlerData\\promotion_week_monitor_multilingual",
+  "interval_seconds": 300,
+  "max_parallel_platforms": 1,
+  "classifier_concurrency": 4,
+  "login_type": "qrcode",
+  "crawler_max_notes_count": 10,
+  "max_concurrency_num": 1,
+  "get_comment": "no",
+  "get_sub_comment": "no",
+  "save_data_option": "jsonl",
+  "keyword_pack_file": "multilingual_keywords.json",
+  "include_unverified_keywords": false,
+  "dashboard": {
+    "enabled": true,
+    "ingest_url": "http://127.0.0.1:8765/api/ingest",
+    "timeout_seconds": 15
+  },
+  "platforms": [
+    {"code": "wb", "name": "微博", "enabled": true},
+    {"code": "xhs", "name": "小红书", "enabled": true},
+    {"code": "dy", "name": "抖音", "enabled": true},
+    {"code": "ks", "name": "快手", "enabled": true}
+  ],
+  "keywords": [
+    "民族团结进步宣传周",
+    "民族团结进步"
+  ]
+}
