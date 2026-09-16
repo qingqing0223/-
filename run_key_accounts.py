@@ -13,7 +13,15 @@ from monitor.key_account_ingest import ingest_key_account_snapshot
 from pipeline.io_utils import write_json
 
 
-PLATFORM_NAMES = {"wb": "微博", "xhs": "小红书", "dy": "抖音", "ks": "快手"}
+PLATFORM_NAMES = {
+    "xhs": "小红书",
+    "dy": "抖音",
+    "ks": "快手",
+    "bili": "B站",
+    "wb": "微博",
+    "tieba": "百度贴吧",
+    "zhihu": "知乎",
+}
 
 
 def load_config(path: Path) -> dict:
@@ -21,7 +29,10 @@ def load_config(path: Path) -> dict:
 
 
 def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
-    accounts = [a for a in (cfg.get("accounts") or []) if a.get("enabled", False) and str(a.get("creator_id") or "").strip()]
+    accounts = [
+        a for a in (cfg.get("accounts") or [])
+        if a.get("enabled", False) and str(a.get("creator_id") or "").strip()
+    ]
     if platform_filter:
         accounts = [a for a in accounts if a.get("platform") == platform_filter]
     if not accounts:
@@ -122,7 +133,8 @@ def main():
     config_path = Path(args.config)
     if not config_path.exists():
         raise SystemExit(
-            f"Config not found: {config_path}. Copy config/key_accounts.example.json to config/key_accounts.json and fill verified creator IDs first."
+            f"Config not found: {config_path}. Copy config/key_accounts.example.json to "
+            "config/key_accounts.json and fill verified creator IDs first."
         )
     cfg = load_config(config_path)
     interval = max(300, int(cfg.get("interval_seconds", 300)))
@@ -134,7 +146,6 @@ def main():
         if args.once:
             break
 
-        # If platform verification is required, stop rather than hammering it.
         states = [
             str((r.get("platform_run") or {}).get("state") or "")
             for r in result.get("results", [])
