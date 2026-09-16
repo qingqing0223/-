@@ -1,0 +1,65 @@
+{
+  "schema_version": 2,
+  "event_id": "promotion_week_2026_preheat",
+  "event_name": "2026年民族团结进步宣传周预热阶段舆情监测",
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "results_date": "2026-09-16",
+  "node_id": "bili01",
+  "platform": "bili",
+  "generated_at": "2026-09-16T13:14:20+08:00",
+  "data_roots": [
+    "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili"
+  ],
+  "summary": {
+    "schema_version": 3,
+    "generated_at": "2026-09-16T13:14:20+08:00",
+    "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+    "latest_seen_time": "",
+    "privacy": "aggregate_only_no_raw_text_no_account_no_url",
+    "totals": {
+      "unique_records": 0,
+      "filtered_before_start_from_existing_output": 0,
+      "region_records": 0,
+      "region_coverage_rate": 0.0,
+      "minority_language_records": 0,
+      "minority_language_rate": 0.0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 0,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0
+    },
+    "platforms": {},
+    "languages": {},
+    "minority_languages": {},
+    "regions": {},
+    "v2_status": {},
+    "v2_type": {},
+    "source_types": {},
+    "record_types": {},
+    "runtime": [
+      {
+        "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
+        "cycle_finished_at": "",
+        "crawler_status": "unknown",
+        "crawler_state": "unknown",
+        "return_code": null,
+        "duration_seconds": null,
+        "new_records": 0,
+        "filtered_before_start": 0,
+        "classified_records": 0,
+        "region_records": 0,
+        "region_rate": 0.0,
+        "minority_language_records": 0,
+        "language_counts": {},
+        "dashboard_ok": null,
+        "dashboard_sent": 0,
+        "dashboard_inserted": 0,
+        "dashboard_skipped": 0,
+        "outbox_after": null
+      }
+    ]
+  }
+}
