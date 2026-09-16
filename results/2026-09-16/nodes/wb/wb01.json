@@ -6,11 +6,13 @@
   "results_date": "2026-09-16",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-16T13:41:01+08:00",
-  "data_roots": [],
+  "generated_at": "2026-09-16T14:46:06+08:00",
+  "data_roots": [
+    "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
+  ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T13:41:01+08:00",
+    "generated_at": "2026-09-16T14:46:06+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
@@ -37,6 +39,27 @@
     "v2_type": {},
     "source_types": {},
     "record_types": {},
-    "runtime": []
+    "runtime": [
+      {
+        "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
+        "cycle_finished_at": "",
+        "crawler_status": "unknown",
+        "crawler_state": "unknown",
+        "return_code": null,
+        "duration_seconds": null,
+        "new_records": 0,
+        "filtered_before_start": 0,
+        "classified_records": 0,
+        "region_records": 0,
+        "region_rate": 0.0,
+        "minority_language_records": 0,
+        "language_counts": {},
+        "dashboard_ok": null,
+        "dashboard_sent": 0,
+        "dashboard_inserted": 0,
+        "dashboard_skipped": 0,
+        "outbox_after": null
+      }
+    ]
   }
 }
