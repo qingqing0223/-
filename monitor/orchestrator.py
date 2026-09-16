@@ -7,12 +7,14 @@ import time
 
 from .crawler_runner import run_platform, find_ingest_jsonl
 from .ingest import ingest_and_classify
+from .keyword_pack import apply_keyword_pack
 from pipeline.io_utils import write_json
 from dashboard_adapter.suqi_pusher import deliver_with_outbox
 
 
 def load_config(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+    cfg = json.loads(path.read_text(encoding="utf-8"))
+    return apply_keyword_pack(cfg, path)
 
 
 def run_one_cycle(cfg: dict) -> dict:
@@ -46,6 +48,9 @@ def run_one_cycle(cfg: dict) -> dict:
                 "classified_records": 0,
                 "region_records": 0,
                 "region_rate": 0.0,
+                "minority_language_records": 0,
+                "minority_language_rate": 0.0,
+                "language_counts": {},
                 "skipped_reason": f"crawler_{run.status}"
             })
             continue
@@ -58,6 +63,9 @@ def run_one_cycle(cfg: dict) -> dict:
                 "classified_records": 0,
                 "region_records": 0,
                 "region_rate": 0.0,
+                "minority_language_records": 0,
+                "minority_language_rate": 0.0,
+                "language_counts": {},
                 "skipped_reason": "no_ingest_jsonl"
             })
             continue
@@ -77,6 +85,9 @@ def run_one_cycle(cfg: dict) -> dict:
                 "classified_records": 0,
                 "region_records": 0,
                 "region_rate": 0.0,
+                "minority_language_records": 0,
+                "minority_language_rate": 0.0,
+                "language_counts": {},
                 "skipped_reason": f"classifier_error:{type(exc).__name__}:{exc}"
             })
 
@@ -97,6 +108,8 @@ def run_one_cycle(cfg: dict) -> dict:
 
     result = {
         "cycle_finished_at": datetime.now().isoformat(timespec="seconds"),
+        "keyword_count": len(cfg.get("keywords") or []),
+        "keyword_pack_status": cfg.get("keyword_pack_status"),
         "platform_runs": [r.__dict__ for r in runs],
         "ingest": ingests,
         "dashboard_push": dashboard_push,
