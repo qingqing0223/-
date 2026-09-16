@@ -65,6 +65,26 @@ def _row_before_start(row: dict, monitoring_start_time: str) -> bool:
     return published < start
 
 
+def _comment_attitude_bucket(status: str, type_: str) -> str:
+    """Stable reporting bucket derived from the v2 taxonomy.
+
+    We keep the original v2 status/type unchanged. For reporting only:
+    normal/support -> support; neutral -> neutral; problematic -> non_support;
+    attention remains a separate attention bucket instead of being forced negative.
+    """
+    status = str(status or "").strip()
+    type_ = str(type_ or "").strip()
+    if status == "normal" and type_ == "support":
+        return "support"
+    if status == "neutral":
+        return "neutral"
+    if status == "problematic":
+        return "non_support"
+    if status == "attention":
+        return "attention"
+    return "unknown"
+
+
 def discover_data_roots(base_data_root: Path, include_multilingual: bool = True) -> list[Path]:
     """Discover formal per-platform roots without including smoke/region test roots."""
     parent = base_data_root.parent
@@ -88,6 +108,8 @@ def _merge_status(root: Path) -> dict:
     run = runs[0] if runs else {}
     ingest = (status.get("ingest") or [{}])[0]
     dashboard = status.get("dashboard_push") or {}
+    input_files = [str(p) for p in (ingest.get("input_files") or [])]
+    comment_input_file_count = sum(1 for p in input_files if "comment" in Path(p).name.lower())
     return {
         "data_root": str(root),
         "cycle_finished_at": status.get("cycle_finished_at") or "",
@@ -98,6 +120,9 @@ def _merge_status(root: Path) -> dict:
         "new_records": ingest.get("new_records", 0),
         "filtered_before_start": ingest.get("filtered_before_start", 0),
         "classified_records": ingest.get("classified_records", 0),
+        "ingest_comments": bool(ingest.get("ingest_comments", False)),
+        "input_file_count": len(input_files),
+        "comment_input_file_count": comment_input_file_count,
         "region_records": ingest.get("region_records", 0),
         "region_rate": ingest.get("region_rate", 0.0),
         "minority_language_records": ingest.get("minority_language_records", 0),
@@ -135,6 +160,9 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
     type_counts = Counter()
     source_type_counts = Counter()
     record_type_counts = Counter()
+    comment_status_counts = Counter()
+    comment_type_counts = Counter()
+    comment_attitude_counts = Counter()
     engagement = Counter()
     latest_seen = ""
     comment_records = 0
@@ -165,6 +193,9 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
 
         if record_type == "comment":
             comment_records += 1
+            comment_status_counts[status] += 1
+            comment_type_counts[type_] += 1
+            comment_attitude_counts[_comment_attitude_bucket(status, type_)] += 1
             if region:
                 comment_region_records += 1
             level = int(row.get("comment_level") or 0)
@@ -191,7 +222,7 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
 
     return {
-        "schema_version": 4,
+        "schema_version": 5,
         "generated_at": generated_at,
         "monitoring_start_time": monitoring_start_time,
         "latest_seen_time": latest_seen,
@@ -224,6 +255,9 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         "regions": dict(region_counts.most_common()),
         "v2_status": dict(status_counts.most_common()),
         "v2_type": dict(type_counts.most_common()),
+        "comment_v2_status": dict(comment_status_counts.most_common()),
+        "comment_v2_type": dict(comment_type_counts.most_common()),
+        "comment_attitude": dict(comment_attitude_counts.most_common()),
         "source_types": dict(source_type_counts.most_common()),
         "record_types": dict(record_type_counts.most_common()),
         "runtime": runtime,
