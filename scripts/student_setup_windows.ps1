@@ -85,8 +85,13 @@ if ($uvCode -ne 0) { exit $uvCode }
 # uses the same code path. The patch also runs Python compile checks and writes a
 # manifest; any mismatch fails setup immediately instead of silently producing 0 regions.
 $regionPatch = Join-Path $RepoRoot "scripts\patch_mediacrawler_public_regions.py"
+$regionVerify = Join-Path $RepoRoot "scripts\verify_mediacrawler_public_regions.py"
 if (-not (Test-Path $regionPatch)) {
     Write-Host "ERROR: public-region patch script is missing: $regionPatch" -ForegroundColor Red
+    exit 12
+}
+if (-not (Test-Path $regionVerify)) {
+    Write-Host "ERROR: public-region verification script is missing: $regionVerify" -ForegroundColor Red
     exit 12
 }
 Write-Host "Applying public-region persistence patch..." -ForegroundColor Cyan
@@ -100,7 +105,13 @@ if (-not (Test-Path $regionManifest)) {
     Write-Host "ERROR: public-region patch manifest was not created." -ForegroundColor Red
     exit 13
 }
-Write-Host "Public-region patch verified: $regionManifest" -ForegroundColor Green
+Write-Host "Verifying every public-region field path..." -ForegroundColor Cyan
+& $PythonExe $regionVerify --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: public-region patch verification failed. Monitoring will not start." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+Write-Host "Public-region patch fully verified: $regionManifest" -ForegroundColor Green
 
 # Keep a visible persistent browser and align upstream defaults with the project's
 # full monitoring matrix. Runtime CLI arguments still take precedence.
