@@ -15,6 +15,16 @@ if str(ROOT) not in sys.path:
 
 SUQI_ROOT = Path(r"E:\Real-time-situation-map\yuqing-v1\03_live_system")
 SUPPORTED_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
+FULL_MATRIX_VALUES = {
+    "search_until_exhausted": True,
+    "crawler_max_notes_count": 100000,
+    "comments_until_exhausted": True,
+    "max_comments_count_singlenotes": 100000,
+    "get_comment": "yes",
+    "get_sub_comment": "yes",
+    "ingest_comments": True,
+    "max_concurrency_num": 1,
+}
 
 
 def _git(args: list[str]) -> tuple[int, str]:
@@ -30,6 +40,28 @@ def _git(args: list[str]) -> tuple[int, str]:
 
 def _load_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def _write_json(path: Path, data: dict) -> None:
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _upgrade_local_full_matrix(path: Path) -> tuple[bool, str]:
+    if not path.exists() or ".local." not in path.name:
+        return False, "not a local config"
+    try:
+        cfg = _load_json(path)
+        changed = False
+        for key, value in FULL_MATRIX_VALUES.items():
+            if cfg.get(key) != value:
+                cfg[key] = value
+                changed = True
+        if changed:
+            _write_json(path, cfg)
+            return True, "local config upgraded to full matrix"
+        return False, "local config already full matrix"
+    except Exception as exc:
+        return False, f"upgrade failed: {type(exc).__name__}: {exc}"
 
 
 def _check_json(path: Path) -> tuple[bool, str]:
@@ -72,6 +104,20 @@ def _check_platform_config(path: Path) -> tuple[bool, str]:
         return False, f"{type(exc).__name__}: {exc}"
 
 
+def _check_full_matrix(path: Path) -> tuple[bool, str]:
+    try:
+        cfg = _load_json(path)
+        bad = []
+        for key, expected in FULL_MATRIX_VALUES.items():
+            if cfg.get(key) != expected:
+                bad.append(f"{key}={cfg.get(key)!r} expected {expected!r}")
+        if bad:
+            return False, "; ".join(bad)
+        return True, "natural-end paging + comments + nested comments + comment ingestion enabled"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
+
+
 def _check_mediacrawler_platforms(root: Path) -> tuple[bool, str]:
     if not (root / "main.py").exists():
         return False, f"MediaCrawler main.py missing under {root}"
@@ -99,6 +145,8 @@ def main() -> int:
     )
     args = parser.parse_args()
     runtime_config = Path(args.config).resolve()
+
+    local_upgraded, local_upgrade_detail = _upgrade_local_full_matrix(runtime_config)
 
     checks: list[dict] = []
 
@@ -131,6 +179,9 @@ def main() -> int:
     if runtime_ok:
         ok, detail = _check_platform_config(runtime_config)
         add("runtime config seven-platform coverage", ok, detail)
+        matrix_ok, matrix_detail = _check_full_matrix(runtime_config)
+        upgrade_prefix = f"{local_upgrade_detail}; " if ".local." in runtime_config.name else ""
+        add("runtime config full monitoring matrix", matrix_ok, upgrade_prefix + matrix_detail)
 
     for rel in (
         "config/monitoring.windows.json",
@@ -138,8 +189,11 @@ def main() -> int:
         "config/monitoring.region.windows.json",
         "config/monitoring.multilingual.windows.json",
     ):
-        ok, detail = _check_platform_config(ROOT / rel)
+        path = ROOT / rel
+        ok, detail = _check_platform_config(path)
         add(f"platform coverage:{rel}", ok, detail)
+        matrix_ok, matrix_detail = _check_full_matrix(path)
+        add(f"full matrix:{rel}", matrix_ok, matrix_detail)
 
     try:
         runtime_cfg = _load_json(runtime_config)
@@ -200,6 +254,7 @@ def main() -> int:
         "ok": not required_failures,
         "runtime_config": str(runtime_config),
         "supported_platforms": list(SUPPORTED_PLATFORMS),
+        "local_config_upgraded": local_upgraded,
         "required_failures": len(required_failures),
         "optional_warnings": len(optional_warnings),
         "checks": checks,
