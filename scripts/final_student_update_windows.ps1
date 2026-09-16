@@ -18,19 +18,27 @@ Write-Host "=== FINAL student monitoring upgrade ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "IMPORTANT: close the old collector window and the old GitHub-sync window before running this script." -ForegroundColor Yellow
+Write-Host "IMPORTANT: close any OLD collector/sync windows for THIS SAME PLATFORM before running this script." -ForegroundColor Yellow
+Write-Host "Other platforms may keep running in parallel from their own working copies." -ForegroundColor Yellow
 
+# Only block stale processes for the platform being started. Earlier versions blocked
+# every publish_node_result_to_github.py process on the computer, which incorrectly
+# prevented a backup KS node from starting while WeChat MP (or another platform) was
+# still synchronizing in a separate working copy.
 try {
+    $escapedPlatform = [regex]::Escape($Platform)
+    $platformArgPattern = "--platform\s+" + $escapedPlatform + "(?:\s|$)"
     $running = Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {
-        $_.CommandLine -and (
-            $_.CommandLine -match "run_single_platform.py" -or
-            $_.CommandLine -match "publish_node_result_to_github.py"
+        $cmd = [string]$_.CommandLine
+        $cmd -and (
+            (($cmd -match "run_single_platform\.py") -and ($cmd -match $platformArgPattern)) -or
+            (($cmd -match "publish_node_result_to_github\.py") -and ($cmd -match $platformArgPattern))
         )
     }
     if ($running) {
-        Write-Host "ERROR: old monitoring/sync processes are still running." -ForegroundColor Red
-        $running | Select-Object ProcessId, Name, CommandLine | Format-Table -AutoSize
-        Write-Host "Close those old monitoring PowerShell windows, then rerun this command." -ForegroundColor Yellow
+        Write-Host "ERROR: an old collector/sync process for platform '$Platform' is still running on this computer." -ForegroundColor Red
+        $running | Select-Object ProcessId, Name, CommandLine | Format-List
+        Write-Host "Close only those SAME-PLATFORM old windows/processes, then rerun this command." -ForegroundColor Yellow
         exit 2
     }
 } catch {
