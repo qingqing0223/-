@@ -3,6 +3,7 @@ from pathlib import Path
 from pipeline.io_utils import read_jsonl, append_jsonl, read_json, write_json
 from pipeline.normalizer import normalize_record
 from pipeline.classifier import classify_records
+from pipeline.language_detector import is_minority_language
 
 
 PROVINCE_ALIASES = [
@@ -97,6 +98,14 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     save_seen(state_path, seen)
 
     region_records = sum(1 for row in classified if str(row.get("ip_location") or "").strip())
+    language_counts: dict[str, int] = {}
+    minority_language_records = 0
+    for row in classified:
+        language = str(row.get("language") or "未知").strip() or "未知"
+        language_counts[language] = language_counts.get(language, 0) + 1
+        if is_minority_language(language):
+            minority_language_records += 1
+
     total = len(classified)
     return {
         "platform": platform,
@@ -105,6 +114,9 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "classified_records": total,
         "region_records": region_records,
         "region_rate": round(region_records / total, 4) if total else 0.0,
+        "minority_language_records": minority_language_records,
+        "minority_language_rate": round(minority_language_records / total, 4) if total else 0.0,
+        "language_counts": dict(sorted(language_counts.items(), key=lambda item: (-item[1], item[0]))),
         "total_seen": len(seen),
         # Private in-memory payload for the dashboard bridge. The orchestrator removes
         # this before writing status JSON, so a whole data batch is not duplicated there.
