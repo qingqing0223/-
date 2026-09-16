@@ -154,6 +154,10 @@ def main() -> int:
         SUQI_ROOT / "web" / "index.html", "CORE_MINORITY_LANGS"
     )
     add("Suqi minority-language panel patch", language_panel_ok, language_panel_detail, required=False)
+    platform_patch_ok, platform_patch_detail = _contains(
+        SUQI_ROOT / "stats.py", 'g = r["platform"] or r["platform_group"] or "其他"'
+    )
+    add("Suqi separate-platform live statistics patch", platform_patch_ok, platform_patch_detail, required=False)
 
     rc, remote = _git(["remote", "get-url", "origin"])
     add("git origin", rc == 0 and bool(remote), remote or "missing", required=False)
