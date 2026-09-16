@@ -98,15 +98,23 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+Write-Host "Running monitoring regression tests..." -ForegroundColor Cyan
+python -m unittest discover -s tests -v
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: regression tests failed. Monitor will NOT start on this build." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+Write-Host "Regression tests passed." -ForegroundColor Green
+
 Write-Host ""
 Write-Host "FINAL upgrade completed." -ForegroundColor Green
 Write-Host "Enabled collection/reporting scope:" -ForegroundColor Cyan
 Write-Host "  - 6 official campaign keywords" -ForegroundColor Yellow
 Write-Host "  - search pagination to natural end with a finite safety cap" -ForegroundColor Yellow
-Write-Host "  - cross-cycle dedupe and 5-minute incremental polling" -ForegroundColor Yellow
+Write-Host "  - cross-cycle dedupe and incremental polling with risk-control cooldown" -ForegroundColor Yellow
 Write-Host "  - public post/video detail and engagement fields" -ForegroundColor Yellow
 Write-Host "  - first-level comments and nested replies" -ForegroundColor Yellow
-Write-Host "  - parent/root reply reconstruction" -ForegroundColor Yellow
+Write-Host "  - parent/root reply reconstruction and integrity verification" -ForegroundColor Yellow
 Write-Host "  - public IP-region labels when the platform exposes them" -ForegroundColor Yellow
 Write-Host "  - v2 attitude classification for posts/videos/comments" -ForegroundColor Yellow
 Write-Host "  - support / neutral / attention / non-support reporting buckets" -ForegroundColor Yellow
@@ -114,7 +122,7 @@ Write-Host "  - Chinese/minority-language detection" -ForegroundColor Yellow
 Write-Host "  - public publisher account aggregate statistics" -ForegroundColor Yellow
 Write-Host "  - video ASR/OCR completeness diagnostics when those fields exist" -ForegroundColor Yellow
 Write-Host "  - GitHub aggregate result synchronization" -ForegroundColor Yellow
-Write-Host "  - watchdog restart for ordinary failures; official login/verification remains manual" -ForegroundColor Yellow
+Write-Host "  - watchdog stop for official login/verification and cooldown for soft-empty/network states" -ForegroundColor Yellow
 Write-Host ""
 
 if ($Start) {
