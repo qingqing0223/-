@@ -42,11 +42,6 @@ def run_one_cycle(cfg: dict) -> dict:
     new_classified_rows = []
     include_comments = bool(cfg.get("ingest_comments", False))
     for run in runs:
-        # Always inspect the run directory for usable JSONL first. Some upstream
-        # platform adapters may return non-zero after already writing valid
-        # content/comment pages (for example natural pagination end, transient
-        # network failure, or a later-page error). Those partial results must not
-        # be discarded.
         files = find_ingest_jsonl(Path(run.output_dir), include_comments=include_comments)
 
         if run.status != "ok" and not files:
@@ -63,6 +58,8 @@ def run_one_cycle(cfg: dict) -> dict:
                 "language_counts": {},
                 "ingest_comments": include_comments,
                 "input_files": [],
+                "raw_content_rows": run.content_row_count,
+                "raw_comment_rows": run.comment_row_count,
                 "partial_crawler_result": False,
                 "crawler_state": run.state,
                 "skipped_reason": f"crawler_{run.status}_no_jsonl"
@@ -83,6 +80,8 @@ def run_one_cycle(cfg: dict) -> dict:
                 "language_counts": {},
                 "ingest_comments": include_comments,
                 "input_files": [],
+                "raw_content_rows": run.content_row_count,
+                "raw_comment_rows": run.comment_row_count,
                 "partial_crawler_result": False,
                 "crawler_state": run.state,
                 "skipped_reason": "no_ingest_jsonl"
@@ -100,6 +99,8 @@ def run_one_cycle(cfg: dict) -> dict:
             )
             new_classified_rows.extend(summary.pop("_classified_rows", []))
             summary["ingest_comments"] = include_comments
+            summary["raw_content_rows"] = run.content_row_count
+            summary["raw_comment_rows"] = run.comment_row_count
             summary["partial_crawler_result"] = run.status != "ok"
             summary["crawler_state"] = run.state
             if run.status != "ok":
@@ -122,6 +123,8 @@ def run_one_cycle(cfg: dict) -> dict:
                 "language_counts": {},
                 "ingest_comments": include_comments,
                 "input_files": [str(p) for p in files],
+                "raw_content_rows": run.content_row_count,
+                "raw_comment_rows": run.comment_row_count,
                 "partial_crawler_result": run.status != "ok",
                 "crawler_state": run.state,
                 "skipped_reason": f"classifier_error:{type(exc).__name__}:{exc}"
@@ -160,23 +163,49 @@ def run_one_cycle(cfg: dict) -> dict:
     return result
 
 
+def _cycle_states(result: dict) -> set[str]:
+    return {
+        str(row.get("state") or "UNKNOWN")
+        for row in (result.get("platform_runs") or [])
+    }
+
+
 def run_forever(cfg: dict) -> None:
     interval = int(cfg.get("interval_seconds", 300))
     if interval < 60:
         raise ValueError("interval_seconds must be >= 60")
 
+    soft_empty_cooldown = max(interval, int(cfg.get("soft_empty_cooldown_seconds", 3600)))
+    network_cooldown = max(interval, int(cfg.get("network_error_cooldown_seconds", 300)))
+
     while True:
         started = time.time()
         result = run_one_cycle(cfg)
         print(json.dumps(result, ensure_ascii=False, indent=2))
+        states = _cycle_states(result)
+
+        # Verification/login must return control to the watchdog so it can stop
+        # instead of repeatedly hitting the platform while a human challenge is active.
+        if states & {"VERIFY_REQUIRED", "LOGIN_REQUIRED"}:
+            print("[monitor] official login/verification is required; stop automatic polling until completed manually")
+            return
+
         elapsed = time.time() - started
-        sleep_for = max(0, interval - elapsed)
-        if elapsed > interval:
-            print(
-                f"[monitor] cycle took {elapsed:.1f}s, longer than {interval}s. "
-                "The next round starts immediately; the requested interval was missed "
-                "for this platform/cycle."
-            )
+        if "SOFT_EMPTY" in states:
+            sleep_for = soft_empty_cooldown
+            print(f"[monitor] SOFT_EMPTY detected; cooldown {sleep_for:.1f}s before the next probe cycle")
+        elif "NETWORK_ERROR" in states:
+            sleep_for = network_cooldown
+            print(f"[monitor] NETWORK_ERROR detected; cooldown {sleep_for:.1f}s before retry")
         else:
-            print(f"[monitor] sleep {sleep_for:.1f}s")
+            # Never compensate for a long crawl by immediately hammering the next
+            # cycle. The requested interval is a minimum quiet period after a cycle.
+            sleep_for = interval
+            if elapsed > interval:
+                print(
+                    f"[monitor] cycle took {elapsed:.1f}s; applying the normal "
+                    f"{interval}s quiet period before the next cycle"
+                )
+            else:
+                print(f"[monitor] sleep {sleep_for:.1f}s")
         time.sleep(sleep_for)
