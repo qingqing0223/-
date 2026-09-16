@@ -68,16 +68,26 @@ if (-not (Test-Path $Config)) {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
-# Upgrade the machine-local config in place while preserving its machine-specific paths.
+# Read all non-ASCII campaign text from the UTF-8 JSON template instead of
+# embedding it in this .ps1 file. Windows PowerShell 5.1 may parse UTF-8 files
+# without BOM as the active ANSI code page, which can corrupt quoted strings.
+$templatePath = ".\config\monitoring.wechat.windows.json"
+if (-not (Test-Path $templatePath)) {
+    Write-Host "ERROR: WeChat template config missing: $templatePath" -ForegroundColor Red
+    exit 4
+}
+$templateCfg = Get-Content $templatePath -Raw -Encoding UTF8 | ConvertFrom-Json
 $cfgObj = Get-Content $Config -Raw -Encoding UTF8 | ConvertFrom-Json
+
 function Set-ConfigProperty($obj, [string]$name, $value) {
     if ($obj.PSObject.Properties.Name -contains $name) { $obj.$name = $value }
     else { $obj | Add-Member -NotePropertyName $name -NotePropertyValue $value }
 }
-Set-ConfigProperty $cfgObj "event_id" "promotion_week_2026_preheat"
-Set-ConfigProperty $cfgObj "event_name" "2026年民族团结进步宣传周预热阶段舆情监测"
-Set-ConfigProperty $cfgObj "monitoring_start_time" "2026-09-16T00:00:00+08:00"
-Set-ConfigProperty $cfgObj "results_date" "2026-09-16"
+
+Set-ConfigProperty $cfgObj "event_id" ([string]$templateCfg.event_id)
+Set-ConfigProperty $cfgObj "event_name" ([string]$templateCfg.event_name)
+Set-ConfigProperty $cfgObj "monitoring_start_time" ([string]$templateCfg.monitoring_start_time)
+Set-ConfigProperty $cfgObj "results_date" ([string]$templateCfg.results_date)
 Set-ConfigProperty $cfgObj "interval_seconds" 300
 Set-ConfigProperty $cfgObj "wechat_mp_interval_seconds" 300
 Set-ConfigProperty $cfgObj "wechat_mp_search_until_exhausted" $true
@@ -88,21 +98,15 @@ Set-ConfigProperty $cfgObj "wechat_mp_collect_public_articles" $true
 Set-ConfigProperty $cfgObj "wechat_mp_collect_comments" $false
 Set-ConfigProperty $cfgObj "wechat_mp_collect_public_ip_region" $false
 Set-ConfigProperty $cfgObj "wechat_mp_collect_reliable_engagement" $false
-$officialKeywords = @(
-    "2026年民族团结进步宣传周",
-    "首个民族团结进步宣传周",
-    "促进民族团结进步，奋进伟大复兴征程",
-    "民族团结进步倡议",
-    "民族团结进步宣传周主场活动",
-    "石榴花开——铸牢中华民族共同体意识"
-)
-Set-ConfigProperty $cfgObj "keywords" $officialKeywords
+Set-ConfigProperty $cfgObj "keywords" @($templateCfg.keywords)
+
 $dashboardObj = [PSCustomObject]@{
     enabled = $true
     ingest_url = "http://127.0.0.1:8765/api/ingest"
     timeout_seconds = 15
 }
 Set-ConfigProperty $cfgObj "dashboard" $dashboardObj
+
 $json = $cfgObj | ConvertTo-Json -Depth 100
 [System.IO.File]::WriteAllText((Resolve-Path $Config).Path, $json, (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "Local WeChat MP config upgraded to the final frozen profile." -ForegroundColor Green
