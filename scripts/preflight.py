@@ -15,6 +15,14 @@ if str(ROOT) not in sys.path:
 
 SUQI_ROOT = Path(r"E:\Real-time-situation-map\yuqing-v1\03_live_system")
 SUPPORTED_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
+REQUIRED_KEYWORDS = (
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "促进民族团结进步，奋进伟大复兴征程",
+    "民族团结进步倡议",
+    "民族团结进步宣传周主场活动",
+    "石榴花开——铸牢中华民族共同体意识",
+)
 FULL_MATRIX_VALUES = {
     "search_until_exhausted": True,
     "crawler_max_notes_count": 100000,
@@ -56,10 +64,14 @@ def _upgrade_local_full_matrix(path: Path) -> tuple[bool, str]:
             if cfg.get(key) != value:
                 cfg[key] = value
                 changed = True
+        existing_keywords = list(cfg.get("keywords") or [])
+        if existing_keywords != list(REQUIRED_KEYWORDS):
+            cfg["keywords"] = list(REQUIRED_KEYWORDS)
+            changed = True
         if changed:
             _write_json(path, cfg)
-            return True, "local config upgraded to full matrix"
-        return False, "local config already full matrix"
+            return True, "local config upgraded to final full matrix + six campaign keywords"
+        return False, "local config already final"
     except Exception as exc:
         return False, f"upgrade failed: {type(exc).__name__}: {exc}"
 
@@ -104,6 +116,18 @@ def _check_platform_config(path: Path) -> tuple[bool, str]:
         return False, f"{type(exc).__name__}: {exc}"
 
 
+def _check_keywords(path: Path) -> tuple[bool, str]:
+    try:
+        cfg = _load_json(path)
+        actual = list(cfg.get("keywords") or [])
+        missing = [kw for kw in REQUIRED_KEYWORDS if kw not in actual]
+        if missing:
+            return False, "missing campaign keywords: " + " | ".join(missing)
+        return True, "6/6 campaign keywords present"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
+
+
 def _check_full_matrix(path: Path) -> tuple[bool, str]:
     try:
         cfg = _load_json(path)
@@ -113,7 +137,7 @@ def _check_full_matrix(path: Path) -> tuple[bool, str]:
                 bad.append(f"{key}={cfg.get(key)!r} expected {expected!r}")
         if bad:
             return False, "; ".join(bad)
-        return True, "natural-end paging + comments + nested comments + comment ingestion enabled"
+        return True, "natural-end paging + first-level comments + nested comments + comment ingestion enabled"
     except Exception as exc:
         return False, f"{type(exc).__name__}: {exc}"
 
@@ -136,6 +160,24 @@ def _check_mediacrawler_platforms(root: Path) -> tuple[bool, str]:
     return True, "local MediaCrawler appears to expose all 7 platform codes"
 
 
+def _check_mediacrawler_comment_cli(root: Path) -> tuple[bool, str]:
+    arg_path = root / "cmd_arg" / "arg.py"
+    if not arg_path.exists():
+        return False, f"missing: {arg_path}"
+    text = arg_path.read_text(encoding="utf-8", errors="replace")
+    required = (
+        "--get_comment",
+        "--get_sub_comment",
+        "--max_comments_count_singlenotes",
+        "--crawler_max_notes_count",
+        "--save_data_path",
+    )
+    missing = [flag for flag in required if flag not in text]
+    if missing:
+        return False, "local MediaCrawler is missing CLI flags: " + ",".join(missing)
+    return True, "comment/sub-comment/deep-paging/save-path CLI flags present"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Deployment preflight for the realtime opinion monitor.")
     parser.add_argument(
@@ -147,7 +189,6 @@ def main() -> int:
     runtime_config = Path(args.config).resolve()
 
     local_upgraded, local_upgrade_detail = _upgrade_local_full_matrix(runtime_config)
-
     checks: list[dict] = []
 
     def add(name: str, ok: bool, detail: str, required: bool = True):
@@ -182,6 +223,8 @@ def main() -> int:
         matrix_ok, matrix_detail = _check_full_matrix(runtime_config)
         upgrade_prefix = f"{local_upgrade_detail}; " if ".local." in runtime_config.name else ""
         add("runtime config full monitoring matrix", matrix_ok, upgrade_prefix + matrix_detail)
+        kw_ok, kw_detail = _check_keywords(runtime_config)
+        add("runtime config six campaign keywords", kw_ok, kw_detail)
 
     for rel in (
         "config/monitoring.windows.json",
@@ -200,8 +243,11 @@ def main() -> int:
         crawler_root = Path(runtime_cfg["media_crawler_root"])
         ok, detail = _check_mediacrawler_platforms(crawler_root)
         add("local MediaCrawler seven-platform support", ok, detail)
+        ok, detail = _check_mediacrawler_comment_cli(crawler_root)
+        add("local MediaCrawler final comment/deep-paging CLI support", ok, detail)
     except Exception as exc:
         add("local MediaCrawler seven-platform support", False, f"{type(exc).__name__}: {exc}")
+        add("local MediaCrawler final comment/deep-paging CLI support", False, f"{type(exc).__name__}: {exc}")
 
     for module in (
         "pipeline.language_detector",
@@ -246,7 +292,7 @@ def main() -> int:
         ok, detail = _check_json(key_accounts_local)
         add("config/key_accounts.json", ok, detail, required=False)
     else:
-        add("config/key_accounts.json", False, "not configured yet", required=False)
+        add("config/key_accounts.json", False, "not configured yet; public publisher account stats are still collected from search results", required=False)
 
     required_failures = [c for c in checks if c["required"] and not c["ok"]]
     optional_warnings = [c for c in checks if not c["required"] and not c["ok"]]
