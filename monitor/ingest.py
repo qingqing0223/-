@@ -47,7 +47,7 @@ def _prepare_region_aliases(raw: dict) -> dict:
         raw.get("author_province"), raw.get("region"), raw.get("region_name"),
         raw.get("comment_ip_location"), raw.get("user_ip_location"),
     ]
-    for parent_key in ("user", "author", "creator", "member"):
+    for parent_key in ("user", "user_info", "author", "creator", "member"):
         parent = raw.get(parent_key)
         if isinstance(parent, dict):
             candidates.extend([
@@ -100,12 +100,6 @@ def save_seen(path: Path, seen: set[str]) -> None:
 
 
 def _merge_regions_into_existing(output_jsonl: Path, region_by_key: dict[str, str]) -> int:
-    """Backfill region labels into already-classified deduped rows.
-
-    A new crawler cycle may expose a public region for a record that was classified
-    in an older cycle. The record must not be reclassified, but its empty
-    ip_location should be enriched so aggregate region statistics can update.
-    """
     if not region_by_key or not output_jsonl.exists():
         return 0
     rows = list(read_jsonl(output_jsonl))
@@ -140,17 +134,33 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     filtered_before_start = 0
     region_by_key: dict[str, str] = {}
 
+    raw_rows = 0
+    raw_comment_rows = 0
+    normalized_records = 0
+    normalized_comment_records = 0
+    normalization_dropped = 0
+    duplicate_skipped = 0
+
     for path in jsonl_files:
+        is_comment_file = "comment" in path.name.lower()
         for raw in read_jsonl(path):
+            raw_rows += 1
+            if is_comment_file:
+                raw_comment_rows += 1
             raw = _prepare_region_aliases(raw)
             rec = normalize_record(raw, source_file=path.name, platform_hint=platform)
             if not rec:
+                normalization_dropped += 1
                 continue
+            normalized_records += 1
+            if rec.get("record_type") == "comment":
+                normalized_comment_records += 1
             key = rec["dedupe_key"]
             region = _canonical_public_region(rec.get("ip_location"))
             if region:
                 region_by_key[key] = region
             if key in seen:
+                duplicate_skipped += 1
                 continue
             seen.add(key)
             if _before_monitoring_start(rec, monitoring_start_time):
@@ -160,9 +170,6 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
                 rec["ip_location"] = region
             fresh.append(rec)
 
-    # Important: dedupe must not prevent region enrichment. This lets a patched
-    # new crawler cycle add public region labels to records classified by an older
-    # collector version without calling the model again.
     region_backfilled_records = _merge_regions_into_existing(output_jsonl, region_by_key)
 
     classified = classify_records(fresh, concurrency=concurrency)
@@ -179,13 +186,21 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             minority_language_records += 1
 
     total = len(classified)
+    classified_comment_records = sum(1 for row in classified if row.get("record_type") == "comment")
     return {
         "platform": platform,
         "monitoring_start_time": monitoring_start_time,
         "input_files": [str(p) for p in jsonl_files],
+        "raw_rows": raw_rows,
+        "raw_comment_rows": raw_comment_rows,
+        "normalized_records": normalized_records,
+        "normalized_comment_records": normalized_comment_records,
+        "normalization_dropped": normalization_dropped,
+        "duplicate_skipped": duplicate_skipped,
         "new_records": len(fresh),
         "filtered_before_start": filtered_before_start,
         "classified_records": total,
+        "classified_comment_records": classified_comment_records,
         "region_records": region_records,
         "region_rate": round(region_records / total, 4) if total else 0.0,
         "region_backfilled_records": region_backfilled_records,
