@@ -13,6 +13,9 @@ foreach ($cmd in @("git", "python", "uv", "node")) {
     }
 }
 
+$pythonCmd = Get-Command python -ErrorAction Stop
+$PythonExe = $pythonCmd.Source
+
 $chromeCandidates = @(
     "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
     "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
@@ -27,17 +30,49 @@ if (-not $ChromePath) {
 Write-Host "=== Student machine setup ===" -ForegroundColor Cyan
 Write-Host "Integration repo: $RepoRoot" -ForegroundColor Cyan
 Write-Host "MediaCrawler:     $MediaCrawlerRoot" -ForegroundColor Cyan
+Write-Host "Python:           $PythonExe" -ForegroundColor Cyan
+Write-Host "Python version:   $(& $PythonExe --version)" -ForegroundColor Cyan
 Write-Host "Node.js:          $(node --version)" -ForegroundColor Cyan
 Write-Host "Chrome:           $ChromePath" -ForegroundColor Cyan
 
+# Install the integration classifier first. This package is local to this repository
+# and must be importable by the same Python executable that will run the monitor.
+# Doing this before the MediaCrawler network clone prevents a transient Git failure
+# from leaving the classifier uninstalled.
+Write-Host "Installing integration classifier package..." -ForegroundColor Cyan
+& $PythonExe -m pip install -r .\requirements.txt
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+& $PythonExe -c "import opinion_monitor_v2; print('opinion_monitor_v2 import OK:', opinion_monitor_v2.__file__)"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: opinion_monitor_v2 cannot be imported by $PythonExe after installation." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
 if (-not (Test-Path (Join-Path $MediaCrawlerRoot "main.py"))) {
     if (Test-Path $MediaCrawlerRoot) {
-        Write-Host "ERROR: $MediaCrawlerRoot exists but main.py was not found. Move/remove it or pass another -MediaCrawlerRoot." -ForegroundColor Red
+        Write-Host "ERROR: $MediaCrawlerRoot exists but main.py was not found." -ForegroundColor Red
+        Write-Host "This usually means a previous MediaCrawler clone was interrupted. If this is a new student deployment and the folder contains no data you need, remove that incomplete folder and rerun this setup." -ForegroundColor Yellow
         exit 1
     }
+
     Write-Host "MediaCrawler not found; cloning upstream repository..." -ForegroundColor Yellow
-    git clone https://github.com/NanmiCoder/MediaCrawler.git $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    $cloneOk = $false
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        Write-Host "MediaCrawler clone attempt $attempt/3..." -ForegroundColor Cyan
+        git clone --depth 1 https://github.com/NanmiCoder/MediaCrawler.git $MediaCrawlerRoot
+        if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $MediaCrawlerRoot "main.py"))) {
+            $cloneOk = $true
+            break
+        }
+        if (Test-Path $MediaCrawlerRoot) {
+            Remove-Item $MediaCrawlerRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        if ($attempt -lt 3) { Start-Sleep -Seconds 5 }
+    }
+    if (-not $cloneOk) {
+        Write-Host "ERROR: MediaCrawler clone failed after 3 attempts. Check the network and rerun this setup." -ForegroundColor Red
+        exit 1
+    }
 }
 
 Write-Host "Installing/synchronizing MediaCrawler dependencies..." -ForegroundColor Cyan
@@ -76,11 +111,6 @@ if (Test-Path $baseConfig) {
         Write-Host "MediaCrawler browser/login-state settings prepared." -ForegroundColor Green
     }
 }
-
-Write-Host "Installing integration classifier package..." -ForegroundColor Cyan
-Set-Location $RepoRoot
-python -m pip install -r .\requirements.txt
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "" 
 Write-Host "Base installation completed." -ForegroundColor Green
