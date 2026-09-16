@@ -18,8 +18,10 @@ def load_config(path: Path) -> dict:
 
 
 def run_one_cycle(cfg: dict) -> dict:
+    cycle_started_dt = datetime.now().astimezone()
+    cycle_started_monotonic = time.time()
     data_root = Path(cfg["data_root"])
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    stamp = cycle_started_dt.strftime("%Y%m%d_%H%M%S")
     cycle_root = data_root / "raw_runs" / stamp
     cycle_root.mkdir(parents=True, exist_ok=True)
 
@@ -145,12 +147,19 @@ def run_one_cycle(cfg: dict) -> dict:
         )
         dashboard_push["enabled"] = True
 
+    cycle_finished_dt = datetime.now().astimezone()
+    cycle_duration = round(time.time() - cycle_started_monotonic, 2)
+    realtime_target = max(60, int(cfg.get("interval_seconds", 300)))
     result = {
         "event_id": cfg.get("event_id"),
         "event_name": cfg.get("event_name"),
         "monitoring_start_time": monitoring_start_time,
         "results_date": cfg.get("results_date"),
-        "cycle_finished_at": datetime.now().isoformat(timespec="seconds"),
+        "cycle_started_at": cycle_started_dt.isoformat(timespec="seconds"),
+        "cycle_finished_at": cycle_finished_dt.isoformat(timespec="seconds"),
+        "cycle_duration_seconds": cycle_duration,
+        "realtime_target_seconds": realtime_target,
+        "realtime_cycle_within_target": cycle_duration <= realtime_target,
         "keyword_count": len(cfg.get("keywords") or []),
         "keyword_pack_status": cfg.get("keyword_pack_status"),
         "platform_runs": [r.__dict__ for r in runs],
@@ -177,6 +186,7 @@ def run_forever(cfg: dict) -> None:
 
     soft_empty_cooldown = max(interval, int(cfg.get("soft_empty_cooldown_seconds", 3600)))
     network_cooldown = max(interval, int(cfg.get("network_error_cooldown_seconds", 300)))
+    overrun_cooldown = max(30, int(cfg.get("overrun_cooldown_seconds", 60)))
 
     while True:
         started = time.time()
@@ -197,15 +207,21 @@ def run_forever(cfg: dict) -> None:
         elif "NETWORK_ERROR" in states:
             sleep_for = network_cooldown
             print(f"[monitor] NETWORK_ERROR detected; cooldown {sleep_for:.1f}s before retry")
+        elif elapsed < interval:
+            # Five-minute real-time target is start-to-start, not
+            # 'finish a crawl and then wait another five minutes'.
+            sleep_for = interval - elapsed
+            print(
+                f"[monitor] realtime cadence: cycle took {elapsed:.1f}s; "
+                f"sleep {sleep_for:.1f}s so next cycle starts about {interval}s after this one"
+            )
         else:
-            # Never compensate for a long crawl by immediately hammering the next
-            # cycle. The requested interval is a minimum quiet period after a cycle.
-            sleep_for = interval
-            if elapsed > interval:
-                print(
-                    f"[monitor] cycle took {elapsed:.1f}s; applying the normal "
-                    f"{interval}s quiet period before the next cycle"
-                )
-            else:
-                print(f"[monitor] sleep {sleep_for:.1f}s")
+            # Never overlap collectors or instantly hammer the platform when a
+            # full/deep crawl itself exceeds the five-minute target. Record the
+            # SLA miss and allow a short quiet period before continuing.
+            sleep_for = overrun_cooldown
+            print(
+                f"[monitor] realtime SLA miss: cycle took {elapsed:.1f}s > {interval}s; "
+                f"do not overlap collectors; cooldown {sleep_for:.1f}s before the next cycle"
+            )
         time.sleep(sleep_for)
