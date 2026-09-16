@@ -32,8 +32,11 @@ def _run_git(args: list[str]) -> subprocess.CompletedProcess:
     )
 
 
-def _platform_roots(config_path: Path, platform: str) -> list[Path]:
-    cfg = json.loads(config_path.read_text(encoding="utf-8"))
+def _load_config(config_path: Path) -> dict:
+    return json.loads(config_path.read_text(encoding="utf-8-sig"))
+
+
+def _platform_roots(cfg: dict, platform: str) -> list[Path]:
     base = Path(cfg["data_root"])
     candidates = [
         base.parent / f"{base.name}_{platform}",
@@ -43,17 +46,24 @@ def _platform_roots(config_path: Path, platform: str) -> list[Path]:
 
 
 def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path, dict]:
-    roots = _platform_roots(config_path, platform)
-    summary = build_summary(roots)
+    cfg = _load_config(config_path)
+    roots = _platform_roots(cfg, platform)
+    monitoring_start_time = str(cfg.get("monitoring_start_time") or "")
+    result_date = str(cfg.get("results_date") or datetime.now().astimezone().date().isoformat())
+    summary = build_summary(roots, monitoring_start_time=monitoring_start_time)
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "event_id": cfg.get("event_id"),
+        "event_name": cfg.get("event_name"),
+        "monitoring_start_time": monitoring_start_time,
+        "results_date": result_date,
         "node_id": node_id,
         "platform": platform,
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "data_roots": [str(p) for p in roots],
         "summary": summary,
     }
-    out = ROOT / "results" / "nodes" / platform / f"{_safe_name(node_id)}.json"
+    out = ROOT / "results" / result_date / "nodes" / platform / f"{_safe_name(node_id)}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return out, payload
@@ -124,6 +134,7 @@ def main():
                 "node_id": _safe_name(args.node_id),
                 "path": path.relative_to(ROOT).as_posix(),
                 "generated_at": payload["generated_at"],
+                "monitoring_start_time": payload["monitoring_start_time"],
                 "unique_records": payload["summary"].get("totals", {}).get("unique_records", 0),
             }
             if args.push:
