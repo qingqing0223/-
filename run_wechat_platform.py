@@ -16,6 +16,9 @@ from pipeline.io_utils import write_json
 from wechat.common import append_jsonl
 
 WECHAT_PLATFORMS = ("wechat_mp", "wechat_channels")
+HUMAN_ACTION_STATES = {
+    "VERIFY_REQUIRED", "LOGIN_REQUIRED", "LOGIN_OR_UI_REQUIRED", "CHANNELS_WINDOW_REQUIRED"
+}
 
 
 def load_config(path: Path) -> dict:
@@ -85,7 +88,7 @@ def run_one_cycle(cfg: dict, platform: str) -> dict:
         run_status = "ok"
         state = "SUCCESS"
         return_code = 0
-    elif collector_state in {"VERIFY_REQUIRED", "LOGIN_REQUIRED", "LOGIN_OR_UI_REQUIRED"}:
+    elif collector_state in HUMAN_ACTION_STATES:
         run_status = "needs_human"
         state = collector_state
         return_code = 2
@@ -138,11 +141,17 @@ def run_forever(cfg: dict, platform: str) -> None:
         result = run_one_cycle(cfg, platform)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         state = result["platform_runs"][0]["state"]
-        if state in {"VERIFY_REQUIRED", "LOGIN_REQUIRED", "LOGIN_OR_UI_REQUIRED"}:
-            print(
-                f"[{platform}] Human action is required. Complete the official login/verification, "
-                "then restart this command. No automated bypass is attempted."
-            )
+        if state in HUMAN_ACTION_STATES:
+            if state == "CHANNELS_WINDOW_REQUIRED":
+                print(
+                    "[wechat_channels] 请手动打开微信 -> 视频号并保持视频号独立窗口可见，然后重新运行。"
+                    "程序不会绕过微信登录或安全验证。"
+                )
+            else:
+                print(
+                    f"[{platform}] Human action is required. Complete the official login/verification, "
+                    "then restart this command. No automated bypass is attempted."
+                )
             return
         elapsed = time.time() - started
         sleep_for = max(0, interval - elapsed)
