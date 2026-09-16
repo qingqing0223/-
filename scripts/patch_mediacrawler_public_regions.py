@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 PINNED_MEDIACRAWLER_COMMIT = "60e66f2a925816960bbd44af5d6c9b8385d79335"
-PATCH_VERSION = "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V2"
+PATCH_VERSION = "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V3"
 MARKER = PATCH_VERSION
 TEMPLATE = Path(__file__).with_name("public_region_helper_template.py")
 
@@ -55,9 +55,9 @@ def patch_douyin(root: Path) -> None:
         "from tools.user_hash import anonymize_user_id, mask_nickname\n",
         f"from tools.public_region import coarse_public_region  # {MARKER}\n",
         '    utils.logger.info(f"[store.douyin.update_douyin_aweme] douyin aweme id:{aweme_id}, title:{save_content_item.get(\'title\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(aweme_item.get("ip_label"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(aweme_item.get("ip_label") or aweme_item.get("ip_location") or aweme_item.get("ip_region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region"))\n',
         '    utils.logger.info(f"[store.douyin.update_dy_aweme_comment] douyin aweme comment: {comment_id}, content: {save_comment_item.get(\'content\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_label"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_label") or comment_item.get("ip_location") or comment_item.get("ip_region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region"))\n',
     )
 
 
@@ -68,9 +68,9 @@ def patch_xhs(root: Path) -> None:
         "from tools.user_hash import anonymize_user_id, mask_nickname\n",
         f"from tools.public_region import coarse_public_region  # {MARKER}\n",
         '    utils.logger.info(f"[store.xhs.update_xhs_note] xhs note: {local_db_item}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        local_db_item["ip_location"] = coarse_public_region(note_item.get("ip_location") or note_item.get("ip_label"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        local_db_item["ip_location"] = coarse_public_region(note_item.get("ip_location") or note_item.get("ip_label") or note_item.get("ip_region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region"))\n',
         '    utils.logger.info(f"[store.xhs.update_xhs_note_comment] xhs note comment:{local_db_item}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        local_db_item["ip_location"] = coarse_public_region(comment_item.get("ip_location") or comment_item.get("ip_label"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        local_db_item["ip_location"] = coarse_public_region(comment_item.get("ip_location") or comment_item.get("ip_label") or comment_item.get("ip_region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region"))\n',
     )
 
 
@@ -81,9 +81,9 @@ def patch_weibo(root: Path) -> None:
         "from tools.user_hash import anonymize_user_id, mask_nickname\n",
         f"from tools.public_region import coarse_public_region  # {MARKER}\n",
         '    utils.logger.info(f"[store.weibo.update_weibo_note] weibo note id:{note_id}, title:{save_content_item.get(\'content\')[:24]} ...")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(mblog.get("ip_location") or mblog.get("region_name") or user_info.get("ip_location"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(mblog.get("ip_location") or mblog.get("region_name") or mblog.get("ip_region") or user_info.get("ip_location") or user_info.get("region_name") or user_info.get("ip_region"))\n',
         '    utils.logger.info(f"[store.weibo.update_weibo_note_comment] Weibo note comment: {comment_id}, content: {save_comment_item.get(\'content\', \'\')[:24]} ...")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_location") or comment_item.get("region_name") or user_info.get("ip_location"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_location") or comment_item.get("region_name") or comment_item.get("ip_region") or user_info.get("ip_location") or user_info.get("region_name") or user_info.get("ip_region"))\n',
         need_config=True,
     )
 
@@ -95,9 +95,9 @@ def patch_kuaishou(root: Path) -> None:
         "from tools.user_hash import anonymize_user_id, mask_nickname\n",
         f"from tools.public_region import coarse_public_region  # {MARKER}\n",
         '    utils.logger.info(\n        f"[store.kuaishou.update_kuaishou_video] Kuaishou video id:{video_id}, title:{save_content_item.get(\'title\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(photo_info.get("ip_location") or photo_info.get("ipRegion") or photo_info.get("region") or video_item.get("ip_location") or video_item.get("ipRegion") or video_item.get("region") or user_info.get("ip_location") or user_info.get("ipRegion"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(photo_info.get("ip_location") or photo_info.get("ipRegion") or photo_info.get("ip_region") or photo_info.get("region") or video_item.get("ip_location") or video_item.get("ipRegion") or video_item.get("ip_region") or video_item.get("region") or user_info.get("ip_location") or user_info.get("ipRegion") or user_info.get("ip_region"))\n',
         '    utils.logger.info(\n        f"[store.kuaishou.update_ks_video_comment] Kuaishou video comment: {comment_id}, content: {save_comment_item.get(\'content\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_location") or comment_item.get("ipRegion") or comment_item.get("region"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_location") or comment_item.get("ipRegion") or comment_item.get("ip_region") or comment_item.get("region") or (comment_item.get("user") or {{}}).get("ip_location") or (comment_item.get("user") or {{}}).get("ipRegion") or (comment_item.get("user") or {{}}).get("ip_region"))\n',
     )
 
 
@@ -108,9 +108,9 @@ def patch_bilibili(root: Path) -> None:
         "from tools.user_hash import anonymize_user_id, mask_nickname\n",
         f"from tools.public_region import coarse_public_region  # {MARKER}\n",
         '    utils.logger.info(f"[store.bilibili.update_bilibili_video] bilibili video id:{video_id}, title:{save_content_item.get(\'title\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(video_item_view.get("pub_location") or video_item_view.get("ip_location") or video_user_info.get("ip_location"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(video_item_view.get("pub_location") or video_item_view.get("ip_location") or video_item_view.get("ip_region") or video_user_info.get("ip_location") or video_user_info.get("ip_region"))\n',
         '    utils.logger.info(f"[store.bilibili.update_bilibili_video_comment] Bilibili video comment: {comment_id}, content: {save_comment_item.get(\'content\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region((comment_item.get("reply_control") or {{}}).get("location") or comment_item.get("ip_location"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region((comment_item.get("reply_control") or {{}}).get("location") or comment_item.get("ip_location") or comment_item.get("ip_region") or (comment_item.get("member") or {{}}).get("ip_location") or (comment_item.get("member") or {{}}).get("ip_region"))\n',
     )
 
 
@@ -129,10 +129,10 @@ def patch_tieba(root: Path) -> None:
     text = ensure_import(text, "from tools.user_hash import anonymize_user_id, mask_nickname\n", f"from tools.public_region import coarse_public_region  # {MARKER}\n", "tieba import")
     text = once(text,
         '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            tieba_name=tieba_name,\n',
-        '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            ip_location=coarse_public_region(author.get("ip_address") or author.get("ip_location")),\n            tieba_name=tieba_name,\n', "tieba api note")
+        '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            ip_location=coarse_public_region(author.get("ip_address") or author.get("ip_location") or author.get("ip_region")),\n            tieba_name=tieba_name,\n', "tieba api note")
     text = once(text,
         '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                tieba_id=tieba_id,\n',
-        '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                ip_location=coarse_public_region(user.get("ip_address") or user.get("ip_location")),\n                tieba_id=tieba_id,\n', "tieba api comment")
+        '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                ip_location=coarse_public_region(user.get("ip_address") or user.get("ip_location") or user.get("ip_region")),\n                tieba_id=tieba_id,\n', "tieba api comment")
     text = once(text, '            publish_time=publish_time,\n            total_replay_num=(\n', '            publish_time=publish_time,\n            ip_location=coarse_public_region(ip_location),\n            total_replay_num=(\n', "tieba html note")
     text = once(text, '                publish_time=publish_time,\n                note_id=note_id,\n', '                publish_time=publish_time,\n                ip_location=coarse_public_region(ip_location),\n                note_id=note_id,\n', "tieba html comment")
     write_py(helper, text)
@@ -162,10 +162,10 @@ def patch_zhihu(root: Path) -> None:
     helper = root / "media_platform/zhihu/help.py"
     text = read(helper)
     text = ensure_import(text, "from tools.user_hash import anonymize_user_id, mask_nickname\n", f"from tools.public_region import coarse_public_region  # {MARKER}\n", "zhihu import")
-    text = once(text, '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        return res\n\n    def _extract_article_content', '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        res.ip_location = coarse_public_region(answer.get("ip_location") or (answer.get("author") or {}).get("ip_location"))\n        return res\n\n    def _extract_article_content', "zhihu answer")
-    text = once(text, '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        return res\n\n    def _extract_zvideo_content', '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        res.ip_location = coarse_public_region(article.get("ip_location") or (article.get("author") or {}).get("ip_location"))\n        return res\n\n    def _extract_zvideo_content', "zhihu article")
-    text = once(text, '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        return res\n\n    @staticmethod\n    def _extract_content_or_comment_author', '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        res.ip_location = coarse_public_region(zvideo.get("ip_location") or (zvideo.get("author") or {}).get("ip_location"))\n        return res\n\n    @staticmethod\n    def _extract_content_or_comment_author', "zhihu video")
-    text = once(text, '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        return res\n\n    @staticmethod\n    def _extract_comment_ip_location', '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        res.ip_location = coarse_public_region(self._extract_comment_ip_location(comment.get("comment_tag") or comment.get("comment_tags") or []))\n        return res\n\n    @staticmethod\n    def _extract_comment_ip_location', "zhihu comment")
+    text = once(text, '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        return res\n\n    def _extract_article_content', '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        res.ip_location = coarse_public_region(answer.get("ip_location") or answer.get("ip_region") or (answer.get("author") or {}).get("ip_location") or (answer.get("author") or {}).get("ip_region"))\n        return res\n\n    def _extract_article_content', "zhihu answer")
+    text = once(text, '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        return res\n\n    def _extract_zvideo_content', '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        res.ip_location = coarse_public_region(article.get("ip_location") or article.get("ip_region") or (article.get("author") or {}).get("ip_location") or (article.get("author") or {}).get("ip_region"))\n        return res\n\n    def _extract_zvideo_content', "zhihu article")
+    text = once(text, '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        return res\n\n    @staticmethod\n    def _extract_content_or_comment_author', '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        res.ip_location = coarse_public_region(zvideo.get("ip_location") or zvideo.get("ip_region") or (zvideo.get("author") or {}).get("ip_location") or (zvideo.get("author") or {}).get("ip_region"))\n        return res\n\n    @staticmethod\n    def _extract_content_or_comment_author', "zhihu video")
+    text = once(text, '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        return res\n\n    @staticmethod\n    def _extract_comment_ip_location', '        res.creator_hash = author_info.creator_hash\n        res.user_nickname = author_info.user_nickname\n        res.ip_location = coarse_public_region(comment.get("ip_location") or comment.get("ip_region") or self._extract_comment_ip_location(comment.get("comment_tag") or comment.get("comment_tags") or []))\n        return res\n\n    @staticmethod\n    def _extract_comment_ip_location', "zhihu comment")
     write_py(helper, text)
 
     store = root / "store/zhihu/__init__.py"
