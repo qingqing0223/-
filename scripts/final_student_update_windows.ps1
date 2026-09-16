@@ -57,12 +57,27 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+if ($Platform -eq "ks") {
+    Write-Host "Applying Kuaishou comment-count + nested parent/root patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou comment hierarchy patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou comment hierarchy verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
+
 Write-Host ""
 Write-Host "FINAL build completed and verified." -ForegroundColor Green
 Write-Host "Collection policy:" -ForegroundColor Cyan
 Write-Host "  - one-time historical backfill is separate from the five-minute realtime loop" -ForegroundColor Yellow
 Write-Host "  - realtime loop prioritizes new-content discovery every 300 seconds and queues deep comment crawling" -ForegroundColor Yellow
 Write-Host "  - first-level + nested comments and parent/root links are retained when exposed" -ForegroundColor Yellow
+Write-Host "  - Kuaishou persists video comment_count so comment-bearing videos enter the realtime detail queue" -ForegroundColor Yellow
 Write-Host "  - only platform-displayed coarse IP-location labels are retained; real IP/precise location are rejected" -ForegroundColor Yellow
 Write-Host "  - the public code repo receives aggregates + privacy-safe diagnostics only" -ForegroundColor Yellow
 Write-Host "  - full raw JSONL can be synchronized separately to an access-controlled PRIVATE Git repository" -ForegroundColor Yellow
