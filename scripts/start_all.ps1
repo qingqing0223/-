@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("xhs","dy","wb","ks")]
+    [ValidateSet("xhs","dy","wb","ks","bili","tieba","zhihu")]
     [string]$Platform = "ks",
 
     [string]$Config = "",
@@ -63,7 +63,6 @@ if (-not $SkipPreflight) {
     }
 }
 
-# 1) Ensure the Suqi backend is available. If not, start it in a dedicated window.
 python .\scripts\check_suqi_dashboard.py *> $null
 if ($LASTEXITCODE -ne 0) {
     if (-not (Test-Path (Join-Path $DashboardRoot "server.py"))) {
@@ -90,10 +89,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "Suqi backend: OK" -ForegroundColor Green
 
-# 2) Open dashboard for human supervision.
 Start-Process "http://127.0.0.1:8765/"
 
-# 3) Optional privacy-safe aggregate result synchronization to GitHub.
 if ($EnableGithubSync) {
     $syncArgs = "-IntervalSeconds 900"
     if ($PushGithub) { $syncArgs += " -Push" }
@@ -105,8 +102,6 @@ if ($EnableGithubSync) {
     }
 }
 
-# 4) Optional key-account creator-mode monitoring. The local account list is
-# intentionally gitignored; only start this worker after verified creator IDs are configured.
 if ($EnableKeyAccounts) {
     if (Test-Path ".\config\key_accounts.json") {
         $keyCmd = "Set-Location '$RepoRoot'; .\scripts\start_key_accounts_windows.ps1 -Platform $Platform"
@@ -118,8 +113,6 @@ if ($EnableKeyAccounts) {
     }
 }
 
-# 5) Run the selected platform. The watchdog restarts ordinary failures but stops
-# on official login/verification requirements to avoid repeatedly triggering risk controls.
 if ($NoWatchdog) {
     Write-Host "Starting monitor without watchdog..." -ForegroundColor Cyan
     .\scripts\start_single_platform_windows.ps1 -Platform $Platform -Config $Config
