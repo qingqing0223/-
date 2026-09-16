@@ -17,7 +17,10 @@ if str(ROOT) not in sys.path:
 
 from monitor.result_summary import build_summary
 
-PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
+PLATFORMS = (
+    "xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu",
+    "wechat_mp", "wechat_channels",
+)
 
 
 def _safe_name(value: str) -> str:
