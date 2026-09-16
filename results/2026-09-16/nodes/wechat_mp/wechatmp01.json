@@ -6,23 +6,30 @@
   "results_date": "2026-09-16",
   "node_id": "wechatmp01",
   "platform": "wechat_mp",
-  "generated_at": "2026-09-16T17:22:22+08:00",
+  "generated_at": "2026-09-16T20:29:17+08:00",
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wechat_mp"
   ],
   "summary": {
-    "schema_version": 3,
-    "generated_at": "2026-09-16T17:22:22+08:00",
+    "schema_version": 4,
+    "generated_at": "2026-09-16T20:29:17+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-16T17:16:58+08:00",
+    "latest_seen_time": "2026-09-16T17:46:57+08:00",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
     "totals": {
-      "unique_records": 28,
+      "unique_records": 38,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
+      "comment_records": 0,
+      "root_comment_records": 0,
+      "reply_comment_records": 0,
+      "parent_linked_comment_records": 0,
+      "comment_parent_link_rate": 0.0,
+      "comment_region_records": 0,
+      "comment_region_coverage_rate": 0.0,
       "likes": 0,
       "comments": 0,
       "shares": 0,
@@ -32,41 +39,43 @@
       "coins": 0
     },
     "platforms": {
-      "wechat_mp": 28
+      "wechat_mp": 38
     },
     "languages": {
-      "汉语": 28
+      "汉语": 38
     },
     "minority_languages": {},
     "regions": {},
     "v2_status": {
-      "neutral": 28
+      "neutral": 37,
+      "normal": 1
     },
     "v2_type": {
-      "null": 28
+      "null": 37,
+      "support": 1
     },
     "source_types": {
-      "权威媒体/新闻评论": 28
+      "权威媒体/新闻评论": 38
     },
     "record_types": {
-      "post": 28
+      "post": 38
     },
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wechat_mp",
-        "cycle_finished_at": "2026-09-16T17:17:29+08:00",
+        "cycle_finished_at": "2026-09-16T17:47:20+08:00",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 77.79,
-        "new_records": 12,
+        "duration_seconds": 69.32,
+        "new_records": 10,
         "filtered_before_start": 45,
-        "classified_records": 12,
+        "classified_records": 10,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
         "language_counts": {
-          "汉语": 12
+          "汉语": 10
         },
         "dashboard_ok": null,
         "dashboard_sent": 0,
