@@ -15,6 +15,8 @@ PLATFORM_LABELS = {
     "bili": "B站",
     "tieba": "百度贴吧",
     "zhihu": "知乎",
+    "wechat_mp": "微信公众号",
+    "wechat_channels": "微信视频号",
 }
 
 TYPE_TO_ISSUE = {
