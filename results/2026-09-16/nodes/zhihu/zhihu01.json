@@ -6,18 +6,18 @@
   "results_date": "2026-09-16",
   "node_id": "zhihu01",
   "platform": "zhihu",
-  "generated_at": "2026-09-16T17:40:07+08:00",
+  "generated_at": "2026-09-16T17:45:35+08:00",
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_zhihu"
   ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T17:40:07+08:00",
+    "generated_at": "2026-09-16T17:45:35+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "",
+    "latest_seen_time": "2026-09-16T17:40:17+08:00",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
     "totals": {
-      "unique_records": 0,
+      "unique_records": 1,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
@@ -31,22 +31,34 @@
       "danmaku": 0,
       "coins": 0
     },
-    "platforms": {},
-    "languages": {},
+    "platforms": {
+      "zhihu": 1
+    },
+    "languages": {
+      "汉语": 1
+    },
     "minority_languages": {},
     "regions": {},
-    "v2_status": {},
-    "v2_type": {},
-    "source_types": {},
-    "record_types": {},
+    "v2_status": {
+      "normal": 1
+    },
+    "v2_type": {
+      "support": 1
+    },
+    "source_types": {
+      "自媒体观点": 1
+    },
+    "record_types": {
+      "post": 1
+    },
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_zhihu",
-        "cycle_finished_at": "2026-09-16T17:35:22",
+        "cycle_finished_at": "2026-09-16T17:45:17",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 44.96,
+        "duration_seconds": 39.63,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
