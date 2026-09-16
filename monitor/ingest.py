@@ -187,6 +187,17 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
 
     total = len(classified)
     classified_comment_records = sum(1 for row in classified if row.get("record_type") == "comment")
+    classification_degraded_records = sum(1 for row in classified if row.get("classification_ok") is False)
+    classification_degraded_comment_records = sum(
+        1 for row in classified
+        if row.get("record_type") == "comment" and row.get("classification_ok") is False
+    )
+    classification_errors = sorted({
+        str(row.get("classification_error") or "").strip()
+        for row in classified
+        if row.get("classification_ok") is False and str(row.get("classification_error") or "").strip()
+    })
+
     return {
         "platform": platform,
         "monitoring_start_time": monitoring_start_time,
@@ -201,6 +212,10 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "filtered_before_start": filtered_before_start,
         "classified_records": total,
         "classified_comment_records": classified_comment_records,
+        "classification_degraded_records": classification_degraded_records,
+        "classification_degraded_comment_records": classification_degraded_comment_records,
+        "classification_degraded": classification_degraded_records > 0,
+        "classification_errors": classification_errors[:3],
         "region_records": region_records,
         "region_rate": round(region_records / total, 4) if total else 0.0,
         "region_backfilled_records": region_backfilled_records,
