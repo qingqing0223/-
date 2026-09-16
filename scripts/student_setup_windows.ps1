@@ -78,6 +78,30 @@ $uvCode = $LASTEXITCODE
 Pop-Location
 if ($uvCode -ne 0) { exit $uvCode }
 
+# The upstream teaching build intentionally strips public IP-location labels before
+# JSONL persistence. Our monitoring only needs the coarse region label already shown
+# publicly by the platform (e.g. 山东/北京), never a real IP address or precise location.
+# Apply the project-maintained, idempotent patch centrally so every student machine
+# uses the same code path. The patch also runs Python compile checks and writes a
+# manifest; any mismatch fails setup immediately instead of silently producing 0 regions.
+$regionPatch = Join-Path $RepoRoot "scripts\patch_mediacrawler_public_regions.py"
+if (-not (Test-Path $regionPatch)) {
+    Write-Host "ERROR: public-region patch script is missing: $regionPatch" -ForegroundColor Red
+    exit 12
+}
+Write-Host "Applying public-region persistence patch..." -ForegroundColor Cyan
+& $PythonExe $regionPatch --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: public-region patch failed. Do not start monitoring with a partially patched MediaCrawler." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+$regionManifest = Join-Path $MediaCrawlerRoot ".promotion_week_public_region_patch.json"
+if (-not (Test-Path $regionManifest)) {
+    Write-Host "ERROR: public-region patch manifest was not created." -ForegroundColor Red
+    exit 13
+}
+Write-Host "Public-region patch verified: $regionManifest" -ForegroundColor Green
+
 # Keep a visible persistent browser and align upstream defaults with the project's
 # full monitoring matrix. Runtime CLI arguments still take precedence.
 $baseConfig = Join-Path $MediaCrawlerRoot "config\base_config.py"
@@ -121,4 +145,5 @@ Write-Host "  2. Authenticate Git with your own GitHub account if you need -Push
 Write-Host "  3. Run: python .\scripts\preflight.py --config .\config\monitoring.local.json" -ForegroundColor Yellow
 Write-Host "  4. Run one assigned platform with scripts\start_student_platform_windows.ps1." -ForegroundColor Yellow
 Write-Host "Full matrix defaults: natural-end paging (100000 safety cap), first-level comments, nested comments and comment ingestion." -ForegroundColor Yellow
+Write-Host "Public-region labels are retained only when exposed by the platform; real IP addresses and precise locations are not stored." -ForegroundColor Yellow
 Write-Host "Platform login/verification must be completed manually through the platform's official UI when requested." -ForegroundColor Yellow
