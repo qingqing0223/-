@@ -42,7 +42,14 @@ def run_one_cycle(cfg: dict) -> dict:
     new_classified_rows = []
     include_comments = bool(cfg.get("ingest_comments", False))
     for run in runs:
-        if run.status != "ok":
+        # Always inspect the run directory for usable JSONL first. Some upstream
+        # platform adapters may return non-zero after already writing valid
+        # content/comment pages (for example natural pagination end, transient
+        # network failure, or a later-page error). Those partial results must not
+        # be discarded.
+        files = find_ingest_jsonl(Path(run.output_dir), include_comments=include_comments)
+
+        if run.status != "ok" and not files:
             ingests.append({
                 "platform": run.platform,
                 "monitoring_start_time": monitoring_start_time,
@@ -54,11 +61,14 @@ def run_one_cycle(cfg: dict) -> dict:
                 "minority_language_records": 0,
                 "minority_language_rate": 0.0,
                 "language_counts": {},
-                "skipped_reason": f"crawler_{run.status}"
+                "ingest_comments": include_comments,
+                "input_files": [],
+                "partial_crawler_result": False,
+                "crawler_state": run.state,
+                "skipped_reason": f"crawler_{run.status}_no_jsonl"
             })
             continue
 
-        files = find_ingest_jsonl(Path(run.output_dir), include_comments=include_comments)
         if not files:
             ingests.append({
                 "platform": run.platform,
@@ -71,6 +81,10 @@ def run_one_cycle(cfg: dict) -> dict:
                 "minority_language_records": 0,
                 "minority_language_rate": 0.0,
                 "language_counts": {},
+                "ingest_comments": include_comments,
+                "input_files": [],
+                "partial_crawler_result": False,
+                "crawler_state": run.state,
                 "skipped_reason": "no_ingest_jsonl"
             })
             continue
@@ -86,6 +100,13 @@ def run_one_cycle(cfg: dict) -> dict:
             )
             new_classified_rows.extend(summary.pop("_classified_rows", []))
             summary["ingest_comments"] = include_comments
+            summary["partial_crawler_result"] = run.status != "ok"
+            summary["crawler_state"] = run.state
+            if run.status != "ok":
+                summary["warning"] = (
+                    "crawler did not finish cleanly; valid JSONL already written "
+                    "was preserved and ingested"
+                )
             ingests.append(summary)
         except Exception as exc:
             ingests.append({
@@ -99,6 +120,10 @@ def run_one_cycle(cfg: dict) -> dict:
                 "minority_language_records": 0,
                 "minority_language_rate": 0.0,
                 "language_counts": {},
+                "ingest_comments": include_comments,
+                "input_files": [str(p) for p in files],
+                "partial_crawler_result": run.status != "ok",
+                "crawler_state": run.state,
                 "skipped_reason": f"classifier_error:{type(exc).__name__}:{exc}"
             })
 
