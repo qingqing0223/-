@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from monitor.crawler_runner import _classify_state
+from monitor.crawler_runner import _classify_state, _detail_recovery_candidates
 from monitor.ingest import _prepare_region_aliases
 from pipeline.normalizer import normalize_record
 from dashboard_adapter.suqi_pusher import to_suqi_record
@@ -59,6 +60,19 @@ class MonitoringRegressionTests(unittest.TestCase):
             self.assertEqual(state, "VERIFY_REQUIRED")
         finally:
             tmp.cleanup()
+
+    def test_detail_recovery_selects_only_items_with_visible_comments(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "search_contents_2026-09-17.jsonl"
+            rows = [
+                {"aweme_id": "a1", "aweme_url": "https://www.douyin.com/video/a1", "comment_count": 3},
+                {"aweme_id": "a2", "aweme_url": "https://www.douyin.com/video/a2", "comment_count": 0},
+                {"aweme_id": "a1", "aweme_url": "https://www.douyin.com/video/a1", "comment_count": 3},
+                {"aweme_id": "a3", "aweme_url": "https://www.douyin.com/video/a3", "comment_count": "1万"},
+            ]
+            path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+            got = _detail_recovery_candidates("dy", [path], 10)
+            self.assertEqual(got, ["https://www.douyin.com/video/a1", "https://www.douyin.com/video/a3"])
 
     def test_region_aliases_cover_realistic_nested_platform_shapes(self):
         cases = [
