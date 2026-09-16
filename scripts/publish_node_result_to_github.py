@@ -55,7 +55,7 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
     result_date = str(cfg.get("results_date") or datetime.now().astimezone().date().isoformat())
     summary = build_summary(roots, monitoring_start_time=monitoring_start_time)
     payload = {
-        "schema_version": 2,
+        "schema_version": 3,
         "event_id": cfg.get("event_id"),
         "event_name": cfg.get("event_name"),
         "monitoring_start_time": monitoring_start_time,
@@ -79,8 +79,28 @@ def _current_branch() -> str:
     return p.stdout.strip()
 
 
-def commit_and_push(path: Path, retries: int = 3) -> dict:
+def _abort_rebase_if_needed() -> None:
+    git_dir_result = _run_git(["rev-parse", "--git-dir"])
+    if git_dir_result.returncode != 0:
+        return
+    git_dir = Path(git_dir_result.stdout.strip())
+    if not git_dir.is_absolute():
+        git_dir = ROOT / git_dir
+    if (git_dir / "rebase-merge").exists() or (git_dir / "rebase-apply").exists():
+        _run_git(["rebase", "--abort"])
+
+
+def commit_and_push(path: Path, retries: int = 5) -> dict:
     rel = path.relative_to(ROOT).as_posix()
+    branch = _current_branch()
+    if branch in {"", "HEAD"}:
+        return {
+            "ok": False,
+            "stage": "detached_head",
+            "error": "Git working tree is not on a branch. Run the final student update workflow before restarting sync.",
+            "path": rel,
+        }
+
     add = _run_git(["add", "--", rel])
     if add.returncode != 0:
         return {"ok": False, "stage": "git_add", "error": add.stderr.strip() or add.stdout.strip()}
@@ -96,26 +116,33 @@ def commit_and_push(path: Path, retries: int = 3) -> dict:
     if commit.returncode != 0:
         return {"ok": False, "stage": "git_commit", "error": commit.stderr.strip() or commit.stdout.strip()}
 
-    branch = _current_branch()
     for attempt in range(1, retries + 1):
+        _abort_rebase_if_needed()
         pull = _run_git(["pull", "--rebase", "--autostash", "origin", branch])
         if pull.returncode != 0:
+            _abort_rebase_if_needed()
+            if attempt < retries:
+                time.sleep(2 * attempt)
+                continue
             return {
                 "ok": False,
                 "stage": "git_pull_rebase",
                 "attempt": attempt,
                 "error": pull.stderr.strip() or pull.stdout.strip(),
+                "path": rel,
             }
+
         push = _run_git(["push", "origin", f"HEAD:{branch}"])
         if push.returncode == 0:
             return {"ok": True, "changed": True, "pushed": True, "path": rel, "attempt": attempt}
         if attempt < retries:
-            time.sleep(2)
+            time.sleep(2 * attempt)
+
     return {"ok": False, "stage": "git_push", "error": push.stderr.strip() or push.stdout.strip(), "path": rel}
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Publish one tester/platform aggregate shard to GitHub without raw content.")
+    parser = argparse.ArgumentParser(description="Publish one tester/platform aggregate shard to GitHub without raw post/comment text or URLs.")
     parser.add_argument("--platform", required=True, choices=PLATFORMS)
     parser.add_argument("--node-id", default=os.environ.get("MONITOR_NODE_ID") or socket.gethostname())
     parser.add_argument("--config", default=str(ROOT / "config" / "monitoring.student.windows.json"))
@@ -131,6 +158,10 @@ def main():
     while True:
         try:
             path, payload = generate_shard(config_path, args.platform, _safe_name(args.node_id))
+            summary = payload["summary"]
+            totals = summary.get("totals", {})
+            runtime = summary.get("runtime") or []
+            last_runtime = runtime[-1] if runtime else {}
             result = {
                 "ok": True,
                 "platform": args.platform,
@@ -138,7 +169,26 @@ def main():
                 "path": path.relative_to(ROOT).as_posix(),
                 "generated_at": payload["generated_at"],
                 "monitoring_start_time": payload["monitoring_start_time"],
-                "unique_records": payload["summary"].get("totals", {}).get("unique_records", 0),
+                "summary_schema_version": summary.get("schema_version"),
+                "unique_records": totals.get("unique_records", 0),
+                "comment_records": totals.get("comment_records", 0),
+                "root_comment_records": totals.get("root_comment_records", 0),
+                "reply_comment_records": totals.get("reply_comment_records", 0),
+                "region_records": totals.get("region_records", 0),
+                "comment_region_records": totals.get("comment_region_records", 0),
+                "public_publisher_accounts": totals.get("public_publisher_accounts", 0),
+                "attitude": summary.get("attitude") or {},
+                "comment_attitude": summary.get("comment_attitude") or {},
+                "video_analysis": summary.get("video_analysis") or {},
+                "last_cycle": {
+                    "cycle_finished_at": last_runtime.get("cycle_finished_at"),
+                    "crawler_state": last_runtime.get("crawler_state"),
+                    "ingest_comments": last_runtime.get("ingest_comments"),
+                    "input_file_count": last_runtime.get("input_file_count", 0),
+                    "comment_input_file_count": last_runtime.get("comment_input_file_count", 0),
+                    "new_records": last_runtime.get("new_records", 0),
+                    "classified_records": last_runtime.get("classified_records", 0),
+                },
             }
             if args.push:
                 result["git"] = commit_and_push(path)
