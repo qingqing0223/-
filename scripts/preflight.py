@@ -10,6 +10,9 @@ import sys
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 SUQI_ROOT = Path(r"E:\Real-time-situation-map\yuqing-v1\03_live_system")
 SUPPORTED_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
 
