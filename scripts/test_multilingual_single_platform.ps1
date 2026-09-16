@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","wb","ks")]
+    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu")]
     [string]$Platform
 )
 
@@ -29,7 +29,7 @@ python .\run_single_platform.py `
 
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "" 
+Write-Host ""
 Write-Host "PASS criteria:" -ForegroundColor Cyan
 Write-Host "  crawler return_code = 0" -ForegroundColor Green
 Write-Host "  classified_records > 0" -ForegroundColor Green
