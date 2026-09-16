@@ -39,8 +39,10 @@ Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Archive:  $ArchiveRepo" -ForegroundColor Cyan
 Write-Host "Interval: 300 seconds" -ForegroundColor Cyan
-Write-Host "Only raw_runs/*.jsonl plus latest_status.json are archived; cookies, browser_data, login state, screenshots, stdout/stderr logs and secrets are excluded." -ForegroundColor Yellow
-Write-Host "JSONL is gzip-compressed and stored by node/platform/date/cycle with SHA-256 + row-count manifest." -ForegroundColor Yellow
+Write-Host "Full raw_runs/*.jsonl plus latest_status.json are archived; cookies, browser_data, login state, screenshots, stdout/stderr logs and secrets are excluded." -ForegroundColor Yellow
+Write-Host "Full JSONL is gzip-compressed and stored by node/platform/date/cycle with SHA-256 + row-count manifest." -ForegroundColor Yellow
+Write-Host "A UTF-8 nodes/<node>/<platform>/latest_gpt_feed.json is also refreshed every 300 seconds for GPT/report review." -ForegroundColor Green
+Write-Host "The GPT feed contains public text + masked nicknames + platform-displayed coarse IP-location only; raw IDs are hashed and real IP/precise location are rejected." -ForegroundColor Yellow
 
 $argsList = @(
     ".\scripts\archive_raw_runs_to_git.py",
