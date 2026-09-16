@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","wb","ks")]
+    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu")]
     [string]$Platform,
 
     [string]$Keyword = "民族团结"
@@ -32,8 +32,9 @@ python .\run_single_platform.py `
 
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "" 
+Write-Host ""
 Write-Host "Check the JSON result above:" -ForegroundColor Cyan
 Write-Host "  region_records > 0  => this batch contained usable public region labels" -ForegroundColor Green
 Write-Host "  region_rate         => share of classified records with region" -ForegroundColor Green
+Write-Host "A zero region rate can simply mean the current MediaCrawler export does not expose a public region label for this platform/build." -ForegroundColor Yellow
 Write-Host "Then refresh/open http://127.0.0.1:8765/ and watch province counts on the China map." -ForegroundColor Green
