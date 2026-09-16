@@ -30,6 +30,7 @@ def run_one_cycle(cfg: dict) -> dict:
 
     enabled = [p for p in cfg["platforms"] if p.get("enabled", True)]
     workers = max(1, int(cfg.get("max_parallel_platforms", 1)))
+    monitoring_start_time = str(cfg.get("monitoring_start_time") or "")
 
     runs = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -44,7 +45,9 @@ def run_one_cycle(cfg: dict) -> dict:
         if run.status != "ok":
             ingests.append({
                 "platform": run.platform,
+                "monitoring_start_time": monitoring_start_time,
                 "new_records": 0,
+                "filtered_before_start": 0,
                 "classified_records": 0,
                 "region_records": 0,
                 "region_rate": 0.0,
@@ -59,7 +62,9 @@ def run_one_cycle(cfg: dict) -> dict:
         if not files:
             ingests.append({
                 "platform": run.platform,
+                "monitoring_start_time": monitoring_start_time,
                 "new_records": 0,
+                "filtered_before_start": 0,
                 "classified_records": 0,
                 "region_records": 0,
                 "region_rate": 0.0,
@@ -72,8 +77,12 @@ def run_one_cycle(cfg: dict) -> dict:
 
         try:
             summary = ingest_and_classify(
-                run.platform, files, state_path, classified_path,
-                int(cfg.get("classifier_concurrency", 4))
+                run.platform,
+                files,
+                state_path,
+                classified_path,
+                int(cfg.get("classifier_concurrency", 4)),
+                monitoring_start_time=monitoring_start_time,
             )
             new_classified_rows.extend(summary.pop("_classified_rows", []))
             summary["ingest_comments"] = include_comments
@@ -81,7 +90,9 @@ def run_one_cycle(cfg: dict) -> dict:
         except Exception as exc:
             ingests.append({
                 "platform": run.platform,
+                "monitoring_start_time": monitoring_start_time,
                 "new_records": 0,
+                "filtered_before_start": 0,
                 "classified_records": 0,
                 "region_records": 0,
                 "region_rate": 0.0,
@@ -107,6 +118,10 @@ def run_one_cycle(cfg: dict) -> dict:
         dashboard_push["enabled"] = True
 
     result = {
+        "event_id": cfg.get("event_id"),
+        "event_name": cfg.get("event_name"),
+        "monitoring_start_time": monitoring_start_time,
+        "results_date": cfg.get("results_date"),
         "cycle_finished_at": datetime.now().isoformat(timespec="seconds"),
         "keyword_count": len(cfg.get("keywords") or []),
         "keyword_pack_status": cfg.get("keyword_pack_status"),
