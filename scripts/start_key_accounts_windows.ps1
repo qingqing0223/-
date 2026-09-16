@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("wb","xhs","dy","ks")]
+    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu")]
     [string]$Platform = ""
 )
 
