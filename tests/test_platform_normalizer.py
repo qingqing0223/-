@@ -88,6 +88,31 @@ class PlatformNormalizerTests(unittest.TestCase):
         self.assertEqual(row["comments"], 23)
         self.assertEqual(row["url"], raw["note_url"])
 
+    def test_comment_hierarchy_and_public_author_fields(self):
+        raw = {
+            "comment_id": "c-child",
+            "parent_comment_id": "c-root",
+            "note_id": "n-001",
+            "content": "这是一条楼中楼回复",
+            "nickname": "示例评论者",
+            "creator_hash": "hashed-author",
+            "ip_location": "北京",
+            "create_time": 1757971200,
+            "like_count": "9",
+            "sub_comment_count": 2,
+        }
+        row = normalize_record(raw, source_file="comments.jsonl", platform_hint="xhs")
+        self.assertIsNotNone(row)
+        self.assertEqual(row["record_type"], "comment")
+        self.assertEqual(row["comment_id"], "c-child")
+        self.assertEqual(row["parent_comment_id"], "c-root")
+        self.assertEqual(row["root_comment_id"], "c-root")
+        self.assertEqual(row["comment_level"], 2)
+        self.assertEqual(row["author_id"], "hashed-author")
+        self.assertEqual(row["ip_location"], "北京")
+        self.assertEqual(row["likes"], 9)
+        self.assertEqual(row["sub_comment_count"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()
