@@ -6,7 +6,7 @@ import json
 import subprocess
 from pathlib import Path
 
-PATCH_VERSION = "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V2"
+PATCH_VERSION = "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V3"
 MARKER = PATCH_VERSION
 PINNED_MEDIACRAWLER_COMMIT = "60e66f2a925816960bbd44af5d6c9b8385d79335"
 
@@ -88,15 +88,17 @@ def main() -> int:
         add(checks, rel, path.exists() and MARKER in text, "marker present" if MARKER in text else "marker missing")
 
     semantic = {
-        "dy_content_ip_label": (root / "store/douyin/__init__.py", 'save_content_item["ip_location"] = coarse_public_region(aweme_item.get("ip_label"))'),
-        "dy_comment_ip_label": (root / "store/douyin/__init__.py", 'save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_label"))'),
-        "xhs_content_region": (root / "store/xhs/__init__.py", 'local_db_item["ip_location"] = coarse_public_region(note_item.get("ip_location")'),
-        "xhs_comment_region": (root / "store/xhs/__init__.py", 'local_db_item["ip_location"] = coarse_public_region(comment_item.get("ip_location")'),
-        "wb_content_region": (root / "store/weibo/__init__.py", 'save_content_item["ip_location"] = coarse_public_region'),
-        "wb_comment_region": (root / "store/weibo/__init__.py", 'save_comment_item["ip_location"] = coarse_public_region'),
-        "ks_content_region": (root / "store/kuaishou/__init__.py", 'save_content_item["ip_location"] = coarse_public_region'),
-        "ks_comment_region": (root / "store/kuaishou/__init__.py", 'save_comment_item["ip_location"] = coarse_public_region'),
+        "dy_content_region": (root / "store/douyin/__init__.py", 'save_content_item["ip_location"] = coarse_public_region('),
+        "dy_comment_region": (root / "store/douyin/__init__.py", 'save_comment_item["ip_location"] = coarse_public_region('),
+        "dy_comment_user_fallback": (root / "store/douyin/__init__.py", 'user_info.get("ip_region")'),
+        "xhs_content_region": (root / "store/xhs/__init__.py", 'local_db_item["ip_location"] = coarse_public_region('),
+        "xhs_comment_user_fallback": (root / "store/xhs/__init__.py", 'user_info.get("ip_region")'),
+        "wb_content_region": (root / "store/weibo/__init__.py", 'save_content_item["ip_location"] = coarse_public_region('),
+        "wb_comment_region": (root / "store/weibo/__init__.py", 'save_comment_item["ip_location"] = coarse_public_region('),
+        "ks_content_region": (root / "store/kuaishou/__init__.py", 'save_content_item["ip_location"] = coarse_public_region('),
+        "ks_comment_nested_user": (root / "store/kuaishou/__init__.py", '(comment_item.get("user") or {}).get("ip_region")'),
         "bili_comment_region": (root / "store/bilibili/__init__.py", 'reply_control'),
+        "bili_member_region_fallback": (root / "store/bilibili/__init__.py", '(comment_item.get("member") or {}).get("ip_region")'),
         "tieba_region_field": (root / "model/m_baidu_tieba.py", "ip_location: str"),
         "tieba_html_region": (root / "media_platform/tieba/help.py", "ip_location=coarse_public_region(ip_location)"),
         "zhihu_region_field": (root / "model/m_zhihu.py", "ip_location: str"),
