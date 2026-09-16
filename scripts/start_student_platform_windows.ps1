@@ -6,6 +6,9 @@ param(
     [string]$NodeId = $env:COMPUTERNAME,
     [string]$Config = ".\config\monitoring.student.windows.json",
     [switch]$PushGithub,
+    [switch]$ArchiveRaw,
+    [string]$RawArchiveRepo = $env:PROMOTION_RAW_ARCHIVE_REPO,
+    [switch]$PrivateRepoConfirmed,
     [switch]$NoWatchdog
 )
 
@@ -33,9 +36,6 @@ if (-not $pythonCmd) {
 $PythonExe = $pythonCmd.Source
 Write-Host "Python:   $PythonExe" -ForegroundColor Cyan
 
-# PowerShell 5.1 may turn stderr from a native executable into a terminating
-# NativeCommandError. Probe/install the local v2 package without letting that
-# behavior stop the self-repair path.
 $previousErrorActionPreference = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
 & $PythonExe -c "import opinion_monitor_v2" 2>$null
@@ -55,8 +55,9 @@ if ($importCode -ne 0) {
     }
 }
 
-# Upgrade old machine-local configs to the final monitoring matrix while keeping
-# each student's own disk paths/dashboard settings.
+# Upgrade old machine-local configs to the five-minute realtime matrix while keeping
+# each student's own disk paths/dashboard settings. Historical exhaustive collection
+# is now a separate one-time backfill command so it cannot block the realtime loop.
 $resolvedConfig = (Resolve-Path $Config).Path
 if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     $cfgObj = Get-Content $resolvedConfig -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -73,6 +74,11 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 60
     Set-ConfigProperty $cfgObj "soft_empty_cooldown_seconds" 3600
     Set-ConfigProperty $cfgObj "network_error_cooldown_seconds" 300
+    Set-ConfigProperty $cfgObj "realtime_mode" $true
+    Set-ConfigProperty $cfgObj "realtime_discovery_max_notes_count" 60
+    Set-ConfigProperty $cfgObj "realtime_detail_max_items_per_cycle" 12
+    Set-ConfigProperty $cfgObj "realtime_detail_batch_size" 4
+    Set-ConfigProperty $cfgObj "realtime_comment_refresh_seconds" 300
     Set-ConfigProperty $cfgObj "search_until_exhausted" $true
     Set-ConfigProperty $cfgObj "crawler_max_notes_count" 100000
     Set-ConfigProperty $cfgObj "comments_until_exhausted" $true
@@ -89,10 +95,9 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     $json = $cfgObj | ConvertTo-Json -Depth 100
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($resolvedConfig, $json, $utf8NoBom)
-    Write-Host "Local config upgraded to final five-minute full-matrix mode." -ForegroundColor Green
+    Write-Host "Local config upgraded to five-minute realtime discovery + queued deep-comment mode." -ForegroundColor Green
 }
 
-# Do not allow two main platform collectors to run on the same student machine.
 try {
     $existing = Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {
         $_.Name -match "python" -and $_.CommandLine -and
@@ -115,24 +120,48 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+if ($ArchiveRaw) {
+    if (-not $RawArchiveRepo) {
+        Write-Host "ERROR: -ArchiveRaw requires -RawArchiveRepo or environment variable PROMOTION_RAW_ARCHIVE_REPO." -ForegroundColor Red
+        exit 30
+    }
+    if (-not $PrivateRepoConfirmed) {
+        Write-Host "ERROR: raw JSONL must only be pushed to an access-controlled PRIVATE Git repository." -ForegroundColor Red
+        Write-Host "After confirming privacy, rerun with -PrivateRepoConfirmed." -ForegroundColor Yellow
+        exit 31
+    }
+    if (-not (Test-Path (Join-Path $RawArchiveRepo ".git"))) {
+        Write-Host "ERROR: private raw archive repository is not cloned at: $RawArchiveRepo" -ForegroundColor Red
+        exit 32
+    }
+}
+
 Write-Host "=== FINAL student distributed platform monitor ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Config:   $Config" -ForegroundColor Cyan
-Write-Host "Realtime target: new monitoring cycle starts every 300 seconds when the previous cycle completes within five minutes." -ForegroundColor Yellow
-Write-Host "If a crawl itself exceeds five minutes, the system records an SLA miss and does NOT overlap a second collector; verification/login/soft-empty states also use safe cooldowns." -ForegroundColor Yellow
-Write-Host "Enabled: 6-keyword search, natural-end paging, dedupe, details, first-level comments, nested comments, parent/reply links, public IP-region fields when exposed, language/minority-language detection, v2 attitude classification for posts/videos/comments, public publisher account statistics, engagement statistics, and GitHub aggregate sync." -ForegroundColor Yellow
-Write-Host "GitHub sync also carries privacy-safe raw JSONL diagnostics (schema/row-count/hash/structural linkage samples) every five minutes; full raw text stays local because this repository is public." -ForegroundColor Yellow
-Write-Host "GitHub result paths roll automatically by the current date; do not manually pin results_date to an old day." -ForegroundColor Yellow
-Write-Host "Video ASR/OCR is reported when those fields are available; missing ASR/OCR is explicitly visible in summary diagnostics." -ForegroundColor Yellow
-Write-Host "Official login/captcha/security verification must be completed manually when requested." -ForegroundColor Yellow
+Write-Host "Realtime target: discovery cycle starts every 300 seconds when the previous cycle completes within five minutes." -ForegroundColor Yellow
+Write-Host "Realtime mode first performs fast six-keyword discovery with comments disabled, then sends comment-bearing items to a persistent detail queue for first-level + nested comment crawling." -ForegroundColor Yellow
+Write-Host "This protects five-minute NEW-CONTENT discovery from repeated historical full scans. Very large comment threads may finish after the five-minute discovery window; queue depth and SLA misses remain visible in status." -ForegroundColor Yellow
+Write-Host "Enabled: dedupe, detail deep crawl, first-level comments, nested comments, parent/root links, public coarse IP-region fields when exposed, language detection, v2 attitude classification, publisher/engagement statistics and GitHub aggregate sync." -ForegroundColor Yellow
+Write-Host "Official login/captcha/security verification must be completed manually when requested; automatic bypass is not used." -ForegroundColor Yellow
 
 if ($PushGithub) {
     $syncCmd = "Set-Location '$RepoRoot'; .\scripts\start_node_results_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config' -Push"
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $syncCmd
-    Write-Host "GitHub aggregate + diagnostic shard sync started in a separate window." -ForegroundColor Green
+    Write-Host "Public GitHub aggregate + privacy-safe diagnostic sync started in a separate window (300s)." -ForegroundColor Green
 } else {
-    Write-Host "GitHub push is OFF. Add -PushGithub after this machine has Git write access." -ForegroundColor Yellow
+    Write-Host "Public GitHub result push is OFF. Add -PushGithub after this machine has Git write access." -ForegroundColor Yellow
+}
+
+if ($ArchiveRaw) {
+    $rawCmd = "Set-Location '$RepoRoot'; .\scripts\start_private_raw_archive_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config' -ArchiveRepo '$RawArchiveRepo' -Push -PrivateRepoConfirmed"
+    Start-Process powershell -ArgumentList "-NoExit", "-Command", $rawCmd
+    Write-Host "PRIVATE full raw JSONL archive sync started in a separate window (300s)." -ForegroundColor Green
+    Write-Host "Raw archive excludes cookies, browser profiles, login state, screenshots, logs and secrets." -ForegroundColor Yellow
+} else {
+    Write-Host "Full raw JSONL remains local. The current code repository is PUBLIC, so full raw text is intentionally not pushed there." -ForegroundColor Yellow
+    Write-Host "To archive full raw JSONL on GitHub, use a separate PRIVATE repository and start with -ArchiveRaw -RawArchiveRepo <path> -PrivateRepoConfirmed." -ForegroundColor Yellow
 }
 
 if ($NoWatchdog) {
