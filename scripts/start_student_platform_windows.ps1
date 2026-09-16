@@ -33,10 +33,6 @@ if (-not $pythonCmd) {
 $PythonExe = $pythonCmd.Source
 Write-Host "Python:   $PythonExe" -ForegroundColor Cyan
 
-# The classifier is a local package in packages/v2. Student setup normally installs
-# it through requirements.txt, but a network failure while cloning MediaCrawler can
-# stop setup before that step. Repair it automatically here instead of asking students
-# to guess a pip command.
 & $PythonExe -c "import opinion_monitor_v2" 2>$null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Local classifier package is missing in the current Python; installing packages/v2..." -ForegroundColor Yellow
@@ -52,10 +48,38 @@ if ($LASTEXITCODE -ne 0) {
     }
 }
 
+# Students created monitoring.local.json before the full capability matrix was
+# enabled. Keep machine-specific paths/dashboard settings, but upgrade these local
+# copies automatically so a git pull is enough to activate the new collection policy.
+$resolvedConfig = (Resolve-Path $Config).Path
+if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
+    $cfgObj = Get-Content $resolvedConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+    function Set-ConfigProperty($obj, [string]$name, $value) {
+        if ($obj.PSObject.Properties.Name -contains $name) {
+            $obj.$name = $value
+        } else {
+            $obj | Add-Member -NotePropertyName $name -NotePropertyValue $value
+        }
+    }
+    Set-ConfigProperty $cfgObj "search_until_exhausted" $true
+    Set-ConfigProperty $cfgObj "crawler_max_notes_count" 100000
+    Set-ConfigProperty $cfgObj "comments_until_exhausted" $true
+    Set-ConfigProperty $cfgObj "max_comments_count_singlenotes" 100000
+    Set-ConfigProperty $cfgObj "get_comment" "yes"
+    Set-ConfigProperty $cfgObj "get_sub_comment" "yes"
+    Set-ConfigProperty $cfgObj "ingest_comments" $true
+    Set-ConfigProperty $cfgObj "max_concurrency_num" 1
+    $json = $cfgObj | ConvertTo-Json -Depth 100
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($resolvedConfig, $json, $utf8NoBom)
+    Write-Host "Local config upgraded: full paging + first-level comments + nested comments + comment ingestion enabled." -ForegroundColor Green
+}
+
 Write-Host "=== Student distributed platform monitor ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Config:   $Config" -ForegroundColor Cyan
+Write-Host "Full matrix mode: search to natural end (100000 safety cap), comments and sub-comments enabled." -ForegroundColor Yellow
 Write-Host "Dashboard is disabled on student machines; classified aggregate results can sync to GitHub." -ForegroundColor Yellow
 
 if ($PushGithub) {
