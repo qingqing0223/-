@@ -30,6 +30,190 @@ def _safe_window_text(element) -> str:
         return ""
 
 
+def _safe_control_type(element) -> str:
+    try:
+        return str(element.element_info.control_type or "")
+    except Exception:
+        return ""
+
+
+def _safe_visible(element) -> bool:
+    try:
+        return bool(element.is_visible())
+    except Exception:
+        return False
+
+
+def _copy_to_clipboard(text: str) -> None:
+    import win32clipboard  # type: ignore
+
+    win32clipboard.OpenClipboard()
+    try:
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardText(text, win32clipboard.CF_UNICODETEXT)
+    finally:
+        win32clipboard.CloseClipboard()
+
+
+def _window_candidate(window) -> tuple[int, dict]:
+    try:
+        class_name = str(window.class_name() or "")
+    except Exception:
+        class_name = ""
+    title = _safe_window_text(window)
+
+    try:
+        descendants = window.descendants()
+    except Exception:
+        descendants = []
+
+    edits = [x for x in descendants if _safe_control_type(x) == "Edit" and _safe_visible(x)]
+    documents = [x for x in descendants if _safe_control_type(x) == "Document" and _safe_visible(x)]
+
+    texts: list[str] = []
+    for item in descendants[:500]:
+        text = _safe_window_text(item)
+        if text and text not in texts:
+            texts.append(text[:160])
+        if len(texts) >= 60:
+            break
+
+    joined = " ".join(texts)
+    score = 0
+    if class_name == "Chrome_WidgetWin_0":
+        score += 2
+    if title in {"微信", "WeChat"}:
+        score += 1
+    if edits:
+        score += 4
+    if documents:
+        score += 4
+    if "视频号" in joined or "Channels" in joined:
+        score += 6
+    if "搜索" in joined or "Search" in joined:
+        score += 2
+
+    return score, {
+        "title": title,
+        "class_name": class_name,
+        "edit_count": len(edits),
+        "document_count": len(documents),
+        "sample_texts": texts[:20],
+    }
+
+
+def _find_existing_channels_window(timeout: float = 1.0):
+    """Attach directly to an already-open Channels window.
+
+    This path intentionally avoids the WeChat main-window UI tree. It is useful
+    on recent WeChat builds where the main window is visually usable but its UIA
+    tree is not exposed to pywinauto.
+    """
+    try:
+        from pywinauto import Desktop  # type: ignore
+    except Exception:
+        return None, {}
+
+    deadline = time.time() + max(0.2, timeout)
+    best_spec = None
+    best_meta: dict = {}
+    best_score = -1
+
+    while time.time() < deadline:
+        try:
+            desktop = Desktop(backend="uia")
+            windows = desktop.windows(visible_only=True)
+        except Exception:
+            windows = []
+
+        for wrapper in windows:
+            try:
+                score, meta = _window_candidate(wrapper)
+                handle = int(wrapper.handle)
+            except Exception:
+                continue
+            if score > best_score:
+                best_score = score
+                best_meta = {**meta, "candidate_score": score, "handle": handle}
+                try:
+                    best_spec = desktop.window(handle=handle)
+                except Exception:
+                    best_spec = None
+
+        if best_spec is not None and best_score >= 8:
+            return best_spec, best_meta
+        time.sleep(0.2)
+
+    return None, best_meta
+
+
+def _find_search_edit(window):
+    try:
+        edits = window.descendants(control_type="Edit")
+    except Exception:
+        edits = []
+
+    visible = [x for x in edits if _safe_visible(x)]
+    for edit in visible:
+        text = _safe_window_text(edit)
+        if text in {"搜索", "Search"} or "搜索" in text or "Search" in text:
+            return edit
+    return visible[0] if visible else None
+
+
+def _find_result_document(window, keyword: str, timeout: float):
+    deadline = time.time() + max(1.0, timeout)
+    fallback = None
+
+    while time.time() < deadline:
+        try:
+            documents = [x for x in window.descendants(control_type="Document") if _safe_visible(x)]
+        except Exception:
+            documents = []
+
+        for doc in documents:
+            title = _safe_window_text(doc)
+            if title == f"{keyword}_搜索" or keyword in title:
+                return doc
+        if documents:
+            fallback = max(
+                documents,
+                key=lambda x: len(getattr(x, "descendants", lambda: [])() or []),
+            )
+        time.sleep(0.25)
+
+    return fallback
+
+
+def _search_in_existing_window(window, keyword: str, load_delay: float):
+    search_edit = _find_search_edit(window)
+    if search_edit is None:
+        return None, "search_edit_not_found"
+
+    try:
+        search_edit.click_input()
+        search_edit.set_focus()
+    except Exception:
+        pass
+
+    try:
+        from pywinauto.keyboard import send_keys  # type: ignore
+
+        _copy_to_clipboard(keyword)
+        send_keys("^a")
+        time.sleep(0.1)
+        send_keys("^v")
+        time.sleep(0.1)
+        send_keys("{ENTER}")
+    except Exception as exc:
+        return None, f"search_input_failed:{type(exc).__name__}:{exc}"
+
+    document = _find_result_document(window, keyword, timeout=load_delay)
+    if document is None:
+        return None, "result_document_not_found"
+    return document, ""
+
+
 def _extract_groups(document, keyword: str, max_results: int) -> list[dict]:
     candidates: list[str] = []
     try:
@@ -93,6 +277,33 @@ def _extract_groups(document, keyword: str, max_results: int) -> list[dict]:
     return records
 
 
+def _collect_from_document(document, keyword: str, max_results: int, scroll_pages: int) -> list[dict]:
+    all_records: list[dict] = []
+    seen_ids = set()
+
+    for page_index in range(scroll_pages + 1):
+        records = _extract_groups(document, keyword, max_results=max_results)
+        for row in records:
+            cid = row.get("content_id")
+            if cid and cid not in seen_ids:
+                seen_ids.add(cid)
+                all_records.append(row)
+        if len(all_records) >= max_results or page_index >= scroll_pages:
+            break
+        try:
+            document.set_focus()
+            document.type_keys("{PGDN}")
+        except Exception:
+            try:
+                from pywinauto.keyboard import send_keys  # type: ignore
+                send_keys("{PGDN}")
+            except Exception:
+                break
+        time.sleep(1.5)
+
+    return all_records[:max_results]
+
+
 def _collect_one(config: dict, keyword: str, Navigator, GlobalConfig) -> dict:
     load_delay = float(config.get("wechat_channels_load_delay_seconds", 5))
     max_results = int(config.get("wechat_channels_max_results_per_keyword", 20))
@@ -102,13 +313,47 @@ def _collect_one(config: dict, keyword: str, Navigator, GlobalConfig) -> dict:
     GlobalConfig.is_maximize = True
     GlobalConfig.close_weixin = False
 
-    window = Navigator.search_channels(
-        search_content=keyword,
-        load_delay=load_delay,
-        is_maximize=True,
-        window_maximize=True,
-        close_weixin=False,
-    )
+    # Preferred fallback on WeChat builds whose main UI tree is hidden: the user
+    # manually opens Channels once, then we attach to that independent window.
+    existing_window, existing_meta = _find_existing_channels_window(timeout=0.8)
+    if existing_window is not None:
+        document, search_error = _search_in_existing_window(existing_window, keyword, load_delay)
+        if document is None:
+            return {
+                "status": "UI_NOT_READY",
+                "records": [],
+                "automation_mode": "preopened_channels_window",
+                "window": existing_meta,
+                "error": search_error or "Channels window was found but its search/result controls were not readable.",
+            }
+        records = _collect_from_document(document, keyword, max_results, scroll_pages)
+        return {
+            "status": "SUCCESS",
+            "records": records,
+            "visible_results": len(records),
+            "automation_mode": "preopened_channels_window",
+            "window": existing_meta,
+        }
+
+    try:
+        window = Navigator.search_channels(
+            search_content=keyword,
+            load_delay=load_delay,
+            is_maximize=True,
+            window_maximize=True,
+            close_weixin=False,
+        )
+    except Exception as exc:
+        message = f"{type(exc).__name__}:{exc}"
+        if "UI树不可见" in message or type(exc).__name__ == "NotFoundError":
+            return {
+                "status": "CHANNELS_WINDOW_REQUIRED",
+                "records": [],
+                "automation_mode": "preopened_channels_window_required",
+                "error": "微信主界面UI树不可见。请手动打开微信→视频号，保持视频号独立窗口可见，然后重新运行；后续关键词搜索将自动完成。",
+            }
+        raise
+
     if window is None:
         return {
             "status": "LOGIN_OR_UI_REQUIRED",
@@ -117,42 +362,21 @@ def _collect_one(config: dict, keyword: str, Navigator, GlobalConfig) -> dict:
         }
 
     try:
-        document_spec = window.child_window(control_type="Document", title=f"{keyword}_搜索")
-        if not document_spec.exists(timeout=load_delay, retry_interval=0.2):
+        document = _find_result_document(window, keyword, timeout=load_delay)
+        if document is None:
             return {
                 "status": "UI_NOT_READY",
                 "records": [],
+                "automation_mode": "navigator",
                 "error": "Channels search result document was not found; WeChat UI version may differ.",
             }
 
-        document = document_spec.wrapper_object()
-        all_records: list[dict] = []
-        seen_ids = set()
-
-        for page_index in range(scroll_pages + 1):
-            records = _extract_groups(document, keyword, max_results=max_results)
-            for row in records:
-                cid = row.get("content_id")
-                if cid and cid not in seen_ids:
-                    seen_ids.add(cid)
-                    all_records.append(row)
-            if len(all_records) >= max_results or page_index >= scroll_pages:
-                break
-            try:
-                document.set_focus()
-                document.type_keys("{PGDN}")
-            except Exception:
-                try:
-                    from pywinauto.keyboard import send_keys  # type: ignore
-                    send_keys("{PGDN}")
-                except Exception:
-                    break
-            time.sleep(1.5)
-
+        records = _collect_from_document(document, keyword, max_results, scroll_pages)
         return {
             "status": "SUCCESS",
-            "records": all_records[:max_results],
-            "visible_results": len(all_records[:max_results]),
+            "records": records,
+            "visible_results": len(records),
+            "automation_mode": "navigator",
         }
     finally:
         try:
@@ -174,6 +398,7 @@ def collect_many(config: dict, keywords: list[str]) -> dict:
     delay = max(1.0, float(config.get("wechat_channels_keyword_delay_seconds", 3)))
     all_records: list[dict] = []
     per_keyword: dict[str, int] = {}
+    automation_mode = ""
 
     for keyword in keywords:
         try:
@@ -187,9 +412,11 @@ def collect_many(config: dict, keywords: list[str]) -> dict:
                 "records": all_records,
                 "per_keyword": per_keyword,
                 "blocked_keyword": keyword,
+                "automation_mode": automation_mode,
                 "error": message,
             }
 
+        automation_mode = str(result.get("automation_mode") or automation_mode)
         batch = result.get("records") or []
         all_records.extend(batch)
         per_keyword[keyword] = len(batch)
@@ -199,7 +426,9 @@ def collect_many(config: dict, keywords: list[str]) -> dict:
                 "records": all_records,
                 "per_keyword": per_keyword,
                 "blocked_keyword": keyword,
+                "automation_mode": automation_mode,
                 "error": result.get("error", ""),
+                "window": result.get("window") or {},
             }
         time.sleep(delay)
 
@@ -217,6 +446,7 @@ def collect_many(config: dict, keywords: list[str]) -> dict:
         "records": deduped,
         "per_keyword": per_keyword,
         "visible_results": len(deduped),
+        "automation_mode": automation_mode,
     }
 
 
