@@ -4,9 +4,11 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from monitor.crawler_runner import _classify_state, _detail_recovery_candidates
 from monitor.ingest import _prepare_region_aliases
+from pipeline.classifier import classify_records
 from pipeline.normalizer import normalize_record
 from dashboard_adapter.suqi_pusher import to_suqi_record
 
@@ -108,6 +110,35 @@ class MonitoringRegressionTests(unittest.TestCase):
         self.assertEqual(row["root_comment_id"], "root-1")
         self.assertEqual(row["comment_level"], 2)
         self.assertEqual(row["ip_location"], "北京")
+
+    def test_classifier_outage_preserves_comment_and_hierarchy(self):
+        record = {
+            "sample_id": "reply-2",
+            "dedupe_key": "ks:reply-2",
+            "platform": "ks",
+            "record_type": "comment",
+            "content_id": "video-9",
+            "comment_id": "reply-2",
+            "parent_comment_id": "root-1",
+            "root_comment_id": "root-1",
+            "comment_level": 2,
+            "content": "楼中楼回复",
+            "analysis_text": "楼中楼回复",
+            "context": "",
+            "ip_location": "山东",
+        }
+        with patch("pipeline.classifier.OpinionMonitorV2") as mocked:
+            mocked.return_value.classify_many.side_effect = RuntimeError("Arrearage")
+            rows = classify_records([record], concurrency=1)
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual(row["record_type"], "comment")
+        self.assertEqual(row["parent_comment_id"], "root-1")
+        self.assertEqual(row["root_comment_id"], "root-1")
+        self.assertEqual(row["ip_location"], "山东")
+        self.assertFalse(row["classification_ok"])
+        self.assertEqual(row["classification_state"], "degraded")
+        self.assertEqual(row["status"], "unclassified")
 
     def test_dashboard_record_exposes_hierarchy_as_structured_fields(self):
         row = {
