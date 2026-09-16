@@ -6,13 +6,13 @@
   "results_date": "2026-09-16",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-16T15:27:01+08:00",
+  "generated_at": "2026-09-16T15:32:07+08:00",
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy"
   ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T15:27:01+08:00",
+    "generated_at": "2026-09-16T15:32:07+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
@@ -42,11 +42,11 @@
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-16T15:23:29",
+        "cycle_finished_at": "2026-09-16T15:27:59",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 1,
-        "duration_seconds": 93.13,
+        "duration_seconds": 63.54,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
