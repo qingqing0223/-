@@ -6,64 +6,64 @@
   "results_date": "2026-09-16",
   "node_id": "xhs01",
   "platform": "xhs",
-  "generated_at": "2026-09-16T17:24:46+08:00",
+  "generated_at": "2026-09-16T17:29:51+08:00",
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_xhs"
   ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T17:24:46+08:00",
+    "generated_at": "2026-09-16T17:29:51+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-16T16:20:10+08:00",
+    "latest_seen_time": "2026-09-16T17:25:29+08:00",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
     "totals": {
-      "unique_records": 5,
+      "unique_records": 6,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
-      "likes": 17,
+      "likes": 30,
       "comments": 1,
-      "shares": 3,
+      "shares": 5,
       "views": 0,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "xhs": 5
+      "xhs": 6
     },
     "languages": {
-      "汉语": 5
+      "汉语": 6
     },
     "minority_languages": {},
     "regions": {},
     "v2_status": {
-      "neutral": 5
+      "neutral": 6
     },
     "v2_type": {
-      "null": 5
+      "null": 6
     },
     "source_types": {
+      "权威媒体/新闻评论": 3,
       "自媒体观点": 2,
-      "权威媒体/新闻评论": 2,
       "二创/剪辑解读": 1
     },
     "record_types": {
       "post": 4,
-      "video": 1
+      "video": 2
     },
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_xhs",
-        "cycle_finished_at": "2026-09-16T17:17:17",
-        "crawler_status": "ok",
-        "crawler_state": "SUCCESS",
-        "return_code": 0,
-        "duration_seconds": 491.43,
+        "cycle_finished_at": "2026-09-16T17:27:47",
+        "crawler_status": "failed",
+        "crawler_state": "VERIFY_REQUIRED",
+        "return_code": 1,
+        "duration_seconds": 130.65,
         "new_records": 0,
-        "filtered_before_start": 1,
+        "filtered_before_start": 0,
         "classified_records": 0,
         "region_records": 0,
         "region_rate": 0.0,
