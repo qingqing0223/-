@@ -60,6 +60,24 @@ def _classify_state(return_code: int | None, stdout_log: Path, stderr_log: Path,
     return "CRAWLER_FAILED"
 
 
+def _effective_notes_limit(cfg: dict) -> int:
+    """Allow platform pagination to reach its natural end, with a finite guard."""
+    configured = max(1, int(cfg.get("crawler_max_notes_count", 20)))
+    if bool(cfg.get("search_until_exhausted", False)):
+        return max(configured, int(cfg.get("natural_end_notes_safety_cap", 100000)))
+    return configured
+
+
+def _effective_comment_limit(cfg: dict) -> int | None:
+    value = cfg.get("max_comments_count_singlenotes")
+    if value is None and not bool(cfg.get("comments_until_exhausted", False)):
+        return None
+    configured = max(1, int(value or 10))
+    if bool(cfg.get("comments_until_exhausted", False)):
+        return max(configured, int(cfg.get("natural_end_comments_safety_cap", 100000)))
+    return configured
+
+
 def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     code = platform_cfg["code"]
     name = platform_cfg.get("name", code)
@@ -75,7 +93,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         "--lt", cfg.get("login_type", "qrcode"),
         "--type", "search",
         "--keywords", ",".join(cfg["keywords"]),
-        "--crawler_max_notes_count", str(cfg.get("crawler_max_notes_count", 20)),
+        "--crawler_max_notes_count", str(_effective_notes_limit(cfg)),
         "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
         "--get_comment", str(cfg.get("get_comment", "no")),
         "--get_sub_comment", str(cfg.get("get_sub_comment", "no")),
@@ -83,12 +101,9 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         "--save_data_path", str(output_dir),
     ]
 
-    # Keep region enrichment bounded. MediaCrawler supports limiting first-level
-    # comments per post/video; only pass this option when configured so the normal
-    # fast path is unchanged.
-    max_comments = cfg.get("max_comments_count_singlenotes")
+    max_comments = _effective_comment_limit(cfg)
     if max_comments is not None:
-        cmd.extend(["--max_comments_count_singlenotes", str(int(max_comments))])
+        cmd.extend(["--max_comments_count_singlenotes", str(max_comments)])
 
     started_dt = datetime.now()
     started = time.time()
@@ -143,5 +158,4 @@ def find_ingest_jsonl(output_dir: Path, include_comments: bool = False) -> list[
     files = find_content_jsonl(output_dir)
     if include_comments:
         files.extend(find_comment_jsonl(output_dir))
-    # Stable order and no duplicates.
     return sorted(dict.fromkeys(files))
