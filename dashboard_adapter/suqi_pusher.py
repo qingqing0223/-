@@ -117,6 +117,15 @@ def to_suqi_record(row: dict) -> dict:
         "likes": row.get("likes") or 0,
         "comments": row.get("comments") or 0,
         "shares": row.get("shares") or 0,
+        # Keep hierarchy metadata as first-class fields so the dashboard can build
+        # real comment trees instead of parsing an opaque notes string.
+        "record_type": row.get("record_type") or "",
+        "content_id": row.get("content_id") or "",
+        "comment_id": row.get("comment_id") or "",
+        "parent_comment_id": row.get("parent_comment_id") or "",
+        "root_comment_id": row.get("root_comment_id") or "",
+        "comment_level": int(row.get("comment_level") or 0),
+        "sub_comment_count": int(row.get("sub_comment_count") or 0),
         "notes": "; ".join(notes_parts),
         "origin": "mediacrawler_v2",
     }
