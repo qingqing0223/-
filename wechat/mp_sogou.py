@@ -141,10 +141,13 @@ def collect_many(config: dict, keywords: list[str]) -> dict:
     profile_dir.mkdir(parents=True, exist_ok=True)
 
     max_results = int(config.get("wechat_mp_max_results_per_keyword", 20))
+    search_until_exhausted = bool(config.get("wechat_mp_search_until_exhausted", False))
+    max_pages = max(1, int(config.get("wechat_mp_max_pages", 1 if not search_until_exhausted else 1000)))
     manual_wait = int(config.get("wechat_manual_verify_wait_seconds", 600))
     delay = max(1.0, float(config.get("wechat_mp_keyword_delay_seconds", 5)))
     records: list[dict] = []
     per_keyword: dict[str, int] = {}
+    per_keyword_pages: dict[str, int] = {}
 
     try:
         with sync_playwright() as p:
@@ -158,23 +161,64 @@ def collect_many(config: dict, keywords: list[str]) -> dict:
             page = context.pages[0] if context.pages else context.new_page()
 
             for keyword in keywords:
-                search_url = "https://weixin.sogou.com/weixin?type=2&query=" + quote(keyword)
-                page.goto(search_url, wait_until="domcontentloaded", timeout=45000)
-                page.wait_for_timeout(2000)
+                keyword_records: list[dict] = []
+                keyword_seen = set()
+                pages_visited = 0
 
-                if not _wait_for_manual_verify(page, manual_wait):
-                    return {
-                        "status": "VERIFY_REQUIRED",
-                        "records": records,
-                        "per_keyword": per_keyword,
-                        "blocked_keyword": keyword,
-                        "search_url": search_url,
-                        "error": "manual verification not completed within wait window",
-                    }
+                for page_number in range(1, max_pages + 1):
+                    remaining = max_results - len(keyword_records)
+                    if remaining <= 0:
+                        break
 
-                batch = _extract_records(page, keyword, max_results)
-                records.extend(batch)
-                per_keyword[keyword] = len(batch)
+                    search_url = (
+                        "https://weixin.sogou.com/weixin?type=2&query="
+                        + quote(keyword)
+                        + f"&page={page_number}"
+                    )
+                    page.goto(search_url, wait_until="domcontentloaded", timeout=45000)
+                    page.wait_for_timeout(2000)
+
+                    if not _wait_for_manual_verify(page, manual_wait):
+                        return {
+                            "status": "VERIFY_REQUIRED",
+                            "records": records + keyword_records,
+                            "per_keyword": per_keyword,
+                            "per_keyword_pages": per_keyword_pages,
+                            "blocked_keyword": keyword,
+                            "search_url": search_url,
+                            "error": "manual verification not completed within wait window",
+                        }
+
+                    batch = _extract_records(page, keyword, remaining)
+                    pages_visited += 1
+                    if not batch:
+                        break
+
+                    new_on_page = 0
+                    for row in batch:
+                        key = row.get("content_id") or row.get("url") or row.get("content")
+                        if key in keyword_seen:
+                            continue
+                        keyword_seen.add(key)
+                        keyword_records.append(row)
+                        new_on_page += 1
+
+                    if new_on_page == 0:
+                        break
+                    if not search_until_exhausted:
+                        break
+
+                    try:
+                        has_next = page.locator("#sogou_next").count() > 0
+                    except Exception:
+                        has_next = False
+                    if not has_next:
+                        break
+                    time.sleep(delay)
+
+                records.extend(keyword_records)
+                per_keyword[keyword] = len(keyword_records)
+                per_keyword_pages[keyword] = pages_visited
                 time.sleep(delay)
 
             context.close()
@@ -192,13 +236,16 @@ def collect_many(config: dict, keywords: list[str]) -> dict:
             "status": "SUCCESS",
             "records": deduped,
             "per_keyword": per_keyword,
+            "per_keyword_pages": per_keyword_pages,
             "visible_results": len(deduped),
+            "search_until_exhausted": search_until_exhausted,
         }
     except Exception as exc:
         return {
             "status": "COLLECTOR_ERROR",
             "records": records,
             "per_keyword": per_keyword,
+            "per_keyword_pages": per_keyword_pages,
             "error": f"{type(exc).__name__}:{exc}",
         }
 
