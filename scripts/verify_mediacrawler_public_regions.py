@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import subprocess
 from pathlib import Path
@@ -24,7 +25,7 @@ REQUIRED_MARKER_FILES = (
 )
 
 
-def _git_head(root: Path) -> str:
+def git_head(root: Path) -> str:
     try:
         return subprocess.run(
             ["git", "rev-parse", "HEAD"], cwd=root,
@@ -34,51 +35,57 @@ def _git_head(root: Path) -> str:
         return ""
 
 
+def add(checks: list[dict], name: str, ok: bool, detail: str) -> None:
+    checks.append({"name": name, "ok": bool(ok), "detail": detail})
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Verify the local MediaCrawler coarse public-region patch.")
+    ap = argparse.ArgumentParser(description="Verify pinned MediaCrawler and its coarse public-region patch.")
     ap.add_argument("--root", required=True)
     args = ap.parse_args()
     root = Path(args.root).resolve()
-
     checks: list[dict] = []
+
+    head = git_head(root)
+    add(checks, "pinned_mediacrawler_commit", head == PINNED_MEDIACRAWLER_COMMIT, head or "unknown")
+
     manifest_path = root / ".promotion_week_public_region_patch.json"
-    helper_path = root / "tools" / "public_region.py"
-
-    head = _git_head(root)
-    checks.append({
-        "name": "pinned_mediacrawler_commit",
-        "ok": head == PINNED_MEDIACRAWLER_COMMIT,
-        "detail": head or "unknown",
-    })
-
     if manifest_path.exists():
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            checks.append({
-                "name": "manifest",
-                "ok": manifest.get("version") == PATCH_VERSION,
-                "detail": manifest.get("version"),
-            })
+            add(checks, "manifest", manifest.get("version") == PATCH_VERSION, str(manifest.get("version")))
         except Exception as exc:
-            checks.append({"name": "manifest", "ok": False, "detail": f"invalid: {exc}"})
+            add(checks, "manifest", False, f"invalid: {exc}")
     else:
-        checks.append({"name": "manifest", "ok": False, "detail": "missing"})
+        add(checks, "manifest", False, "missing")
 
-    helper_text = helper_path.read_text(encoding="utf-8", errors="replace") if helper_path.exists() else ""
-    checks.append({
-        "name": "public_region_helper",
-        "ok": helper_path.exists() and "def coarse_public_region" in helper_text,
-        "detail": str(helper_path),
-    })
+    helper = root / "tools/public_region.py"
+    helper_ok = False
+    helper_detail = "missing"
+    if helper.exists():
+        try:
+            spec = importlib.util.spec_from_file_location("promotion_week_public_region", helper)
+            module = importlib.util.module_from_spec(spec)
+            assert spec and spec.loader
+            spec.loader.exec_module(module)
+            cases = {
+                "IP属地：山东": "山东",
+                "来自: 北京": "北京",
+                "内蒙古自治区": "内蒙古",
+                "1.2.3.4": "",
+                "2001:db8::1": "",
+            }
+            got = {k: module.coarse_public_region(k) for k in cases}
+            helper_ok = got == cases
+            helper_detail = json.dumps(got, ensure_ascii=False)
+        except Exception as exc:
+            helper_detail = f"{type(exc).__name__}: {exc}"
+    add(checks, "public_region_helper_runtime", helper_ok, helper_detail)
 
     for rel in REQUIRED_MARKER_FILES:
         path = root / rel
         text = path.read_text(encoding="utf-8", errors="replace") if path.exists() else ""
-        checks.append({
-            "name": rel,
-            "ok": bool(path.exists() and MARKER in text),
-            "detail": "marker present" if MARKER in text else "marker missing",
-        })
+        add(checks, rel, path.exists() and MARKER in text, "marker present" if MARKER in text else "marker missing")
 
     semantic = {
         "dy_content_ip_label": (root / "store/douyin/__init__.py", 'save_content_item["ip_location"] = coarse_public_region(aweme_item.get("ip_label"))'),
@@ -97,10 +104,10 @@ def main() -> int:
     }
     for name, (path, needle) in semantic.items():
         text = path.read_text(encoding="utf-8", errors="replace") if path.exists() else ""
-        checks.append({"name": name, "ok": needle in text, "detail": needle})
+        add(checks, name, needle in text, needle)
 
     failed = [c for c in checks if not c["ok"]]
-    out = {
+    result = {
         "ok": not failed,
         "version": PATCH_VERSION,
         "root": str(root),
@@ -109,8 +116,8 @@ def main() -> int:
         "failed": len(failed),
         "checks": checks,
     }
-    print(json.dumps(out, ensure_ascii=False, indent=2))
-    return 0 if not failed else 1
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 1
 
 
 if __name__ == "__main__":
