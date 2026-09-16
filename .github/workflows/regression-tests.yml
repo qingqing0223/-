@@ -3,6 +3,8 @@ name: monitoring-regression-tests
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'results/**'
   pull_request:
     branches: [main]
 
