@@ -6,7 +6,7 @@ from pathlib import Path
 
 from monitor.orchestrator import load_config, run_forever, run_one_cycle
 
-PLATFORMS = {"xhs", "dy", "wb", "ks"}
+PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "tieba", "zhihu"}
 
 
 def main():
@@ -18,6 +18,13 @@ def main():
     args = parser.parse_args()
 
     cfg = load_config(Path(args.config))
+    configured_codes = {str(p.get("code") or "") for p in cfg.get("platforms", [])}
+    if args.platform not in configured_codes:
+        raise SystemExit(
+            f"Platform {args.platform!r} is supported by the runner but missing from {args.config}. "
+            "Pull the latest config or add the platform entry first."
+        )
+
     for p in cfg.get("platforms", []):
         p["enabled"] = p.get("code") == args.platform
 
