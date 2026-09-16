@@ -28,10 +28,11 @@ if (-not $NodeId) {
 Write-Host "=== Student distributed platform monitor ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
+Write-Host "Config:   $Config" -ForegroundColor Cyan
 Write-Host "Dashboard is disabled on student machines; classified aggregate results can sync to GitHub." -ForegroundColor Yellow
 
 if ($PushGithub) {
-    $syncCmd = "Set-Location '$RepoRoot'; .\scripts\start_node_results_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Push"
+    $syncCmd = "Set-Location '$RepoRoot'; .\scripts\start_node_results_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config' -Push"
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $syncCmd
     Write-Host "GitHub aggregate shard sync started in a separate window." -ForegroundColor Green
 } else {
