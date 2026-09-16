@@ -6,16 +6,29 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path "$PSScriptRoot\..").Path
 Set-Location $RepoRoot
 
-foreach ($cmd in @("git", "python", "uv")) {
+foreach ($cmd in @("git", "python", "uv", "node")) {
     if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
         Write-Host "ERROR: required command not found: $cmd" -ForegroundColor Red
         exit 1
     }
 }
 
+$chromeCandidates = @(
+    "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+    "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+    "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+)
+$ChromePath = $chromeCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+if (-not $ChromePath) {
+    Write-Host "ERROR: Google Chrome was not found. Install Chrome before continuing." -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "=== Student machine setup ===" -ForegroundColor Cyan
 Write-Host "Integration repo: $RepoRoot" -ForegroundColor Cyan
 Write-Host "MediaCrawler:     $MediaCrawlerRoot" -ForegroundColor Cyan
+Write-Host "Node.js:          $(node --version)" -ForegroundColor Cyan
+Write-Host "Chrome:           $ChromePath" -ForegroundColor Cyan
 
 if (-not (Test-Path (Join-Path $MediaCrawlerRoot "main.py"))) {
     if (Test-Path $MediaCrawlerRoot) {
@@ -34,6 +47,36 @@ $uvCode = $LASTEXITCODE
 Pop-Location
 if ($uvCode -ne 0) { exit $uvCode }
 
+# Make the student's first login easier: keep a visible, persistent browser and
+# saved login state. Only change settings that exist in the checked-out version.
+$baseConfig = Join-Path $MediaCrawlerRoot "config\base_config.py"
+if (Test-Path $baseConfig) {
+    $text = [System.IO.File]::ReadAllText($baseConfig, [System.Text.Encoding]::UTF8)
+    $changes = @{
+        'HEADLESS' = 'False'
+        'SAVE_LOGIN_STATE' = 'True'
+        'ENABLE_CDP_MODE' = 'True'
+        'CDP_HEADLESS' = 'False'
+        'CDP_CONNECT_EXISTING' = 'False'
+        'AUTO_CLOSE_BROWSER' = 'False'
+    }
+    $changed = $false
+    foreach ($name in $changes.Keys) {
+        $pattern = "(?m)^\s*" + [regex]::Escape($name) + "\s*=\s*.*$"
+        if ([regex]::IsMatch($text, $pattern)) {
+            $replacement = "$name = $($changes[$name])"
+            $newText = [regex]::Replace($text, $pattern, $replacement)
+            if ($newText -ne $text) { $changed = $true }
+            $text = $newText
+        }
+    }
+    if ($changed) {
+        $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+        [System.IO.File]::WriteAllText($baseConfig, $text, $utf8NoBom)
+        Write-Host "MediaCrawler browser/login-state settings prepared." -ForegroundColor Green
+    }
+}
+
 Write-Host "Installing integration classifier package..." -ForegroundColor Cyan
 Set-Location $RepoRoot
 python -m pip install -r .\requirements.txt
@@ -44,6 +87,6 @@ Write-Host "Base installation completed." -ForegroundColor Green
 Write-Host "Before monitoring:" -ForegroundColor Cyan
 Write-Host "  1. Set DASHSCOPE_API_KEY locally in PowerShell (do not commit it)." -ForegroundColor Yellow
 Write-Host "  2. Authenticate Git with your own GitHub account if you need -PushGithub." -ForegroundColor Yellow
-Write-Host "  3. Run: python .\scripts\preflight.py" -ForegroundColor Yellow
+Write-Host "  3. Run: python .\scripts\preflight.py --config .\config\monitoring.local.json" -ForegroundColor Yellow
 Write-Host "  4. Run one assigned platform with scripts\start_student_platform_windows.ps1." -ForegroundColor Yellow
 Write-Host "Platform login/verification must be completed manually through the platform's official UI when requested." -ForegroundColor Yellow
