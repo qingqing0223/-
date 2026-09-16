@@ -103,6 +103,7 @@ def main() -> int:
 
     json_files = (
         "config/monitoring.windows.json",
+        "config/monitoring.student.windows.json",
         "config/monitoring.region.windows.json",
         "config/monitoring.multilingual.windows.json",
         "config/multilingual_keywords.json",
@@ -114,6 +115,7 @@ def main() -> int:
 
     for rel in (
         "config/monitoring.windows.json",
+        "config/monitoring.student.windows.json",
         "config/monitoring.region.windows.json",
         "config/monitoring.multilingual.windows.json",
     ):
