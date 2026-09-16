@@ -2,6 +2,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 
+from .language_detector import detect_language
+
 
 def _first(d: dict, *keys):
     for k in keys:
@@ -173,6 +175,8 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         analysis_text = _join_unique([_str(content), _str(context)])
         analysis_basis = "comment_text" if record_type == "comment" else "post_text"
 
+    language_info = detect_language(raw, analysis_text or content)
+
     sample_id = _first(raw, "sample_id", "comment_id", "cid", "content_id", "aweme_id", "note_id", "video_id", "photo_id", "id", "mid")
     if sample_id is None:
         basis = f"{platform}|{source_file}|{content}|{context}|{publish_time}|{author}"
@@ -198,6 +202,10 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "publish_time": _to_iso_time(publish_time),
         "first_seen_time": now,
         "ip_location": _str(region),
+        "language": language_info["language"],
+        "language_method": language_info["language_method"],
+        "language_confidence": language_info["language_confidence"],
+        "language_script": language_info["language_script"],
         "author": _str(author),
         "url": _str(url),
         "likes": _to_int(likes),
