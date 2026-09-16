@@ -28,7 +28,7 @@ Write-Host "Starting distributed GitHub result sync" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Interval: $IntervalSeconds seconds" -ForegroundColor Cyan
-Write-Host "Only aggregate JSON is published. Raw text, account names and URLs are not included." -ForegroundColor Yellow
+Write-Host "GitHub receives aggregate monitoring JSON: counts, attitude, comments/replies, public IP-region labels when exposed, engagement, language, video-analysis completeness, and public publisher account aggregate statistics. Raw post/comment text and URLs are not published." -ForegroundColor Yellow
 
 $argsList = @(
     ".\scripts\publish_node_result_to_github.py",
