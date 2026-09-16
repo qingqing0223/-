@@ -6,24 +6,24 @@
   "results_date": "2026-09-16",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-16T16:15:20+08:00",
+  "generated_at": "2026-09-16T16:17:58+08:00",
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy"
   ],
   "summary": {
     "schema_version": 3,
-    "generated_at": "2026-09-16T16:15:20+08:00",
+    "generated_at": "2026-09-16T16:17:58+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-16T16:12:05+08:00",
+    "latest_seen_time": "2026-09-16T16:17:19+08:00",
     "privacy": "aggregate_only_no_raw_text_no_account_no_url",
     "totals": {
-      "unique_records": 12,
+      "unique_records": 13,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
-      "likes": 52936,
+      "likes": 52938,
       "comments": 112,
       "shares": 1025,
       "views": 0,
@@ -32,40 +32,40 @@
       "coins": 0
     },
     "platforms": {
-      "dy": 12
+      "dy": 13
     },
     "languages": {
-      "汉语": 12
+      "汉语": 13
     },
     "minority_languages": {},
     "regions": {},
     "v2_status": {
       "neutral": 10,
-      "normal": 2
+      "normal": 3
     },
     "v2_type": {
       "null": 10,
-      "support": 2
+      "support": 3
     },
     "source_types": {
       "权威媒体/新闻评论": 9,
+      "普通用户舆情": 2,
       "律师/专家解读": 1,
-      "自媒体观点": 1,
-      "普通用户舆情": 1
+      "自媒体观点": 1
     },
     "record_types": {
-      "video": 12
+      "video": 13
     },
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-16T16:12:15",
+        "cycle_finished_at": "2026-09-16T16:17:29",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 145.43,
+        "duration_seconds": 159.52,
         "new_records": 1,
-        "filtered_before_start": 2,
+        "filtered_before_start": 0,
         "classified_records": 1,
         "region_records": 0,
         "region_rate": 0.0,
