@@ -33,10 +33,9 @@ if (-not $pythonCmd) {
 $PythonExe = $pythonCmd.Source
 Write-Host "Python:   $PythonExe" -ForegroundColor Cyan
 
-# PowerShell 5.1 can turn stderr from a native executable into a terminating
-# NativeCommandError when ErrorActionPreference=Stop. That prevented the intended
-# self-repair from running when opinion_monitor_v2 was missing. Probe/install with
-# native stderr treated as ordinary process output and decide from $LASTEXITCODE.
+# PowerShell 5.1 may turn stderr from a native executable into a terminating
+# NativeCommandError. Probe/install the local v2 package without letting that
+# behavior stop the self-repair path.
 $previousErrorActionPreference = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
 & $PythonExe -c "import opinion_monitor_v2" 2>$null
@@ -44,34 +43,20 @@ $importCode = $LASTEXITCODE
 $ErrorActionPreference = $previousErrorActionPreference
 
 if ($importCode -ne 0) {
-    Write-Host "Local classifier package is missing in the current Python; installing packages/v2..." -ForegroundColor Yellow
-
+    Write-Host "Local classifier package is missing; installing packages/v2..." -ForegroundColor Yellow
     $previousErrorActionPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     & $PythonExe -m pip install -e (Join-Path $RepoRoot "packages\v2")
     $installCode = $LASTEXITCODE
     $ErrorActionPreference = $previousErrorActionPreference
-
     if ($installCode -ne 0) {
-        Write-Host "ERROR: failed to install local classifier package packages/v2." -ForegroundColor Red
+        Write-Host "ERROR: failed to install packages/v2." -ForegroundColor Red
         exit $installCode
-    }
-
-    $previousErrorActionPreference = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    & $PythonExe -c "import opinion_monitor_v2; print('opinion_monitor_v2 import OK:', opinion_monitor_v2.__file__)"
-    $verifyCode = $LASTEXITCODE
-    $ErrorActionPreference = $previousErrorActionPreference
-
-    if ($verifyCode -ne 0) {
-        Write-Host "ERROR: classifier package still cannot be imported by $PythonExe." -ForegroundColor Red
-        exit $verifyCode
     }
 }
 
-# Students created monitoring.local.json before the full capability matrix was
-# enabled. Keep machine-specific paths/dashboard settings, but upgrade these local
-# copies automatically so a git pull is enough to activate the new collection policy.
+# Upgrade old machine-local configs to the final monitoring matrix while keeping
+# each student's own disk paths/dashboard settings.
 $resolvedConfig = (Resolve-Path $Config).Path
 if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     $cfgObj = Get-Content $resolvedConfig -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -93,15 +78,39 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     $json = $cfgObj | ConvertTo-Json -Depth 100
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($resolvedConfig, $json, $utf8NoBom)
-    Write-Host "Local config upgraded: full paging + first-level comments + nested comments + comment ingestion enabled." -ForegroundColor Green
+    Write-Host "Local config upgraded to final full-matrix mode." -ForegroundColor Green
 }
 
-Write-Host "=== Student distributed platform monitor ===" -ForegroundColor Cyan
+# Do not allow two main platform collectors to run on the same student machine.
+try {
+    $existing = Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {
+        $_.Name -match "python" -and $_.CommandLine -and
+        $_.CommandLine -match "run_single_platform.py" -and
+        $_.CommandLine -match "--platform\s+$Platform(\s|$)"
+    }
+    if ($existing) {
+        Write-Host "ERROR: another $Platform collector is already running on this machine." -ForegroundColor Red
+        Write-Host "Stop the old monitoring window first, then start the final version once." -ForegroundColor Yellow
+        exit 2
+    }
+} catch {
+    Write-Host "Warning: duplicate-process check unavailable; continuing." -ForegroundColor Yellow
+}
+
+Write-Host "Running final preflight..." -ForegroundColor Cyan
+& $PythonExe .\scripts\preflight.py --config $Config
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: preflight failed. Do not start monitoring until required_failures is 0." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
+Write-Host "=== FINAL student distributed platform monitor ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Config:   $Config" -ForegroundColor Cyan
-Write-Host "Full matrix mode: search to natural end (100000 safety cap), comments and sub-comments enabled." -ForegroundColor Yellow
-Write-Host "Dashboard is disabled on student machines; classified aggregate results can sync to GitHub." -ForegroundColor Yellow
+Write-Host "Enabled: 6-keyword search, natural-end paging, dedupe, 5-minute polling, details, first-level comments, nested comments, parent/reply links, public IP-region fields when exposed, language/minority-language detection, v2 attitude classification for posts/videos/comments, public publisher account statistics, engagement statistics, and GitHub aggregate sync." -ForegroundColor Yellow
+Write-Host "Video ASR/OCR is reported when those fields are available; missing ASR/OCR is explicitly visible in summary diagnostics." -ForegroundColor Yellow
+Write-Host "Official login/captcha/security verification must be completed manually when requested." -ForegroundColor Yellow
 
 if ($PushGithub) {
     $syncCmd = "Set-Location '$RepoRoot'; .\scripts\start_node_results_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config' -Push"
