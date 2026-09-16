@@ -18,7 +18,46 @@ class PlatformRun:
     stdout_log: str
     stderr_log: str
     status: str
+    state: str
     error: str = ""
+
+
+def _tail_text(*paths: Path, max_chars: int = 16000) -> str:
+    parts = []
+    for path in paths:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            parts.append(text[-max_chars:])
+        except Exception:
+            pass
+    return "\n".join(parts).lower()
+
+
+def _classify_state(return_code: int | None, stdout_log: Path, stderr_log: Path, runner_error: str = "") -> str:
+    if runner_error:
+        return "RUNNER_ERROR"
+    if return_code == 0:
+        return "SUCCESS"
+
+    text = _tail_text(stdout_log, stderr_log)
+    verify_markers = (
+        "captcha", "security verification", "manual verify", "verify_required",
+        "滑块", "验证码", "安全验证", "人工验证",
+    )
+    login_markers = (
+        "login required", "qrcode not found", "scan code", "扫码登录", "登录失效", "需要登录",
+    )
+    network_markers = (
+        "connecttimeout", "readtimeout", "timed out", "timeout", "err_timed_out",
+        "connection reset", "connection refused", "http 502", "status 502", "network",
+    )
+    if any(marker in text for marker in verify_markers):
+        return "VERIFY_REQUIRED"
+    if any(marker in text for marker in login_markers):
+        return "LOGIN_REQUIRED"
+    if any(marker in text for marker in network_markers):
+        return "NETWORK_ERROR"
+    return "CRAWLER_FAILED"
 
 
 def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
@@ -65,6 +104,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         error = f"{type(exc).__name__}: {exc}"
         status = "error"
 
+    state = _classify_state(rc, stdout_log, stderr_log, runner_error=error)
     return PlatformRun(
         platform=code,
         platform_name=name,
@@ -76,6 +116,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         stdout_log=str(stdout_log),
         stderr_log=str(stderr_log),
         status=status,
+        state=state,
         error=error,
     )
 
