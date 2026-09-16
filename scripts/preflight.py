@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from pathlib import Path
@@ -25,7 +26,7 @@ def _git(args: list[str]) -> tuple[int, str]:
 
 
 def _load_json(path: Path):
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def _check_json(path: Path) -> tuple[bool, str]:
@@ -87,6 +88,15 @@ def _check_mediacrawler_platforms(root: Path) -> tuple[bool, str]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Deployment preflight for the realtime opinion monitor.")
+    parser.add_argument(
+        "--config",
+        default=str(ROOT / "config" / "monitoring.windows.json"),
+        help="Runtime monitoring config to validate for local MediaCrawler/data paths.",
+    )
+    args = parser.parse_args()
+    runtime_config = Path(args.config).resolve()
+
     checks: list[dict] = []
 
     def add(name: str, ok: bool, detail: str, required: bool = True):
@@ -113,6 +123,12 @@ def main() -> int:
         ok, detail = _check_json(ROOT / rel)
         add(rel, ok, detail)
 
+    runtime_ok, runtime_detail = _check_json(runtime_config)
+    add(f"runtime config:{runtime_config}", runtime_ok, runtime_detail)
+    if runtime_ok:
+        ok, detail = _check_platform_config(runtime_config)
+        add("runtime config seven-platform coverage", ok, detail)
+
     for rel in (
         "config/monitoring.windows.json",
         "config/monitoring.student.windows.json",
@@ -123,8 +139,8 @@ def main() -> int:
         add(f"platform coverage:{rel}", ok, detail)
 
     try:
-        main_cfg = _load_json(ROOT / "config" / "monitoring.windows.json")
-        crawler_root = Path(main_cfg["media_crawler_root"])
+        runtime_cfg = _load_json(runtime_config)
+        crawler_root = Path(runtime_cfg["media_crawler_root"])
         ok, detail = _check_mediacrawler_platforms(crawler_root)
         add("local MediaCrawler seven-platform support", ok, detail)
     except Exception as exc:
@@ -179,6 +195,7 @@ def main() -> int:
     optional_warnings = [c for c in checks if not c["required"] and not c["ok"]]
     result = {
         "ok": not required_failures,
+        "runtime_config": str(runtime_config),
         "supported_platforms": list(SUPPORTED_PLATFORMS),
         "required_failures": len(required_failures),
         "optional_warnings": len(optional_warnings),
