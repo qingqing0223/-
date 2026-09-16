@@ -18,6 +18,7 @@
 - 运行状态区分 `SUCCESS / VERIFY_REQUIRED / LOGIN_REQUIRED / NETWORK_ERROR / CRAWLER_FAILED`
 - 隐私安全的 GitHub 聚合结果同步：只提交统计，不提交原始正文、账号、URL、Cookie、数据库和 API Key
 - 重点账号 creator 模式基础链：可周期检查新发内容，并刷新公开点赞/评论/分享计数
+- 部署前 `preflight.py` 自动检查 Python/uv/API Key/配置文件/核心模块/大屏/Git 基础状态
 
 ## 2. 当前宣传周中文关键词
 
@@ -46,7 +47,7 @@
 
 多语言搜索词包：`config/multilingual_keywords.json`。**只有 `verified=true` 的词会自动加入搜索**，防止机器翻译错误导致漏检/误检。
 
-目前已放入经公开资料核对的通用“民族团结”藏文、维吾尔文检索词；蒙古文、壮文的正式宣传周检索词仍等待正式材料或熟悉对应文字的人员核准后填写。代码已经支持这两类语言的识别和扩展，不能把未核准翻译当成正式关键词。
+当前已加入公开资料可核对的通用检索词：藏语“民族团结”、维吾尔语“民族团结”、蒙古语“民族团结”，以及广西民族报壮文版中对应“民族团结/民族团结进步”的壮文写法。它们用于宽召回，不冒充“民族团结进步宣传周”完整官方译名；如民委后续提供宣传周正式多语种材料，应直接把正式译名补入词包。
 
 有界多语言测试配置：
 
@@ -98,7 +99,13 @@ watchdog 对普通网络/进程异常可延时重启；发现 `VERIFY_REQUIRED` 
 
 如果一轮运行超过 300 秒，不叠加启动下一浏览器任务，而是在当前轮结束后立即进入下一轮。因此“5分钟”是目标调度周期，不是所有平台都保证固定 5 分钟完成。
 
-## 6. 一键启动
+## 6. 部署预检与一键启动
+
+先检查本机环境：
+
+```powershell
+python .\scripts\preflight.py
+```
 
 当前 Windows 总控入口：
 
@@ -109,7 +116,7 @@ watchdog 对普通网络/进程异常可延时重启；发现 `VERIFY_REQUIRED` 
 它会：
 
 ```text
-检查环境/API Key
+部署预检
 → 检查苏琦后端
 → 后端未启动则自动拉起
 → 打开大屏
@@ -127,6 +134,12 @@ watchdog 对普通网络/进程异常可延时重启；发现 `VERIFY_REQUIRED` 
 
 ```powershell
 .\scripts\start_all.ps1 -Platform ks -EnableGithubSync -PushGithub
+```
+
+如果已经配置 `config/key_accounts.json`，还可以同时启动同平台重点账号监测：
+
+```powershell
+.\scripts\start_all.ps1 -Platform ks -EnableKeyAccounts
 ```
 
 ## 7. GitHub 聚合结果自动同步
@@ -164,7 +177,7 @@ results/daily/YYYY-MM-DD.json
 config/key_accounts.json
 ```
 
-填入经确认的各平台 `creator_id` 并启用后：
+该正式账号清单已加入 `.gitignore`，不会被误提交到公开仓库。填入经确认的各平台 `creator_id` 并启用后：
 
 ```powershell
 .\scripts\start_key_accounts_windows.ps1
@@ -187,9 +200,10 @@ config/key_accounts.json
 - 原始舆情全文数据
 - 本地 SQLite 数据库
 - 原始用户 ID
+- 正式重点账号内部清单 `config/key_accounts.json`
 
 GitHub 只同步 `results/` 下的脱敏聚合统计。
 
 ## 11. 仍需实际验收的项目
 
-代码已尽量自动化，但以下项目必须在实际 Windows/平台环境继续验收：少数民族语言真实命中率、蒙古文/壮文正式关键词、地区地图动态变化、GitHub 本机自动 push 凭据、重点账号各平台 creator_id 格式与互动字段稳定性，以及长期运行下的平台登录/风控稳定性。
+代码已尽量自动化，但以下项目必须在实际 Windows/平台环境继续验收：少数民族语言真实命中率、地区地图动态变化、GitHub 本机自动 push 凭据、重点账号各平台 creator_id 格式与互动字段稳定性，以及长期运行下的平台登录/风控稳定性。
