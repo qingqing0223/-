@@ -4,10 +4,12 @@ import argparse
 import gzip
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
 import time
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -33,6 +35,13 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _stable_hash(value, namespace: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    return hashlib.sha256(f"{namespace}:{text}".encode("utf-8")).hexdigest()[:20]
+
+
 def _count_rows(path: Path) -> int:
     total = 0
     with path.open("r", encoding="utf-8-sig", errors="replace") as f:
@@ -40,6 +49,23 @@ def _count_rows(path: Path) -> int:
             if line.strip():
                 total += 1
     return total
+
+
+def _iter_jsonl(path: Path):
+    try:
+        with path.open("r", encoding="utf-8-sig", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except Exception:
+                    continue
+                if isinstance(row, dict):
+                    yield row
+    except Exception:
+        return
 
 
 def _state_path(data_root: Path, node_id: str, platform: str) -> Path:
@@ -54,7 +80,7 @@ def _load_state(path: Path) -> dict:
             return obj
     except Exception:
         pass
-    return {"version": 1, "files": {}}
+    return {"version": 2, "files": {}}
 
 
 def _save_state(path: Path, state: dict) -> None:
@@ -101,6 +127,115 @@ def _copy_latest_status(data_root: Path, archive_repo: Path, node_id: str, platf
     return dst
 
 
+def _coarse_region(value) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    # Never copy network addresses or precise coordinate-like values into the GPT feed.
+    if re.fullmatch(r"(?:\d{1,3}\.){3}\d{1,3}", text):
+        return ""
+    if re.fullmatch(r"[0-9a-fA-F:]{6,}", text):
+        return ""
+    if re.search(r"\d+\.\d+\s*[,，]\s*\d+\.\d+", text):
+        return ""
+    return text[:40]
+
+
+def _first(row: dict, *keys):
+    for key in keys:
+        value = row.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _gpt_feed_row(row: dict, platform: str, kind: str) -> dict:
+    content_id = _first(row, "content_id", "video_id", "photo_id", "aweme_id", "note_id", "tieba_id", "id")
+    comment_id = _first(row, "comment_id", "cid", "rpid")
+    parent_id = _first(row, "parent_comment_id", "parent_id", "reply_comment_id", "reply_to_comment_id", "reply_to_id", "parent_rpid")
+    root_id = _first(row, "root_comment_id", "root_id", "root_rpid")
+    region = _coarse_region(_first(row, "ip_location", "ip_region", "ip_label", "region", "region_name", "province"))
+
+    out = {
+        "record_type": "comment" if kind == "comment" else "content",
+        "platform": platform,
+        "content_id_hash": _stable_hash(content_id, f"{platform}:content"),
+        "comment_id_hash": _stable_hash(comment_id, f"{platform}:comment"),
+        "parent_comment_id_hash": _stable_hash(parent_id, f"{platform}:comment"),
+        "root_comment_id_hash": _stable_hash(root_id, f"{platform}:comment"),
+        "nickname": str(_first(row, "nickname", "author", "user_name", "user_nickname") or "")[:120],
+        "title": str(_first(row, "title", "note_title", "video_title") or "")[:1000],
+        "desc": str(_first(row, "desc", "description", "aweme_desc") or "")[:3000],
+        "content": str(_first(row, "content", "text", "comment_text", "message") or "")[:5000],
+        "create_time": _first(row, "create_time", "publish_time", "created_at", "last_modify_ts"),
+        "source_keyword": str(_first(row, "source_keyword", "keyword", "search_keyword") or "")[:300],
+        "ip_location": region,
+        "comment_count": _first(row, "comment_count", "comments_count", "comment_num", "video_comment", "total_comments"),
+        "sub_comment_count": _first(row, "sub_comment_count", "sub_comments_count", "reply_count"),
+        "like_count": _first(row, "like_count", "liked_count", "realLikeCount", "likes"),
+        "view_count": _first(row, "view_count", "viewd_count", "play_count", "views"),
+        "share_count": _first(row, "share_count", "shares", "shared_count"),
+    }
+    return {k: v for k, v in out.items() if v not in (None, "")}
+
+
+def _write_latest_gpt_feed(
+    data_root: Path,
+    archive_repo: Path,
+    node_id: str,
+    platform: str,
+    *,
+    content_limit: int = 120,
+    comment_limit: int = 600,
+) -> Path | None:
+    raw_root = data_root / "raw_runs"
+    if not raw_root.exists():
+        return None
+    cycles = sorted((p for p in raw_root.iterdir() if p.is_dir()), key=lambda p: p.name)
+    if not cycles:
+        return None
+    cycle = cycles[-1]
+    jsonl_files = sorted(cycle.rglob("*.jsonl"))
+    content_files = [p for p in jsonl_files if "content" in p.name.lower()]
+    comment_files = [p for p in jsonl_files if "comment" in p.name.lower()]
+
+    content_rows = []
+    comment_rows = []
+    source_counts = Counter()
+    for path in content_files:
+        source_counts[path.name] += _count_rows(path)
+        for row in _iter_jsonl(path) or []:
+            if len(content_rows) < content_limit:
+                content_rows.append(_gpt_feed_row(row, platform, "content"))
+    for path in comment_files:
+        source_counts[path.name] += _count_rows(path)
+        for row in _iter_jsonl(path) or []:
+            if len(comment_rows) < comment_limit:
+                comment_rows.append(_gpt_feed_row(row, platform, "comment"))
+
+    payload = {
+        "schema_version": 1,
+        "node_id": node_id,
+        "platform": platform,
+        "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "source_cycle": cycle.name,
+        "privacy": (
+            "PRIVATE access-controlled GPT feed. Contains public user-generated text and masked nicknames; "
+            "raw user IDs/URLs/cookies/browser state are excluded; only platform-displayed coarse IP-location labels are allowed."
+        ),
+        "source_file_row_counts": dict(source_counts),
+        "content_records_in_feed": len(content_rows),
+        "comment_records_in_feed": len(comment_rows),
+        "content_limit": content_limit,
+        "comment_limit": comment_limit,
+        "records": content_rows + comment_rows,
+    }
+    dst = archive_repo / "nodes" / node_id / platform / "latest_gpt_feed.json"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return dst
+
+
 def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, push: bool, private_confirmed: bool) -> dict:
     _ensure_private_confirmation(archive_repo, private_confirmed)
     cfg = _read_config(config)
@@ -138,6 +273,14 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
             archived.append(str(dst))
 
     status_copy = _copy_latest_status(data_root, archive_repo, node_id, platform)
+    gpt_feed = _write_latest_gpt_feed(
+        data_root,
+        archive_repo,
+        node_id,
+        platform,
+        content_limit=max(1, int(cfg.get("private_gpt_feed_content_limit", 120))),
+        comment_limit=max(1, int(cfg.get("private_gpt_feed_comment_limit", 600))),
+    )
 
     manifest_path = archive_repo / "nodes" / node_id / platform / "manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,6 +291,7 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
         "source_data_root": str(data_root),
         "privacy": "private_access_controlled_archive; no cookies/browser profiles; coarse public IP-location only when collector persisted it",
         "file_count_total": len(known),
+        "latest_gpt_feed": str(gpt_feed.relative_to(archive_repo)).replace("\\", "/") if gpt_feed else "",
         "files": list(known.values()),
     }
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -158,7 +302,7 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
 
     commit_created = False
     push_ok = None
-    if archived or status_copy is not None:
+    if archived or status_copy is not None or gpt_feed is not None:
         _git(archive_repo, "pull", "--rebase", check=False)
         _git(archive_repo, "add", "--", f"nodes/{node_id}/{platform}")
         diff = _git(archive_repo, "diff", "--cached", "--quiet", check=False)
@@ -184,6 +328,7 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
         "archive_repo": str(archive_repo),
         "new_or_changed_jsonl": len(archived),
         "manifest": str(manifest_path),
+        "latest_gpt_feed": str(gpt_feed) if gpt_feed else "",
         "commit_created": commit_created,
         "push_enabled": push,
         "push_ok": push_ok,
