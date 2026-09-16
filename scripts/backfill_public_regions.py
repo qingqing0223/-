@@ -5,6 +5,11 @@ from collections import Counter
 from datetime import datetime
 import json
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from pipeline.normalizer import normalize_record
 
@@ -63,13 +68,16 @@ def _prepare_region_aliases(raw: dict) -> dict:
         raw.get("author_province"), raw.get("region"), raw.get("region_name"),
         raw.get("comment_ip_location"), raw.get("user_ip_location"),
     ]
-    for parent_key in ("user", "author", "creator"):
+    for parent_key in ("user", "author", "creator", "member"):
         parent = raw.get(parent_key)
         if isinstance(parent, dict):
             candidates.extend([
                 parent.get("ip_location"), parent.get("ip_region"), parent.get("ip_label"),
-                parent.get("province"), parent.get("province_name"), parent.get("region"),
+                parent.get("ip_address"), parent.get("province"), parent.get("province_name"), parent.get("region"),
             ])
+    reply_control = raw.get("reply_control")
+    if isinstance(reply_control, dict):
+        candidates.append(reply_control.get("location"))
     for value in candidates:
         region = _canonical_public_region(value)
         if region:
@@ -103,7 +111,7 @@ def _raw_jsonl_files(root: Path) -> list[Path]:
 def _regionish_key_names(obj, prefix: str = "", depth: int = 0, out: set[str] | None = None) -> set[str]:
     if out is None:
         out = set()
-    if depth > 2 or not isinstance(obj, dict):
+    if depth > 3 or not isinstance(obj, dict):
         return out
     for key, value in obj.items():
         name = str(key)
@@ -118,7 +126,7 @@ def _regionish_key_names(obj, prefix: str = "", depth: int = 0, out: set[str] | 
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="Backfill public IP-location/region labels from already-collected raw JSONL into classified results."
+        description="Backfill coarse public IP-location labels from already-collected raw JSONL into classified results."
     )
     ap.add_argument("--platform", required=True, choices=sorted(PLATFORMS))
     ap.add_argument("--config", default="config/monitoring.local.json")
@@ -227,7 +235,10 @@ def main() -> None:
 
     print(json.dumps(report, ensure_ascii=False, indent=2))
     if after == 0:
-        print("\nNo public region value was recovered. Check regionish_raw_keys_seen above; the raw collector may not have persisted IP-location labels.")
+        if not regionish_keys:
+            print("\nNo public region value can be recovered from these legacy raw files: the collector version that created them did not persist any region/location field. Install the final region-aware collector and use a new collection cycle; do not keep retrying backfill on the same legacy files.")
+        else:
+            print("\nNo public region value was recovered. Inspect regionish_raw_keys_seen; a platform-specific alias may still need mapping.")
     elif args.dry_run:
         print("\nDry-run only: classified_results.jsonl was not changed.")
     else:
