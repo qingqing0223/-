@@ -137,6 +137,11 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
     record_type_counts = Counter()
     engagement = Counter()
     latest_seen = ""
+    comment_records = 0
+    root_comment_records = 0
+    reply_comment_records = 0
+    parent_linked_comment_records = 0
+    comment_region_records = 0
 
     for row in latest_rows.values():
         platform = str(row.get("platform") or "unknown")
@@ -158,6 +163,19 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         source_type_counts[source_type] += 1
         record_type_counts[record_type] += 1
 
+        if record_type == "comment":
+            comment_records += 1
+            if region:
+                comment_region_records += 1
+            level = int(row.get("comment_level") or 0)
+            parent_id = str(row.get("parent_comment_id") or "").strip()
+            if level >= 2 or parent_id:
+                reply_comment_records += 1
+            else:
+                root_comment_records += 1
+            if parent_id:
+                parent_linked_comment_records += 1
+
         for key in ("likes", "comments", "shares", "views", "favorites", "danmaku", "coins"):
             engagement[key] += int(row.get(key) or 0)
 
@@ -173,7 +191,7 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
 
     return {
-        "schema_version": 3,
+        "schema_version": 4,
         "generated_at": generated_at,
         "monitoring_start_time": monitoring_start_time,
         "latest_seen_time": latest_seen,
@@ -185,6 +203,13 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
             "region_coverage_rate": round(region_total / total, 4) if total else 0.0,
             "minority_language_records": minority_total,
             "minority_language_rate": round(minority_total / total, 4) if total else 0.0,
+            "comment_records": comment_records,
+            "root_comment_records": root_comment_records,
+            "reply_comment_records": reply_comment_records,
+            "parent_linked_comment_records": parent_linked_comment_records,
+            "comment_parent_link_rate": round(parent_linked_comment_records / reply_comment_records, 4) if reply_comment_records else 0.0,
+            "comment_region_records": comment_region_records,
+            "comment_region_coverage_rate": round(comment_region_records / comment_records, 4) if comment_records else 0.0,
             "likes": engagement["likes"],
             "comments": engagement["comments"],
             "shares": engagement["shares"],
