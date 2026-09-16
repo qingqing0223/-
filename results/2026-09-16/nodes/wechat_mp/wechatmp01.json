@@ -1,0 +1,79 @@
+{
+  "schema_version": 2,
+  "event_id": "promotion_week_2026_preheat",
+  "event_name": "2026年民族团结进步宣传周预热阶段舆情监测",
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "results_date": "2026-09-16",
+  "node_id": "wechatmp01",
+  "platform": "wechat_mp",
+  "generated_at": "2026-09-16T16:16:12+08:00",
+  "data_roots": [
+    "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wechat_mp"
+  ],
+  "summary": {
+    "schema_version": 3,
+    "generated_at": "2026-09-16T16:16:12+08:00",
+    "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+    "latest_seen_time": "2026-09-16T16:14:20+08:00",
+    "privacy": "aggregate_only_no_raw_text_no_account_no_url",
+    "totals": {
+      "unique_records": 7,
+      "filtered_before_start_from_existing_output": 0,
+      "region_records": 0,
+      "region_coverage_rate": 0.0,
+      "minority_language_records": 0,
+      "minority_language_rate": 0.0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 0,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0
+    },
+    "platforms": {
+      "wechat_mp": 7
+    },
+    "languages": {
+      "汉语": 7
+    },
+    "minority_languages": {},
+    "regions": {},
+    "v2_status": {
+      "neutral": 7
+    },
+    "v2_type": {
+      "null": 7
+    },
+    "source_types": {
+      "权威媒体/新闻评论": 7
+    },
+    "record_types": {
+      "post": 7
+    },
+    "runtime": [
+      {
+        "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wechat_mp",
+        "cycle_finished_at": "2026-09-16T16:14:43+08:00",
+        "crawler_status": "ok",
+        "crawler_state": "SUCCESS",
+        "return_code": 0,
+        "duration_seconds": 69.59,
+        "new_records": 7,
+        "filtered_before_start": 49,
+        "classified_records": 7,
+        "region_records": 0,
+        "region_rate": 0.0,
+        "minority_language_records": 0,
+        "language_counts": {
+          "汉语": 7
+        },
+        "dashboard_ok": null,
+        "dashboard_sent": 0,
+        "dashboard_inserted": 0,
+        "dashboard_skipped": 0,
+        "outbox_after": 0
+      }
+    ]
+  }
+}
