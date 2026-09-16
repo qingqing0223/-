@@ -37,6 +37,31 @@ def _iter_jsonl(path: Path):
                 yield row
 
 
+def _parse_scope_time(value, default_tz=None):
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except Exception:
+        return None
+    if dt.tzinfo is None and default_tz is not None:
+        dt = dt.replace(tzinfo=default_tz)
+    return dt
+
+
+def _row_before_start(row: dict, monitoring_start_time: str) -> bool:
+    start = _parse_scope_time(monitoring_start_time)
+    if start is None:
+        return False
+    published = _parse_scope_time(row.get("publish_time"), default_tz=start.tzinfo)
+    if published is None:
+        return False
+    return published < start
+
+
 def discover_data_roots(base_data_root: Path, include_multilingual: bool = True) -> list[Path]:
     """Discover formal per-platform roots without including smoke/region test roots."""
     parent = base_data_root.parent
@@ -68,6 +93,7 @@ def _merge_status(root: Path) -> dict:
         "return_code": run.get("return_code"),
         "duration_seconds": run.get("duration_seconds"),
         "new_records": ingest.get("new_records", 0),
+        "filtered_before_start": ingest.get("filtered_before_start", 0),
         "classified_records": ingest.get("classified_records", 0),
         "region_records": ingest.get("region_records", 0),
         "region_rate": ingest.get("region_rate", 0.0),
@@ -81,15 +107,19 @@ def _merge_status(root: Path) -> dict:
     }
 
 
-def build_summary(data_roots: Iterable[Path]) -> dict:
-    """Build a privacy-safe aggregate. No raw text, account names or URLs are emitted."""
+def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -> dict:
+    """Build a privacy-safe aggregate scoped to the formal monitoring start time."""
     latest_rows: dict[str, dict] = {}
     runtime = []
+    filtered_existing = 0
 
     for root in data_roots:
         runtime.append(_merge_status(root))
         classified = root / "classified" / "classified_results.jsonl"
         for row in _iter_jsonl(classified) or []:
+            if _row_before_start(row, monitoring_start_time):
+                filtered_existing += 1
+                continue
             key = str(row.get("dedupe_key") or f"{row.get('platform','')}:{row.get('sample_id','')}")
             if key:
                 latest_rows[key] = row
@@ -140,12 +170,14 @@ def build_summary(data_roots: Iterable[Path]) -> dict:
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
 
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": generated_at,
+        "monitoring_start_time": monitoring_start_time,
         "latest_seen_time": latest_seen,
         "privacy": "aggregate_only_no_raw_text_no_account_no_url",
         "totals": {
             "unique_records": total,
+            "filtered_before_start_from_existing_output": filtered_existing,
             "region_records": region_total,
             "region_coverage_rate": round(region_total / total, 4) if total else 0.0,
             "minority_language_records": minority_total,
@@ -170,16 +202,15 @@ def build_summary(data_roots: Iterable[Path]) -> dict:
     }
 
 
-def write_summary(repo_root: Path, summary: dict) -> dict:
-    results_dir = repo_root / "results"
-    daily_dir = results_dir / "daily"
-    results_dir.mkdir(parents=True, exist_ok=True)
-    daily_dir.mkdir(parents=True, exist_ok=True)
+def write_summary(repo_root: Path, summary: dict, result_date: str = "") -> dict:
+    date_key = (result_date or str(summary.get("generated_at") or datetime.now().isoformat())[:10]).strip()
+    day_root = repo_root / "results" / date_key
+    summary_dir = day_root / "summary"
+    summary_dir.mkdir(parents=True, exist_ok=True)
 
-    latest = results_dir / "latest_summary.json"
+    latest = summary_dir / "latest_summary.json"
     latest.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    date_key = str(summary.get("generated_at") or datetime.now().isoformat())[:10]
-    daily = daily_dir / f"{date_key}.json"
-    daily.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
-    return {"latest": str(latest), "daily": str(daily)}
+    snapshot = summary_dir / "summary.json"
+    snapshot.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"latest": str(latest), "summary": str(snapshot), "date_root": str(day_root)}
