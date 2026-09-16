@@ -67,6 +67,7 @@ def to_suqi_record(row: dict) -> dict:
     v2_status = str(row.get("status") or "").strip()
     v2_type = row.get("type")
     region = _clean_region(row.get("ip_location"))
+    language = str(row.get("language") or "汉语").strip() or "汉语"
 
     notes_parts = [f"v2_status={v2_status or 'unknown'}"]
     if v2_type:
@@ -91,6 +92,11 @@ def to_suqi_record(row: dict) -> dict:
         )
     if row.get("source_keyword"):
         notes_parts.append(f"keyword={row['source_keyword']}")
+    notes_parts.append(f"language={language}")
+    if row.get("language_method"):
+        notes_parts.append(f"language_method={row['language_method']}")
+    if row.get("language_confidence"):
+        notes_parts.append(f"language_confidence={row['language_confidence']}")
 
     return {
         "uid": f"mediacrawler-{platform_code}-{row.get('sample_id', '')}",
@@ -104,7 +110,7 @@ def to_suqi_record(row: dict) -> dict:
         "region": region,
         "province": region,
         "ip_location": region,
-        "language": "中文",
+        "language": language,
         "attitude": _attitude_from_v2(v2_status, v2_type),
         "issue_category": TYPE_TO_ISSUE.get(v2_type, "") if v2_type else "",
         "likes": row.get("likes") or 0,
