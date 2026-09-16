@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import json
 import subprocess
@@ -27,6 +27,8 @@ class PlatformRun:
     comment_row_count: int = 0
     detail_recovery_candidates: int = 0
     detail_recovery_batches: int = 0
+    realtime_mode: bool = False
+    deep_queue_pending: int = 0
 
 
 def _tail_text(*paths: Path, max_chars: int = 16000) -> str:
@@ -85,6 +87,16 @@ def _as_count(value) -> int:
         return 0
 
 
+_COMMENT_COUNT_KEYS = (
+    "comment_count", "comments_count", "comment_num", "video_comment",
+    "total_comments", "reply_count", "total_replay_num",
+)
+
+
+def _visible_comment_count(row: dict) -> int:
+    return max((_as_count(row.get(k)) for k in _COMMENT_COUNT_KEYS), default=0)
+
+
 def _detail_identifier(platform: str, row: dict) -> str:
     if platform == "xhs":
         return str(row.get("note_url") or row.get("note_id") or "").strip()
@@ -106,13 +118,8 @@ def _detail_identifier(platform: str, row: dict) -> str:
 def _detail_recovery_candidates(platform: str, content_files: list[Path], max_items: int) -> list[str]:
     candidates = []
     seen = set()
-    comment_keys = (
-        "comment_count", "comments_count", "comment_num", "video_comment",
-        "total_comments", "reply_count", "total_replay_num",
-    )
     for row in _iter_jsonl(content_files):
-        visible_comments = max((_as_count(row.get(k)) for k in comment_keys), default=0)
-        if visible_comments <= 0:
+        if _visible_comment_count(row) <= 0:
             continue
         identifier = _detail_identifier(platform, row)
         if not identifier or identifier in seen:
@@ -124,6 +131,85 @@ def _detail_recovery_candidates(platform: str, content_files: list[Path], max_it
     return candidates
 
 
+def _queue_path(cfg: dict, platform: str) -> Path:
+    return Path(cfg["data_root"]) / "state" / f"deep_comment_queue_{platform}.json"
+
+
+def _load_queue(path: Path) -> dict:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, dict) and isinstance(data.get("items"), dict):
+            return data
+    except Exception:
+        pass
+    return {"version": 1, "items": {}}
+
+
+def _save_queue(path: Path, queue: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(queue, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(path)
+
+
+def _update_queue_from_content(platform: str, content_files: list[Path], queue: dict) -> None:
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    items = queue.setdefault("items", {})
+    for row in _iter_jsonl(content_files):
+        identifier = _detail_identifier(platform, row)
+        if not identifier:
+            continue
+        visible = _visible_comment_count(row)
+        item = items.setdefault(identifier, {
+            "first_seen_at": now,
+            "last_seen_at": now,
+            "last_deep_crawled_at": "",
+            "visible_comment_count": 0,
+            "retry_count": 0,
+        })
+        item["last_seen_at"] = now
+        item["visible_comment_count"] = max(int(item.get("visible_comment_count") or 0), visible)
+
+
+def _select_queue_candidates(queue: dict, max_items: int, refresh_seconds: int) -> list[str]:
+    now = time.time()
+    eligible = []
+    for identifier, item in (queue.get("items") or {}).items():
+        visible = int(item.get("visible_comment_count") or 0)
+        if visible <= 0:
+            continue
+        last = str(item.get("last_deep_crawled_at") or "")
+        last_ts = 0.0
+        if last:
+            try:
+                last_ts = datetime.fromisoformat(last.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                last_ts = 0.0
+        if last_ts and now - last_ts < refresh_seconds:
+            continue
+        eligible.append((0 if not last else 1, -visible, last_ts, identifier))
+    eligible.sort()
+    return [row[-1] for row in eligible[:max_items]]
+
+
+def _mark_queue_batch(queue: dict, candidates: list[str], success: bool) -> None:
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    items = queue.get("items") or {}
+    for identifier in candidates:
+        item = items.get(identifier)
+        if not isinstance(item, dict):
+            continue
+        if success:
+            item["last_deep_crawled_at"] = now
+            item["retry_count"] = 0
+        else:
+            item["retry_count"] = int(item.get("retry_count") or 0) + 1
+
+
+def _queue_pending_count(queue: dict, refresh_seconds: int) -> int:
+    return len(_select_queue_candidates(queue, max_items=10**9, refresh_seconds=refresh_seconds))
+
+
 def _run_detail_comment_recovery(
     cfg: dict,
     platform: str,
@@ -131,10 +217,15 @@ def _run_detail_comment_recovery(
     output_dir: Path,
     stdout_log: Path,
     stderr_log: Path,
+    *,
+    batch_size: int | None = None,
 ) -> tuple[int | None, int]:
     if not candidates:
         return 0, 0
-    batch_size = max(1, int(cfg.get("detail_comment_recovery_batch_size", 10)))
+    if batch_size is None:
+        batch_size = max(1, int(cfg.get("detail_comment_recovery_batch_size", 10)))
+    else:
+        batch_size = max(1, int(batch_size))
     batches = 0
     last_rc = 0
     for start in range(0, len(candidates), batch_size):
@@ -245,7 +336,14 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     stdout_log = output_dir / "stdout.log"
     stderr_log = output_dir / "stderr.log"
 
-    comments_enabled = str(cfg.get("get_comment", "no")).lower() in {"yes", "true", "1", "y", "t"}
+    monitor_comments_enabled = str(cfg.get("get_comment", "no")).lower() in {"yes", "true", "1", "y", "t"}
+    realtime_mode = bool(cfg.get("realtime_mode", False))
+    search_get_comment = "no" if realtime_mode else str(cfg.get("get_comment", "no"))
+    search_get_sub_comment = "no" if realtime_mode else str(cfg.get("get_sub_comment", "no"))
+    notes_limit = (
+        max(1, int(cfg.get("realtime_discovery_max_notes_count", 60)))
+        if realtime_mode else _effective_notes_limit(cfg)
+    )
 
     cmd = [
         "uv", "run", "main.py",
@@ -253,25 +351,27 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         "--lt", cfg.get("login_type", "qrcode"),
         "--type", "search",
         "--keywords", ",".join(cfg["keywords"]),
-        "--crawler_max_notes_count", str(_effective_notes_limit(cfg)),
+        "--crawler_max_notes_count", str(notes_limit),
         "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
-        "--get_comment", str(cfg.get("get_comment", "no")),
-        "--get_sub_comment", str(cfg.get("get_sub_comment", "no")),
+        "--get_comment", search_get_comment,
+        "--get_sub_comment", search_get_sub_comment,
         "--save_data_option", cfg.get("save_data_option", "jsonl"),
         "--save_data_path", str(output_dir),
     ]
 
-    max_comments = _effective_comment_limit(cfg)
-    if max_comments is not None:
-        cmd.extend(["--max_comments_count_singlenotes", str(max_comments)])
+    if not realtime_mode:
+        max_comments = _effective_comment_limit(cfg)
+        if max_comments is not None:
+            cmd.extend(["--max_comments_count_singlenotes", str(max_comments)])
 
     started_dt = datetime.now()
     started = time.time()
     rc = None
     error = ""
     status = "unknown"
-    recovery_candidates = []
+    recovery_candidates: list[str] = []
     recovery_batches = 0
+    deep_queue_pending = 0
     try:
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             proc = subprocess.run(cmd, cwd=cfg["media_crawler_root"], stdout=out, stderr=err, text=True)
@@ -286,19 +386,48 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     content_rows = _count_jsonl_rows(content_files)
     comment_rows = _count_jsonl_rows(comment_files)
 
-    # Search adapters occasionally return usable content but fail to emit comments.
-    # If the content itself reports visible comments, run a bounded detail-mode
-    # recovery pass for those exact items. This restores the original
-    # search-discovery -> detail-deep-fetch workflow without hammering every item.
-    if (
+    comments_expected_this_cycle = monitor_comments_enabled
+
+    if not error and realtime_mode and monitor_comments_enabled and content_rows > 0:
+        qpath = _queue_path(cfg, code)
+        queue = _load_queue(qpath)
+        _update_queue_from_content(code, content_files, queue)
+        refresh_seconds = max(300, int(cfg.get("realtime_comment_refresh_seconds", 900)))
+        max_items = max(1, int(cfg.get("realtime_detail_max_items_per_cycle", 12)))
+        recovery_candidates = _select_queue_candidates(queue, max_items, refresh_seconds)
+        comments_expected_this_cycle = bool(recovery_candidates)
+        if recovery_candidates:
+            recovery_rc, recovery_batches = _run_detail_comment_recovery(
+                cfg,
+                code,
+                recovery_candidates,
+                output_dir,
+                stdout_log,
+                stderr_log,
+                batch_size=int(cfg.get("realtime_detail_batch_size", 4)),
+            )
+            _mark_queue_batch(queue, recovery_candidates, recovery_rc == 0)
+            if recovery_rc not in (0, None):
+                rc = recovery_rc
+            content_files = find_content_jsonl(output_dir)
+            comment_files = find_comment_jsonl(output_dir)
+            content_rows = _count_jsonl_rows(content_files)
+            comment_rows = _count_jsonl_rows(comment_files)
+        deep_queue_pending = _queue_pending_count(queue, refresh_seconds)
+        queue["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        queue["pending_due"] = deep_queue_pending
+        _save_queue(qpath, queue)
+
+    elif (
         not error
-        and comments_enabled
+        and monitor_comments_enabled
         and content_rows > 0
         and comment_rows == 0
         and bool(cfg.get("detail_comment_recovery", True))
     ):
         max_items = max(1, int(cfg.get("detail_comment_recovery_max_items", 30)))
         recovery_candidates = _detail_recovery_candidates(code, content_files, max_items)
+        comments_expected_this_cycle = bool(recovery_candidates)
         if recovery_candidates:
             recovery_rc, recovery_batches = _run_detail_comment_recovery(
                 cfg, code, recovery_candidates, output_dir, stdout_log, stderr_log
@@ -317,7 +446,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         runner_error=error,
         content_row_count=content_rows,
         comment_row_count=comment_rows,
-        comments_enabled=comments_enabled,
+        comments_enabled=comments_expected_this_cycle,
     )
 
     if state == "NATURAL_END":
@@ -346,6 +475,8 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         comment_row_count=comment_rows,
         detail_recovery_candidates=len(recovery_candidates),
         detail_recovery_batches=recovery_batches,
+        realtime_mode=realtime_mode,
+        deep_queue_pending=deep_queue_pending,
     )
 
 
