@@ -5,6 +5,7 @@ param(
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path "$PSScriptRoot\..").Path
 Set-Location $RepoRoot
+$PinnedMediaCrawlerCommit = "60e66f2a925816960bbd44af5d6c9b8385d79335"
 
 foreach ($cmd in @("git", "python", "uv", "node")) {
     if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
@@ -30,6 +31,7 @@ if (-not $ChromePath) {
 Write-Host "=== Student machine setup ===" -ForegroundColor Cyan
 Write-Host "Integration repo: $RepoRoot" -ForegroundColor Cyan
 Write-Host "MediaCrawler:     $MediaCrawlerRoot" -ForegroundColor Cyan
+Write-Host "Pinned MC commit: $PinnedMediaCrawlerCommit" -ForegroundColor Cyan
 Write-Host "Python:           $PythonExe" -ForegroundColor Cyan
 Write-Host "Python version:   $(& $PythonExe --version)" -ForegroundColor Cyan
 Write-Host "Node.js:          $(node --version)" -ForegroundColor Cyan
@@ -55,7 +57,7 @@ if (-not (Test-Path (Join-Path $MediaCrawlerRoot "main.py"))) {
     $cloneOk = $false
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         Write-Host "MediaCrawler clone attempt $attempt/3..." -ForegroundColor Cyan
-        git clone --depth 1 https://github.com/NanmiCoder/MediaCrawler.git $MediaCrawlerRoot
+        git clone https://github.com/NanmiCoder/MediaCrawler.git $MediaCrawlerRoot
         if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $MediaCrawlerRoot "main.py"))) {
             $cloneOk = $true
             break
@@ -71,6 +73,27 @@ if (-not (Test-Path (Join-Path $MediaCrawlerRoot "main.py"))) {
     }
 }
 
+if (-not (Test-Path (Join-Path $MediaCrawlerRoot ".git"))) {
+    Write-Host "ERROR: MediaCrawler root is not a Git checkout: $MediaCrawlerRoot" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Pinning MediaCrawler to the tested upstream commit..." -ForegroundColor Cyan
+Push-Location $MediaCrawlerRoot
+git fetch origin $PinnedMediaCrawlerCommit --depth 1 | Out-Host
+$fetchCode = $LASTEXITCODE
+if ($fetchCode -eq 0) {
+    git checkout --force $PinnedMediaCrawlerCommit | Out-Host
+    $checkoutCode = $LASTEXITCODE
+} else {
+    $checkoutCode = $fetchCode
+}
+Pop-Location
+if ($checkoutCode -ne 0) {
+    Write-Host "ERROR: failed to pin MediaCrawler to $PinnedMediaCrawlerCommit." -ForegroundColor Red
+    exit $checkoutCode
+}
+
 Write-Host "Installing/synchronizing MediaCrawler dependencies..." -ForegroundColor Cyan
 Push-Location $MediaCrawlerRoot
 uv sync
@@ -82,8 +105,7 @@ if ($uvCode -ne 0) { exit $uvCode }
 # JSONL persistence. Our monitoring only needs the coarse region label already shown
 # publicly by the platform (e.g. 山东/北京), never a real IP address or precise location.
 # Apply the project-maintained, idempotent patch centrally so every student machine
-# uses the same code path. The patch also runs Python compile checks and writes a
-# manifest; any mismatch fails setup immediately instead of silently producing 0 regions.
+# uses the same pinned and tested source. Any mismatch fails setup immediately.
 $regionPatch = Join-Path $RepoRoot "scripts\patch_mediacrawler_public_regions.py"
 $regionVerify = Join-Path $RepoRoot "scripts\verify_mediacrawler_public_regions.py"
 if (-not (Test-Path $regionPatch)) {
@@ -106,9 +128,14 @@ if (-not (Test-Path $regionManifest)) {
     exit 13
 }
 Write-Host "Verifying every public-region field path..." -ForegroundColor Cyan
+& $PythonExe $regionPatch --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: public-region patch self-check failed. Monitoring will not start." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
 & $PythonExe $regionVerify --root $MediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: public-region patch verification failed. Monitoring will not start." -ForegroundColor Red
+    Write-Host "ERROR: public-region semantic verification failed. Monitoring will not start." -ForegroundColor Red
     exit $LASTEXITCODE
 }
 Write-Host "Public-region patch fully verified: $regionManifest" -ForegroundColor Green
