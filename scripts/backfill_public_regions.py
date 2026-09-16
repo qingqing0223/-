@@ -6,11 +6,19 @@ from datetime import datetime
 import json
 from pathlib import Path
 
-from monitor.ingest import _prepare_region_aliases
 from pipeline.normalizer import normalize_record
 
 
 PLATFORMS = {"xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu", "wechat_mp", "wechat_channels"}
+PROVINCE_ALIASES = [
+    ("内蒙古", "内蒙古"), ("广西", "广西"), ("西藏", "西藏"), ("宁夏", "宁夏"), ("新疆", "新疆"),
+    ("香港", "香港"), ("澳门", "澳门"), ("北京", "北京"), ("天津", "天津"), ("上海", "上海"),
+    ("重庆", "重庆"), ("河北", "河北"), ("山西", "山西"), ("辽宁", "辽宁"), ("吉林", "吉林"),
+    ("黑龙江", "黑龙江"), ("江苏", "江苏"), ("浙江", "浙江"), ("安徽", "安徽"), ("福建", "福建"),
+    ("江西", "江西"), ("山东", "山东"), ("河南", "河南"), ("湖北", "湖北"), ("湖南", "湖南"),
+    ("广东", "广东"), ("海南", "海南"), ("四川", "四川"), ("贵州", "贵州"), ("云南", "云南"),
+    ("陕西", "陕西"), ("甘肃", "甘肃"), ("青海", "青海"), ("台湾", "台湾"),
+]
 
 
 def _read_jsonl(path: Path):
@@ -30,13 +38,52 @@ def _read_jsonl(path: Path):
         return
 
 
+def _canonical_public_region(value) -> str:
+    if value is None:
+        return ""
+    text = str(value).strip()
+    if not text:
+        return ""
+    for prefix in ("IP属地：", "IP属地:", "IP属地", "来自：", "来自:", "来自"):
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
+    for needle, province in PROVINCE_ALIASES:
+        if needle in text:
+            return province
+    if len(text) <= 16 and not any(ch.isdigit() for ch in text):
+        return text
+    return ""
+
+
+def _prepare_region_aliases(raw: dict) -> dict:
+    out = dict(raw)
+    candidates = [
+        raw.get("ip_location"), raw.get("ip_region"), raw.get("ip_label"),
+        raw.get("province"), raw.get("province_name"), raw.get("user_province"),
+        raw.get("author_province"), raw.get("region"), raw.get("region_name"),
+        raw.get("comment_ip_location"), raw.get("user_ip_location"),
+    ]
+    for parent_key in ("user", "author", "creator"):
+        parent = raw.get(parent_key)
+        if isinstance(parent, dict):
+            candidates.extend([
+                parent.get("ip_location"), parent.get("ip_region"), parent.get("ip_label"),
+                parent.get("province"), parent.get("province_name"), parent.get("region"),
+            ])
+    for value in candidates:
+        region = _canonical_public_region(value)
+        if region:
+            out["ip_location"] = region
+            break
+    return out
+
+
 def _load_config(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def _data_root(config: dict, platform: str) -> Path:
     base = Path(str(config["data_root"]))
-    # run_single_platform.py uses one formal root per platform.
     if base.name.endswith(f"_{platform}"):
         return base
     return base.parent / f"{base.name}_{platform}"
@@ -47,11 +94,9 @@ def _raw_jsonl_files(root: Path) -> list[Path]:
     raw_runs = root / "raw_runs"
     if raw_runs.exists():
         candidates.extend(raw_runs.rglob("*.jsonl"))
-    # Compatibility with earlier runs that may have written JSONL directly below the platform root.
     for p in root.glob("*.jsonl"):
         if p.parent.name not in {"classified", "outbox", "status"}:
             candidates.append(p)
-    # Keep deterministic ordering and remove duplicates.
     return sorted({p.resolve() for p in candidates if p.is_file()})
 
 
@@ -80,8 +125,7 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    config_path = Path(args.config).resolve()
-    cfg = _load_config(config_path)
+    cfg = _load_config(Path(args.config).resolve())
     platform = args.platform
     root = _data_root(cfg, platform)
     classified_path = root / "classified" / "classified_results.jsonl"
@@ -96,7 +140,6 @@ def main() -> None:
         raise SystemExit(f"No raw JSONL files found under: {root}")
 
     region_by_key: dict[str, str] = {}
-    raw_region_counts = Counter()
     regionish_keys: set[str] = set()
     raw_rows = 0
     raw_rows_with_region = 0
@@ -116,7 +159,6 @@ def main() -> None:
             key = str(rec.get("dedupe_key") or "").strip()
             if key:
                 region_by_key[key] = region
-                raw_region_counts[region] += 1
 
     classified_rows = list(_read_jsonl(classified_path) or [])
     before = sum(1 for r in classified_rows if str(r.get("ip_location") or "").strip())
