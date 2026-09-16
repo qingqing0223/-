@@ -15,3 +15,4 @@ cookies/
 *.log
 .DS_Store
 config/monitoring.local.json
+config/key_accounts.json
