@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "purpose": "宣传周少数民族语言公开内容发现。只有 verified=true 的词会被自动加入搜索。",
+  "languages": {
+    "藏语": {
+      "enabled": true,
+      "verified": true,
+      "keywords": [
+        "མི་རིགས་མཐུན་སྒྲིལ"
+      ],
+      "note": "通用的“民族团结”藏文表达，来源于公开政府双语宣传材料。不是“宣传周”整句翻译。"
+    },
+    "维吾尔语": {
+      "enabled": true,
+      "verified": true,
+      "keywords": [
+        "مىللەتلەر ئىتتىپاقى"
+      ],
+      "note": "通用的“民族团结”维吾尔文表达。不是“宣传周”整句翻译。"
+    },
+    "蒙古语": {
+      "enabled": true,
+      "verified": false,
+      "keywords": [],
+      "note": "已支持蒙古文 Unicode 自动识别；正式搜索词需由蒙古文材料/人员核准后填入，避免错误翻译造成漏检或误检。"
+    },
+    "壮语": {
+      "enabled": true,
+      "verified": false,
+      "keywords": [],
+      "note": "已支持壮语显式语言字段和保守词形识别；正式搜索词需由壮文材料/人员核准后填入。"
+    },
+    "哈萨克语": {
+      "enabled": false,
+      "verified": false,
+      "keywords": [],
+      "note": "语言字段已支持，后续可按正式材料扩展。"
+    },
+    "彝语": {
+      "enabled": false,
+      "verified": false,
+      "keywords": [],
+      "note": "彝文 Unicode 检测已支持，后续可按正式材料扩展搜索词。"
+    },
+    "朝鲜语": {
+      "enabled": false,
+      "verified": false,
+      "keywords": [],
+      "note": "朝鲜文/韩文 Unicode 检测已支持，后续可按正式材料扩展搜索词。"
+    }
+  }
+}
