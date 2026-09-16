@@ -9,6 +9,7 @@ import sys
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
+SUQI_ROOT = Path(r"E:\Real-time-situation-map\yuqing-v1\03_live_system")
 
 
 def _git(args: list[str]) -> tuple[int, str]:
@@ -27,6 +28,16 @@ def _check_json(path: Path) -> tuple[bool, str]:
         return True, "ok"
     except Exception as exc:
         return False, f"invalid json: {exc}"
+
+
+def _contains(path: Path, needle: str) -> tuple[bool, str]:
+    if not path.exists():
+        return False, f"missing: {path}"
+    try:
+        found = needle in path.read_text(encoding="utf-8", errors="replace")
+        return found, "installed" if found else "not installed"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
 
 
 def _dashboard_health() -> tuple[bool, str]:
@@ -76,6 +87,11 @@ def main() -> int:
 
     dashboard_ok, dashboard_detail = _dashboard_health()
     add("Suqi dashboard health", dashboard_ok, dashboard_detail, required=False)
+
+    region_patch_ok, region_patch_detail = _contains(SUQI_ROOT / "db.py", "ON CONFLICT(uid) DO UPDATE SET")
+    add("Suqi region/engagement upsert patch", region_patch_ok, region_patch_detail, required=False)
+    language_panel_ok, language_panel_detail = _contains(SUQI_ROOT / "web" / "index.html", "CORE_MINORITY_LANGS")
+    add("Suqi minority-language panel patch", language_panel_ok, language_panel_detail, required=False)
 
     rc, remote = _git(["remote", "get-url", "origin"])
     add("git origin", rc == 0 and bool(remote), remote or "missing", required=False)
