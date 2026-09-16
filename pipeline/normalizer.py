@@ -93,24 +93,24 @@ def _detect_record_type(raw: dict, platform: str, comment_id) -> str:
         return "comment"
 
     raw_type = _str(_first(
-        raw, "type", "note_type", "media_type", "content_type", "aweme_type", "item_type"
+        raw, "type", "note_type", "media_type", "content_type", "video_type",
+        "aweme_type", "item_type"
     )).strip().lower()
 
-    # Explicit image/note evidence wins over platform defaults.
     image_list = _first(raw, "image_list", "images", "note_images", "pictures", "pics")
-    if image_list and raw_type not in {"video", "short_video", "aweme", "movie"}:
+    video_types = {"video", "short_video", "aweme", "movie", "zvideo"}
+    if image_list and raw_type not in video_types:
         return "post"
 
     video_evidence = _first(
         raw, "video_url", "video_download_url", "play_url", "video_play_addr",
         "video_duration", "duration", "video_id"
     )
-    if raw_type in {"video", "short_video", "aweme", "movie"} or video_evidence:
+    if raw_type in video_types or video_evidence:
         return "video"
 
-    # XHS and Weibo can both contain video posts; their exported type fields are
-    # used when available. Douyin/Kuaishou default to video only when no image-note
-    # evidence is present.
+    # Douyin/Kuaishou exports are video-first. Other platforms are mixed and only
+    # become video when their exported type/URL/id gives explicit evidence.
     if platform in {"dy", "ks"}:
         return "video"
     return "post"
@@ -119,11 +119,9 @@ def _detect_record_type(raw: dict, platform: str, comment_id) -> str:
 def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") -> dict | None:
     title = _first(raw, "title", "note_title", "video_title")
     desc = _first(raw, "desc", "description", "aweme_desc")
-    body = _first(raw, "content", "text", "note_text", "content_text", "comment_text")
+    body = _first(raw, "content", "text", "note_text", "content_text", "comment_text", "message")
     tags = _tag_text(raw)
 
-    # Optional enrichment fields. A later generic video ASR/OCR stage can write
-    # them for any platform; classification then consumes them automatically.
     asr_text = _first(raw, "asr_text", "transcript_text", "speech_text")
     ocr_text = _first(raw, "ocr_text", "subtitle_text", "screen_text")
 
@@ -132,19 +130,41 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         return None
 
     context = title or desc or ""
-    content_id = _first(raw, "content_id", "aweme_id", "note_id", "video_id", "photo_id", "id", "mid")
-    comment_id = _first(raw, "comment_id", "cid")
+    content_id = _first(
+        raw, "content_id", "aweme_id", "note_id", "video_id", "photo_id",
+        "dynamic_id", "id", "mid"
+    )
+    comment_id = _first(raw, "comment_id", "cid", "rpid")
     platform = _first(raw, "platform", "source_platform", "source") or platform_hint
     platform = _str(platform).strip()
     region = _first(raw, "ip_location", "region", "province", "ip_region")
-    publish_time = _first(raw, "publish_time", "create_time", "created_at", "create_date_time", "time")
-    url = _first(raw, "url", "note_url", "video_url", "aweme_url", "share_url", "detail_url")
+    publish_time = _first(
+        raw, "publish_time", "create_time", "created_time", "created_at",
+        "create_date_time", "pub_ts", "ctime", "time"
+    )
+    url = _first(
+        raw, "url", "note_url", "video_url", "content_url", "aweme_url",
+        "share_url", "detail_url"
+    )
     author = _first(raw, "author", "nickname", "user_name", "user_nickname", "sec_user_name")
     source_keyword = _first(raw, "source_keyword", "keyword", "search_keyword")
 
-    likes = _first(raw, "likes", "like_count", "liked_count", "digg_count", "thumbs_count")
-    comments = _first(raw, "comments", "comment_count", "comments_count", "comment_num")
-    shares = _first(raw, "shares", "share_count", "shared_count", "repost_count", "forward_count")
+    likes = _first(
+        raw, "likes", "like_count", "liked_count", "digg_count", "thumbs_count",
+        "voteup_count", "total_liked"
+    )
+    comments = _first(
+        raw, "comments", "comment_count", "comments_count", "comment_num",
+        "video_comment", "total_replay_num", "total_comments", "reply_count"
+    )
+    shares = _first(
+        raw, "shares", "share_count", "shared_count", "repost_count", "forward_count",
+        "video_share_count", "total_forwards"
+    )
+    views = _first(raw, "views", "view_count", "play_count", "video_play_count")
+    favorites = _first(raw, "favorites", "favorite_count", "video_favorite_count")
+    danmaku = _first(raw, "danmaku", "danmaku_count", "video_danmaku")
+    coins = _first(raw, "coins", "coin_count", "video_coin_count")
 
     record_type = _detect_record_type(raw, platform, comment_id)
     if record_type == "comment":
@@ -154,9 +174,6 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     else:
         attitude_target = "publisher_post"
 
-    # Any platform's video uses publisher-side evidence. Today the fast path has
-    # caption/tags; when ASR/OCR are added, those signals are merged without changing
-    # the downstream v2 interface.
     if record_type == "video":
         analysis_text = _join_unique([
             _str(title), _str(desc), _str(body), tags, _str(asr_text), _str(ocr_text)
@@ -177,7 +194,10 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
 
     language_info = detect_language(raw, analysis_text or content)
 
-    sample_id = _first(raw, "sample_id", "comment_id", "cid", "content_id", "aweme_id", "note_id", "video_id", "photo_id", "id", "mid")
+    sample_id = _first(
+        raw, "sample_id", "comment_id", "cid", "rpid", "content_id", "aweme_id",
+        "note_id", "video_id", "photo_id", "dynamic_id", "id", "mid"
+    )
     if sample_id is None:
         basis = f"{platform}|{source_file}|{content}|{context}|{publish_time}|{author}"
         sample_id = hashlib.sha256(basis.encode("utf-8", "ignore")).hexdigest()[:24]
@@ -211,5 +231,9 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "likes": _to_int(likes),
         "comments": _to_int(comments),
         "shares": _to_int(shares),
+        "views": _to_int(views),
+        "favorites": _to_int(favorites),
+        "danmaku": _to_int(danmaku),
+        "coins": _to_int(coins),
         "source_file": source_file,
     }
