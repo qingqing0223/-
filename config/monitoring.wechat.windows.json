@@ -1,0 +1,27 @@
+{
+  "event_id": "promotion_week_2026_preheat",
+  "event_name": "2026年民族团结进步宣传周预热阶段舆情监测",
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "results_date": "2026-09-16",
+  "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week",
+  "pywechat_root": "E:\\pywechat_rpa",
+  "classifier_concurrency": 4,
+  "interval_seconds": 900,
+  "wechat_mp_interval_seconds": 1800,
+  "wechat_channels_interval_seconds": 900,
+  "wechat_manual_verify_wait_seconds": 600,
+  "wechat_mp_keyword_delay_seconds": 5,
+  "wechat_mp_max_results_per_keyword": 20,
+  "wechat_channels_keyword_delay_seconds": 3,
+  "wechat_channels_load_delay_seconds": 6,
+  "wechat_channels_scroll_pages": 2,
+  "wechat_channels_max_results_per_keyword": 20,
+  "keywords": [
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "促进民族团结进步，奋进伟大复兴征程",
+    "民族团结进步倡议",
+    "民族团结进步宣传周主场活动",
+    "石榴花开——铸牢中华民族共同体意识"
+  ]
+}
