@@ -26,6 +26,28 @@ if (-not $NodeId) {
     $NodeId = "$Platform-node"
 }
 
+# Upgrade existing per-machine WeChat local configs without replacing machine paths.
+$resolvedConfig = (Resolve-Path $Config).Path
+if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
+    $cfgObj = Get-Content $resolvedConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+    function Set-ConfigProperty($obj, [string]$name, $value) {
+        if ($obj.PSObject.Properties.Name -contains $name) {
+            $obj.$name = $value
+        } else {
+            $obj | Add-Member -NotePropertyName $name -NotePropertyValue $value
+        }
+    }
+    Set-ConfigProperty $cfgObj "wechat_mp_search_until_exhausted" $true
+    Set-ConfigProperty $cfgObj "wechat_mp_max_pages" 1000
+    Set-ConfigProperty $cfgObj "wechat_mp_max_results_per_keyword" 100000
+    Set-ConfigProperty $cfgObj "wechat_channels_scroll_pages" 1000
+    Set-ConfigProperty $cfgObj "wechat_channels_max_results_per_keyword" 100000
+    $json = $cfgObj | ConvertTo-Json -Depth 100
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($resolvedConfig, $json, $utf8NoBom)
+    Write-Host "WeChat local config upgraded for deep paging." -ForegroundColor Green
+}
+
 if ($Platform -eq "wechat_channels") {
     $wechatProc = Get-Process -Name Weixin,WeChat -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $wechatProc) {
