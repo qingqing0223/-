@@ -20,6 +20,10 @@ class PlatformRun:
     status: str
     state: str
     error: str = ""
+    content_file_count: int = 0
+    comment_file_count: int = 0
+    content_row_count: int = 0
+    comment_row_count: int = 0
 
 
 def _tail_text(*paths: Path, max_chars: int = 16000) -> str:
@@ -33,27 +37,31 @@ def _tail_text(*paths: Path, max_chars: int = 16000) -> str:
     return "\n".join(parts).lower()
 
 
-def _classify_state(return_code: int | None, stdout_log: Path, stderr_log: Path, runner_error: str = "") -> str:
+def _count_jsonl_rows(paths: list[Path]) -> int:
+    total = 0
+    for path in paths:
+        try:
+            with path.open("r", encoding="utf-8-sig", errors="replace") as f:
+                total += sum(1 for line in f if line.strip())
+        except Exception:
+            continue
+    return total
+
+
+def _classify_state(
+    return_code: int | None,
+    stdout_log: Path,
+    stderr_log: Path,
+    runner_error: str = "",
+    *,
+    content_row_count: int = 0,
+    comment_row_count: int = 0,
+    comments_enabled: bool = False,
+) -> str:
     if runner_error:
         return "RUNNER_ERROR"
-    if return_code == 0:
-        return "SUCCESS"
 
     text = _tail_text(stdout_log, stderr_log)
-
-    # MediaCrawler's Weibo adapter currently raises DataFetchError/RetryError
-    # when a search page is simply exhausted (e.g. ok:0 + cards:[] +
-    # "这里还没有内容"). For our monitoring workflow this is a normal
-    # pagination terminator, not a network failure. Mark it explicitly so the
-    # wrapper can preserve and ingest the JSONL already collected on prior pages.
-    natural_end_markers = (
-        "这里还没有内容",
-        "'cards': []",
-        '"cards": []',
-        "cards=[]",
-    )
-    if any(marker in text for marker in natural_end_markers):
-        return "NATURAL_END"
 
     verify_markers = (
         "captcha", "security verification", "manual verify", "verify_required",
@@ -66,12 +74,36 @@ def _classify_state(return_code: int | None, stdout_log: Path, stderr_log: Path,
         "connecttimeout", "readtimeout", "timed out", "timeout", "err_timed_out",
         "connection reset", "connection refused", "http 502", "status 502", "network",
     )
+    natural_end_markers = (
+        "这里还没有内容",
+        "'cards': []",
+        '"cards": []',
+        "cards=[]",
+    )
+
     if any(marker in text for marker in verify_markers):
         return "VERIFY_REQUIRED"
     if any(marker in text for marker in login_markers):
         return "LOGIN_REQUIRED"
     if any(marker in text for marker in network_markers):
         return "NETWORK_ERROR"
+
+    if return_code not in (0, None) and any(marker in text for marker in natural_end_markers):
+        return "NATURAL_END"
+
+    # A zero process return code only proves that the Python process exited cleanly.
+    # It does not prove that the platform returned usable search data. Treat an
+    # entirely empty run as a soft-empty response so anti-bot/risk-control states
+    # cannot be silently reported as SUCCESS.
+    if return_code == 0:
+        if content_row_count == 0 and comment_row_count == 0:
+            return "SOFT_EMPTY"
+        if comments_enabled and content_row_count > 0 and comment_row_count == 0:
+            return "SUCCESS_NO_COMMENTS"
+        return "SUCCESS"
+
+    if return_code is None:
+        return "RUNNER_ERROR"
     return "CRAWLER_FAILED"
 
 
@@ -101,6 +133,8 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     output_dir.mkdir(parents=True, exist_ok=True)
     stdout_log = output_dir / "stdout.log"
     stderr_log = output_dir / "stderr.log"
+
+    comments_enabled = str(cfg.get("get_comment", "no")).lower() in {"yes", "true", "1", "y", "t"}
 
     cmd = [
         "uv", "run", "main.py",
@@ -134,10 +168,28 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         error = f"{type(exc).__name__}: {exc}"
         status = "error"
 
-    state = _classify_state(rc, stdout_log, stderr_log, runner_error=error)
+    content_files = find_content_jsonl(output_dir)
+    comment_files = find_comment_jsonl(output_dir)
+    content_rows = _count_jsonl_rows(content_files)
+    comment_rows = _count_jsonl_rows(comment_files)
+
+    state = _classify_state(
+        rc,
+        stdout_log,
+        stderr_log,
+        runner_error=error,
+        content_row_count=content_rows,
+        comment_row_count=comment_rows,
+        comments_enabled=comments_enabled,
+    )
+
     if state == "NATURAL_END":
         # Upstream may exit non-zero after reaching an empty terminal page.
-        # Treat the run as usable so already-written content/comments proceed to ingest.
+        # Preserve and ingest JSONL already written on earlier pages.
+        status = "ok"
+    elif state in {"SOFT_EMPTY", "VERIFY_REQUIRED", "LOGIN_REQUIRED", "NETWORK_ERROR", "CRAWLER_FAILED", "RUNNER_ERROR"}:
+        status = "failed"
+    else:
         status = "ok"
 
     return PlatformRun(
@@ -153,6 +205,10 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         status=status,
         state=state,
         error=error,
+        content_file_count=len(content_files),
+        comment_file_count=len(comment_files),
+        content_row_count=content_rows,
+        comment_row_count=comment_rows,
     )
 
 
