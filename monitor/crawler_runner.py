@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import json
 import subprocess
 import time
 
@@ -24,6 +25,8 @@ class PlatformRun:
     comment_file_count: int = 0
     content_row_count: int = 0
     comment_row_count: int = 0
+    detail_recovery_candidates: int = 0
+    detail_recovery_batches: int = 0
 
 
 def _tail_text(*paths: Path, max_chars: int = 16000) -> str:
@@ -46,6 +49,119 @@ def _count_jsonl_rows(paths: list[Path]) -> int:
         except Exception:
             continue
     return total
+
+
+def _iter_jsonl(paths: list[Path]):
+    for path in paths:
+        try:
+            with path.open("r", encoding="utf-8-sig", errors="replace") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        row = json.loads(line)
+                    except Exception:
+                        continue
+                    if isinstance(row, dict):
+                        yield row
+        except Exception:
+            continue
+
+
+def _as_count(value) -> int:
+    if value in (None, ""):
+        return 0
+    text = str(value).strip().replace(",", "").replace("，", "")
+    try:
+        if text.endswith("万"):
+            return int(float(text[:-1]) * 10000)
+        if text.lower().endswith("w"):
+            return int(float(text[:-1]) * 10000)
+        if text.lower().endswith("k"):
+            return int(float(text[:-1]) * 1000)
+        return int(float(text))
+    except Exception:
+        return 0
+
+
+def _detail_identifier(platform: str, row: dict) -> str:
+    if platform == "xhs":
+        return str(row.get("note_url") or row.get("note_id") or "").strip()
+    if platform == "dy":
+        return str(row.get("aweme_url") or row.get("aweme_id") or "").strip()
+    if platform == "ks":
+        return str(row.get("video_url") or row.get("photo_url") or row.get("photo_id") or row.get("video_id") or "").strip()
+    if platform == "bili":
+        return str(row.get("video_url") or row.get("video_id") or row.get("bvid") or "").strip()
+    if platform == "wb":
+        return str(row.get("note_id") or row.get("id") or row.get("note_url") or "").strip()
+    if platform == "tieba":
+        return str(row.get("note_id") or row.get("tieba_id") or row.get("note_url") or "").strip()
+    if platform == "zhihu":
+        return str(row.get("content_url") or row.get("content_id") or row.get("url") or row.get("id") or "").strip()
+    return ""
+
+
+def _detail_recovery_candidates(platform: str, content_files: list[Path], max_items: int) -> list[str]:
+    candidates = []
+    seen = set()
+    comment_keys = (
+        "comment_count", "comments_count", "comment_num", "video_comment",
+        "total_comments", "reply_count", "total_replay_num",
+    )
+    for row in _iter_jsonl(content_files):
+        visible_comments = max((_as_count(row.get(k)) for k in comment_keys), default=0)
+        if visible_comments <= 0:
+            continue
+        identifier = _detail_identifier(platform, row)
+        if not identifier or identifier in seen:
+            continue
+        seen.add(identifier)
+        candidates.append(identifier)
+        if len(candidates) >= max_items:
+            break
+    return candidates
+
+
+def _run_detail_comment_recovery(
+    cfg: dict,
+    platform: str,
+    candidates: list[str],
+    output_dir: Path,
+    stdout_log: Path,
+    stderr_log: Path,
+) -> tuple[int | None, int]:
+    if not candidates:
+        return 0, 0
+    batch_size = max(1, int(cfg.get("detail_comment_recovery_batch_size", 10)))
+    batches = 0
+    last_rc = 0
+    for start in range(0, len(candidates), batch_size):
+        batch = candidates[start:start + batch_size]
+        cmd = [
+            "uv", "run", "main.py",
+            "--platform", platform,
+            "--lt", cfg.get("login_type", "qrcode"),
+            "--type", "detail",
+            "--specified_id", ",".join(batch),
+            "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
+            "--get_comment", "yes",
+            "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
+            "--save_data_option", cfg.get("save_data_option", "jsonl"),
+            "--save_data_path", str(output_dir),
+        ]
+        max_comments = _effective_comment_limit(cfg)
+        if max_comments is not None:
+            cmd.extend(["--max_comments_count_singlenotes", str(max_comments)])
+        with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
+            out.write(f"\n[monitor] DETAIL_COMMENT_RECOVERY batch={batches + 1} items={len(batch)}\n")
+            proc = subprocess.run(cmd, cwd=cfg["media_crawler_root"], stdout=out, stderr=err, text=True)
+        batches += 1
+        last_rc = proc.returncode
+        if last_rc != 0:
+            break
+    return last_rc, batches
 
 
 def _classify_state(
@@ -91,10 +207,6 @@ def _classify_state(
     if return_code not in (0, None) and any(marker in text for marker in natural_end_markers):
         return "NATURAL_END"
 
-    # A zero process return code only proves that the Python process exited cleanly.
-    # It does not prove that the platform returned usable search data. Treat an
-    # entirely empty run as a soft-empty response so anti-bot/risk-control states
-    # cannot be silently reported as SUCCESS.
     if return_code == 0:
         if content_row_count == 0 and comment_row_count == 0:
             return "SOFT_EMPTY"
@@ -108,7 +220,6 @@ def _classify_state(
 
 
 def _effective_notes_limit(cfg: dict) -> int:
-    """Allow platform pagination to reach its natural end, with a finite guard."""
     configured = max(1, int(cfg.get("crawler_max_notes_count", 20)))
     if bool(cfg.get("search_until_exhausted", False)):
         return max(configured, int(cfg.get("natural_end_notes_safety_cap", 100000)))
@@ -159,6 +270,8 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     rc = None
     error = ""
     status = "unknown"
+    recovery_candidates = []
+    recovery_batches = 0
     try:
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             proc = subprocess.run(cmd, cwd=cfg["media_crawler_root"], stdout=out, stderr=err, text=True)
@@ -173,6 +286,30 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     content_rows = _count_jsonl_rows(content_files)
     comment_rows = _count_jsonl_rows(comment_files)
 
+    # Search adapters occasionally return usable content but fail to emit comments.
+    # If the content itself reports visible comments, run a bounded detail-mode
+    # recovery pass for those exact items. This restores the original
+    # search-discovery -> detail-deep-fetch workflow without hammering every item.
+    if (
+        not error
+        and comments_enabled
+        and content_rows > 0
+        and comment_rows == 0
+        and bool(cfg.get("detail_comment_recovery", True))
+    ):
+        max_items = max(1, int(cfg.get("detail_comment_recovery_max_items", 30)))
+        recovery_candidates = _detail_recovery_candidates(code, content_files, max_items)
+        if recovery_candidates:
+            recovery_rc, recovery_batches = _run_detail_comment_recovery(
+                cfg, code, recovery_candidates, output_dir, stdout_log, stderr_log
+            )
+            if recovery_rc not in (0, None):
+                rc = recovery_rc
+            content_files = find_content_jsonl(output_dir)
+            comment_files = find_comment_jsonl(output_dir)
+            content_rows = _count_jsonl_rows(content_files)
+            comment_rows = _count_jsonl_rows(comment_files)
+
     state = _classify_state(
         rc,
         stdout_log,
@@ -184,8 +321,6 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     )
 
     if state == "NATURAL_END":
-        # Upstream may exit non-zero after reaching an empty terminal page.
-        # Preserve and ingest JSONL already written on earlier pages.
         status = "ok"
     elif state in {"SOFT_EMPTY", "VERIFY_REQUIRED", "LOGIN_REQUIRED", "NETWORK_ERROR", "CRAWLER_FAILED", "RUNNER_ERROR"}:
         status = "failed"
@@ -209,6 +344,8 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         comment_file_count=len(comment_files),
         content_row_count=content_rows,
         comment_row_count=comment_rows,
+        detail_recovery_candidates=len(recovery_candidates),
+        detail_recovery_batches=recovery_batches,
     )
 
 
