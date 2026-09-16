@@ -26,6 +26,33 @@ if (-not $NodeId) {
     $NodeId = "$Platform-node"
 }
 
+$pythonCmd = Get-Command python -ErrorAction SilentlyContinue
+if (-not $pythonCmd) {
+    Write-Host "ERROR: python was not found in this PowerShell session." -ForegroundColor Red
+    exit 1
+}
+$PythonExe = $pythonCmd.Source
+Write-Host "Python:   $PythonExe" -ForegroundColor Cyan
+
+# Make the v2 classifier self-repair in the active Python environment.
+$oldEap = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+& $PythonExe -c "import opinion_monitor_v2" 2>$null
+$importCode = $LASTEXITCODE
+$ErrorActionPreference = $oldEap
+if ($importCode -ne 0) {
+    Write-Host "Local classifier package missing; installing packages/v2..." -ForegroundColor Yellow
+    $oldEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & $PythonExe -m pip install -e (Join-Path $RepoRoot "packages\v2")
+    $installCode = $LASTEXITCODE
+    $ErrorActionPreference = $oldEap
+    if ($installCode -ne 0) {
+        Write-Host "ERROR: failed to install opinion_monitor_v2." -ForegroundColor Red
+        exit $installCode
+    }
+}
+
 # Upgrade existing per-machine WeChat local configs without replacing machine paths.
 $resolvedConfig = (Resolve-Path $Config).Path
 if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
@@ -37,14 +64,19 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
             $obj | Add-Member -NotePropertyName $name -NotePropertyValue $value
         }
     }
+    Set-ConfigProperty $cfgObj "interval_seconds" 300
+    Set-ConfigProperty $cfgObj "wechat_mp_interval_seconds" 300
     Set-ConfigProperty $cfgObj "wechat_mp_search_until_exhausted" $true
     Set-ConfigProperty $cfgObj "wechat_mp_max_pages" 1000
     Set-ConfigProperty $cfgObj "wechat_mp_max_results_per_keyword" 100000
     Set-ConfigProperty $cfgObj "wechat_channels_scroll_pages" 1000
     Set-ConfigProperty $cfgObj "wechat_channels_max_results_per_keyword" 100000
+    Set-ConfigProperty $cfgObj "wechat_mp_source" "sogou_weixin_public_search"
+    Set-ConfigProperty $cfgObj "wechat_mp_collect_public_articles" $true
+    Set-ConfigProperty $cfgObj "wechat_mp_collect_comments" $false
+    Set-ConfigProperty $cfgObj "wechat_mp_collect_public_ip_region" $false
+    Set-ConfigProperty $cfgObj "wechat_mp_collect_reliable_engagement" $false
     if ($Platform -eq "wechat_mp") {
-        Set-ConfigProperty $cfgObj "interval_seconds" 300
-        Set-ConfigProperty $cfgObj "wechat_mp_interval_seconds" 300
         $dashboardObj = [PSCustomObject]@{
             enabled = $true
             ingest_url = "http://127.0.0.1:8765/api/ingest"
@@ -55,7 +87,7 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     $json = $cfgObj | ConvertTo-Json -Depth 100
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($resolvedConfig, $json, $utf8NoBom)
-    Write-Host "WeChat local config upgraded for realtime/deep paging." -ForegroundColor Green
+    Write-Host "WeChat local config upgraded to final realtime profile." -ForegroundColor Green
 }
 
 if ($Platform -eq "wechat_channels") {
@@ -67,11 +99,15 @@ if ($Platform -eq "wechat_channels") {
     }
 }
 
-Write-Host "=== WeChat monitoring ===" -ForegroundColor Cyan
+Write-Host "=== WeChat monitoring FINAL profile ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Config:   $Config" -ForegroundColor Cyan
 Write-Host "Official login/verification must be completed manually when requested." -ForegroundColor Yellow
+if ($Platform -eq "wechat_mp") {
+    Write-Host "WeChat MP scope: public article search -> paging -> dedupe -> time filter -> v2 attitude/source/language -> public account aggregate -> dashboard/GitHub." -ForegroundColor Yellow
+    Write-Host "Important limitation: the public Sogou-Weixin search source does NOT expose full Selected Comments/thread replies, public IP-region labels, or reliable complete engagement metrics. These are reported as unavailable, not as zero evidence." -ForegroundColor Yellow
+}
 
 if ($PushGithub) {
     $syncCmd = "Set-Location '$RepoRoot'; .\scripts\start_node_results_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config' -Push"
@@ -83,4 +119,4 @@ $argsList = @(".\run_wechat_platform.py", "--platform", $Platform, "--config", $
 if ($Once) {
     $argsList += "--once"
 }
-python @argsList
+& $PythonExe @argsList
