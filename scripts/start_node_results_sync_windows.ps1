@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu")]
+    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu","wechat_mp","wechat_channels")]
     [string]$Platform,
 
     [string]$NodeId = $env:COMPUTERNAME,
@@ -42,7 +42,7 @@ if ($Push) {
     $argsList += "--push"
     Write-Host "Git push enabled. This computer must authenticate with its own GitHub account that has write access." -ForegroundColor Yellow
 } else {
-    Write-Host "Git push disabled; node result is generated locally only." -ForegroundColor Yellow
+    Write-Host "Git push disabled; summaries will only be generated locally." -ForegroundColor Yellow
 }
 
 python @argsList
