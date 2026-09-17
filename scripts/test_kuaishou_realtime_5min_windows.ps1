@@ -56,6 +56,7 @@ if ([string]$cfg.data_root) {
     } catch {}
 }
 $testDataRoot = Join-Path $driveRoot ("{0}_ks_realtime_acceptance" -f $stamp)
+$platformTestRoot = "$testDataRoot`_ks"
 
 Set-ConfigProperty $cfg "data_root" $testDataRoot
 Set-ConfigProperty $cfg "results_date" ""
@@ -80,7 +81,7 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($TestConfig, $json, $utf8NoBom)
 
 Write-Host "Realtime test config: $TestConfig" -ForegroundColor Cyan
-Write-Host "Realtime test data:   $testDataRoot`_ks" -ForegroundColor Cyan
+Write-Host "Realtime test data:   $platformTestRoot" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[1/3] Running one bounded realtime cycle..." -ForegroundColor Cyan
 $started = Get-Date
@@ -112,11 +113,41 @@ if ($inspectCode -eq 0) {
     if ($regionCode -ne 0) {
         Write-Host "Blocking gap: comment public IP-region has not yet been restored; do not mark Kuaishou fully accepted." -ForegroundColor Yellow
     }
+
+    Write-Host ""
+    Write-Host "=== Automatic Kuaishou detail/IP-region diagnostics ===" -ForegroundColor Cyan
+    $latestLogs = Get-ChildItem $platformTestRoot -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -in @("stdout.log", "stderr.log") } |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 2
+    if ($latestLogs) {
+        $patterns = @(
+            "KS_COMMENT_REGION_DEBUG",
+            "KUAISHOU_REALTIME_DETAIL_CANDIDATE_SUCCESS",
+            "KUAISHOU_REALTIME_DETAIL_CANDIDATE_FAILED",
+            "REST API V2 error",
+            "DataFetchError",
+            "TimeoutError",
+            "HTTP 502",
+            "VERIFY_REQUIRED",
+            "验证码"
+        )
+        foreach ($log in $latestLogs) {
+            Write-Host "--- $($log.FullName) ---" -ForegroundColor DarkCyan
+            Select-String -Path $log.FullName -Pattern $patterns -SimpleMatch -ErrorAction SilentlyContinue |
+                Select-Object -Last 80 |
+                ForEach-Object { $_.Line }
+        }
+    } else {
+        Write-Host "No stdout/stderr logs found under $platformTestRoot" -ForegroundColor Yellow
+    }
+
     if ($runCode -ne 0) {
-        Write-Host "Running automatic failure diagnosis from the latest stdout/stderr logs..." -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "Running automatic high-level failure diagnosis..." -ForegroundColor Cyan
         python .\scripts\diagnose_kuaishou_latest_failure.py --config $TestConfig
     }
-    Write-Host "Do not start a long historical recrawl. Send the final JSON sections above." -ForegroundColor Yellow
+    Write-Host "Do not start a long historical recrawl. Send the [3/3] JSON plus the automatic diagnostic lines above." -ForegroundColor Yellow
 }
 
 exit $inspectCode
