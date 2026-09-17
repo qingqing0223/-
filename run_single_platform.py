@@ -24,6 +24,10 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
     realtime per-video comment cap. Historical backfill remains separate and may
     crawl to natural end; the realtime path must not let a very large thread delay
     the next new-content discovery indefinitely.
+
+    Kuaishou detail subprocesses are intentionally isolated per candidate. A
+    transient browser/API failure on one video must not prevent the remaining
+    queued videos from being tried in the same realtime budget.
     """
     import monitor.crawler_runner as crawler_runner
 
@@ -77,25 +81,27 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
         # 300-second realtime target. Config can tune the budget, but not above 180s.
         budget_seconds = max(30, min(int(cfg.get("kuaishou_realtime_detail_budget_seconds", 120)), 180))
         realtime_comment_cap = max(20, min(int(cfg.get("kuaishou_realtime_max_comments_per_video", 300)), 2000))
-        requested_batch = max(1, int(batch_size or cfg.get("realtime_detail_batch_size", 4)))
-        effective_batch = min(requested_batch, max(1, int(cfg.get("kuaishou_realtime_detail_batch_size", 2))))
         deadline = time.monotonic() + budget_seconds
-        batches = 0
+        attempts = 0
+        success_count = 0
+        first_failure_rc: int | None = None
 
-        for start in range(0, len(candidates), effective_batch):
+        # Deliberately isolate each candidate. MediaCrawler launches one detail
+        # process per candidate here; a bad/transient video/browser session cannot
+        # abort every other candidate in the bounded queue.
+        for identifier in candidates:
             remaining = deadline - time.monotonic()
             if remaining <= 5:
                 with stdout_log.open("a", encoding="utf-8") as out:
-                    out.write("\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED before next batch\n")
+                    out.write("\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED before next candidate\n")
                 break
 
-            batch = candidates[start:start + effective_batch]
             cmd = [
                 "uv", "run", "main.py",
                 "--platform", platform,
                 "--lt", cfg.get("login_type", "qrcode"),
                 "--type", "detail",
-                "--specified_id", ",".join(batch),
+                "--specified_id", identifier,
                 "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
                 "--get_comment", "yes",
                 "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
@@ -105,9 +111,8 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
             ]
             with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
                 out.write(
-                    f"\n[monitor] KUAISHOU_REALTIME_DETAIL batch={batches + 1} "
-                    f"items={len(batch)} budget_remaining={int(remaining)}s "
-                    f"comment_cap={realtime_comment_cap}\n"
+                    f"\n[monitor] KUAISHOU_REALTIME_DETAIL candidate={attempts + 1}/{len(candidates)} "
+                    f"budget_remaining={int(remaining)}s comment_cap={realtime_comment_cap}\n"
                 )
                 try:
                     proc = subprocess.run(
@@ -119,19 +124,36 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                         timeout=max(5, int(remaining)),
                     )
                 except subprocess.TimeoutExpired:
-                    # Partial JSONL already written by MediaCrawler remains useful.
-                    # Treat wall-clock budget exhaustion as a scheduled yield, not a
-                    # network failure; the persistent queue becomes eligible again
-                    # after the configured refresh interval.
-                    out.write("\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED partial_rows_preserved=yes\n")
-                    batches += 1
-                    return 0, batches
+                    out.write(
+                        "\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED "
+                        "partial_rows_preserved=yes\n"
+                    )
+                    attempts += 1
+                    break
 
-            batches += 1
-            if proc.returncode != 0:
-                return proc.returncode, batches
+            attempts += 1
+            if proc.returncode == 0:
+                success_count += 1
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write("[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_SUCCESS\n")
+                continue
 
-        return 0, batches
+            if first_failure_rc is None:
+                first_failure_rc = proc.returncode
+            with stdout_log.open("a", encoding="utf-8") as out:
+                out.write(
+                    f"[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_FAILED rc={proc.returncode}; "
+                    "continuing_with_next_candidate=yes\n"
+                )
+
+        # If at least one isolated candidate completed, keep the cycle alive so
+        # persisted comments can be ingested and inspected. Failed candidates stay
+        # recoverable on a later refresh cycle through the persistent queue.
+        if success_count > 0:
+            return 0, attempts
+        if first_failure_rc is not None:
+            return first_failure_rc, attempts
+        return 0, attempts
 
     crawler_runner._update_queue_from_content = update_with_kuaishou_fallback
     crawler_runner._run_detail_comment_recovery = bounded_kuaishou_detail
@@ -139,16 +161,7 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
 
 
 def _install_kuaishou_precise_failure_classifier() -> None:
-    """Avoid false NETWORK_ERROR states caused by the bare word 'network'.
-
-    The shared runner historically treats any log containing the literal word
-    ``network`` as a network failure. Browser/framework logs can contain that word
-    even when the actual failure is a platform API, browser, signing, or generic
-    crawler error. For Kuaishou only, preserve NETWORK_ERROR only when an explicit
-    transport/network marker is present; otherwise fall back to the ordinary
-    crawler result. Request behavior is unchanged and platform verification is not
-    bypassed.
-    """
+    """Avoid false NETWORK_ERROR states caused by recovered transport warnings."""
     import monitor.crawler_runner as crawler_runner
 
     if getattr(crawler_runner, "_promotion_week_ks_precise_failure_classifier", False):
@@ -174,6 +187,12 @@ def _install_kuaishou_precise_failure_classifier() -> None:
         comment_row_count=0,
         comments_enabled=False,
     ):
+        # Once both discovery and comment rows have been durably written, a later
+        # isolated detail failure is a partial success, not a reason to discard or
+        # hide the usable realtime cycle.
+        if not runner_error and content_row_count > 0 and comment_row_count > 0:
+            return "PARTIAL_SUCCESS" if return_code not in (0, None) else "SUCCESS"
+
         state = original_classify(
             return_code,
             stdout_log,
@@ -190,8 +209,6 @@ def _install_kuaishou_precise_failure_classifier() -> None:
         if any(marker in text for marker in explicit_network_markers):
             return "NETWORK_ERROR"
 
-        # The shared classifier was triggered only by an incidental bare 'network'
-        # token. Reconstruct the ordinary non-network outcome.
         if runner_error:
             return "RUNNER_ERROR"
         if return_code == 0:
