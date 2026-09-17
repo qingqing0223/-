@@ -20,7 +20,13 @@ Write-Host "This is a single bounded REALTIME cycle, not historical full backfil
 Write-Host "Discovery is prioritized; comment detail work has a finite time budget." -ForegroundColor Yellow
 Write-Host ""
 
-Write-Host "Applying/verifying current Kuaishou MediaCrawler patch..." -ForegroundColor Cyan
+Write-Host "Applying/verifying Kuaishou startup resilience patch..." -ForegroundColor Cyan
+python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Write-Host "Applying/verifying current Kuaishou comment/hierarchy patch..." -ForegroundColor Cyan
 python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot --check
