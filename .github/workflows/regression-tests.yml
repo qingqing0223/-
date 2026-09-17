@@ -27,20 +27,25 @@ jobs:
         run: |
           python -m py_compile monitor/*.py pipeline/*.py dashboard_adapter/*.py scripts/*.py
 
-      - name: Validate Kuaishou PowerShell acceptance script
+      - name: Validate Windows PowerShell acceptance scripts
         shell: pwsh
         run: |
-          $path = 'scripts/test_kuaishou_realtime_5min_windows.ps1'
-          $bytes = [System.IO.File]::ReadAllBytes($path)
-          if ($bytes | Where-Object { $_ -gt 127 }) {
-            throw "$path must remain ASCII-only for Windows PowerShell 5.1 compatibility"
-          }
-          $tokens = $null
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors) | Out-Null
-          if ($errors.Count -gt 0) {
-            $errors | ForEach-Object { Write-Error $_.Message }
-            throw "$path contains PowerShell parse errors"
+          $paths = @(
+            'scripts/test_kuaishou_realtime_5min_windows.ps1',
+            'scripts/test_douyin_realtime_5min_windows.ps1'
+          )
+          foreach ($path in $paths) {
+            $bytes = [System.IO.File]::ReadAllBytes($path)
+            if ($bytes | Where-Object { $_ -gt 127 }) {
+              throw "$path must remain ASCII-only for Windows PowerShell 5.1 compatibility"
+            }
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error $_.Message }
+              throw "$path contains PowerShell parse errors"
+            }
           }
 
       - name: Run regression tests
