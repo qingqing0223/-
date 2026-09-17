@@ -43,10 +43,6 @@ def _input_files(cycle: Path) -> list[Path]:
     return sorted(files)
 
 
-def _count(rows: list[dict], record_type: str) -> int:
-    return sum(1 for row in rows if row.get("record_type") == record_type)
-
-
 def _region_counts(rows: list[dict], *, comments: bool) -> dict[str, int]:
     counter = Counter()
     for row in rows:
@@ -92,6 +88,8 @@ def main() -> int:
     acceptance_dir.mkdir(parents=True, exist_ok=True)
     output_path = acceptance_dir / f"ks_reprocessed_{cycle.name}.jsonl"
     state_path = acceptance_dir / f"ks_reprocess_seen_{cycle.name}.json"
+    summary_path = acceptance_dir / f"ks_reprocess_summary_{cycle.name}.json"
+    latest_summary_path = acceptance_dir / "ks_reprocess_latest.json"
 
     # Acceptance reprocessing is intentionally deterministic: rebuild from the latest
     # raw cycle every time so a previous classifier outage/old normalizer state cannot
@@ -138,6 +136,7 @@ def main() -> int:
         "source_cycle": cycle.name,
         "input_files": [str(p) for p in files],
         "acceptance_output": str(output_path),
+        "acceptance_summary": str(summary_path),
         "pipeline": {
             key: value for key, value in summary.items()
             if key not in {"input_files", "platform", "monitoring_start_time"}
@@ -171,7 +170,10 @@ def main() -> int:
         },
     }
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
+    summary_path.write_text(text, encoding="utf-8")
+    latest_summary_path.write_text(text, encoding="utf-8")
+    print(text, end="")
     return 0 if result["ok"] else 1
 
 
