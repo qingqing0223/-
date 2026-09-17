@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T04:39:58+08:00",
+  "generated_at": "2026-09-18T04:45:10+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T04:39:58+08:00",
+    "generated_at": "2026-09-18T04:45:10+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T00:39:37+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -680,10 +680,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_043839/wb_20260918_043839/weibo/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 35204,
-          "rows": 24,
-          "sha256": "add167f09b6db6d6516e54221cefd7f5b768ea1648de255e770a44aec818ba76",
-          "modified_at": "2026-09-18T04:39:50+08:00",
+          "bytes": 354718,
+          "rows": 113,
+          "sha256": "d250597de385d0f19e6f11896e9b7ebc2fc810e9db3edf41f22db1702fc32a00",
+          "modified_at": "2026-09-18T04:44:46+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -907,8 +907,8 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_043839/wb_20260918_043839/stderr.log",
-          "bytes": 15928,
-          "sha256": "4716163e4841855d9bafb3a7643373205a92a5c1f9d2f47145b43597865ef216"
+          "bytes": 70252,
+          "sha256": "1ba09af09164da22984d67283d74388b60f05d459d78f29cf2eab8d14bfd0d5d"
         },
         {
           "name": "stdout.log",
