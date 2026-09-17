@@ -6,22 +6,22 @@
   "results_date": "2026-09-17",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-17T23:18:43+08:00",
+  "generated_at": "2026-09-17T23:25:59+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T23:18:43+08:00",
+    "generated_at": "2026-09-17T23:25:59+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-17T08:23:28+08:00",
+    "latest_seen_time": "2026-09-17T23:18:40+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 7,
+      "unique_records": 22,
       "filtered_before_start_from_existing_output": 0,
-      "region_records": 1,
-      "region_coverage_rate": 0.1429,
+      "region_records": 4,
+      "region_coverage_rate": 0.1818,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 0,
@@ -32,54 +32,64 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 0,
-      "public_publisher_accounts": 7,
-      "likes": 2,
-      "comments": 0,
-      "shares": 2,
+      "public_publisher_accounts": 19,
+      "likes": 22,
+      "comments": 1,
+      "shares": 13,
       "views": 0,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "wb": 7
+      "wb": 22
     },
     "platform_attitude": {
       "wb": {
+        "unknown": 15,
         "neutral": 7
       }
     },
     "languages": {
-      "汉语": 7
+      "汉语": 22
     },
     "minority_languages": {},
     "regions": {
-      "云南": 1
+      "云南": 2,
+      "新疆": 1,
+      "广东": 1
     },
     "content_regions": {
-      "云南": 1
+      "云南": 2,
+      "新疆": 1,
+      "广东": 1
     },
     "comment_regions": {},
     "v2_status": {
+      "unclassified": 15,
       "neutral": 7
     },
     "v2_type": {
-      "null": 7
+      "null": 22
     },
     "attitude": {
+      "unknown": 15,
       "neutral": 7
     },
     "comment_v2_status": {},
     "comment_v2_type": {},
     "comment_attitude": {},
     "source_types": {
-      "权威媒体/新闻评论": 7
+      "权威媒体/新闻评论": 18,
+      "普通用户舆情": 2,
+      "自媒体观点": 2
     },
     "record_types": {
-      "post": 7
+      "post": 22
     },
     "keywords": {
-      "2026年民族团结进步宣传周": 7
+      "2026年民族团结进步宣传周": 16,
+      "首个民族团结进步宣传周": 6
     },
     "video_analysis": {
       "video_records": 0,
@@ -89,6 +99,51 @@
       "multimodal_completion_rate": 0.0
     },
     "public_account_stats": [
+      {
+        "account": "保***教",
+        "platforms": {
+          "wb": 3
+        },
+        "records": 3,
+        "posts": 3,
+        "videos": 0,
+        "attitude": {
+          "unknown": 2,
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 1,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "中***报",
+        "platforms": {
+          "wb": 2
+        },
+        "records": 2,
+        "posts": 2,
+        "videos": 0,
+        "attitude": {
+          "unknown": 2
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 4,
+          "comments": 0,
+          "shares": 1,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
       {
         "account": "上***布",
         "platforms": {
@@ -105,6 +160,28 @@
           "likes": 0,
           "comments": 0,
           "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "中***法",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 7,
           "views": 0,
           "favorites": 0,
           "danmaku": 0,
@@ -134,7 +211,7 @@
         }
       },
       {
-        "account": "保***教",
+        "account": "内***南",
         "platforms": {
           "wb": 1
         },
@@ -142,7 +219,141 @@
         "posts": 1,
         "videos": 0,
         "attitude": {
-          "neutral": 1
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "四***教",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "延***布",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 1,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "延***港",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "新***V",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "新***南",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "新疆": 1
+        },
+        "engagement": {
+          "likes": 4,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "柳***邪",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
         },
         "regions": {},
         "engagement": {
@@ -200,6 +411,30 @@
         }
       },
       {
+        "account": "浪***南",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "云南": 1
+        },
+        "engagement": {
+          "likes": 1,
+          "comments": 1,
+          "shares": 1,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "热***江",
         "platforms": {
           "wb": 1
@@ -213,6 +448,28 @@
         "regions": {
           "云南": 1
         },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "网***特",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
         "engagement": {
           "likes": 0,
           "comments": 0,
@@ -244,28 +501,54 @@
           "danmaku": 0,
           "coins": 0
         }
+      },
+      {
+        "account": "香***杰",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "广东": 1
+        },
+        "engagement": {
+          "likes": 9,
+          "comments": 0,
+          "shares": 2,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
       }
     ],
-    "public_account_stats_total": 7,
+    "public_account_stats_total": 19,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-17T09:41:14",
-        "crawler_status": "ok",
-        "crawler_state": "NATURAL_END",
+        "cycle_finished_at": "2026-09-17T23:23:18+08:00",
+        "crawler_status": "failed",
+        "crawler_state": "NETWORK_ERROR",
         "return_code": 1,
-        "duration_seconds": 769.89,
-        "new_records": 0,
-        "filtered_before_start": 0,
-        "classified_records": 0,
+        "duration_seconds": 311.81,
+        "new_records": 15,
+        "filtered_before_start": 10,
+        "classified_records": 15,
         "ingest_comments": true,
-        "input_file_count": 2,
+        "input_file_count": 3,
         "comment_input_file_count": 1,
-        "region_records": 0,
-        "region_rate": 0.0,
+        "region_records": 3,
+        "region_rate": 0.2,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 15
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
