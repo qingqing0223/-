@@ -57,6 +57,22 @@ def nonzero_id(value) -> str:
     return "" if text.lower() in {"", "0", "none", "null", "false"} else text
 
 
+def to_int(value) -> int:
+    if value in (None, ""):
+        return 0
+    text = str(value).strip().replace(",", "").replace("，", "")
+    try:
+        if text.endswith("万"):
+            return int(float(text[:-1]) * 10000)
+        if text.lower().endswith("w"):
+            return int(float(text[:-1]) * 10000)
+        if text.lower().endswith("k"):
+            return int(float(text[:-1]) * 1000)
+        return int(float(text))
+    except Exception:
+        return 0
+
+
 def region(row: dict) -> str:
     candidates = [
         row.get("ip_location"), row.get("ip_label"), row.get("ip_region"),
@@ -178,7 +194,7 @@ def main() -> int:
             "reply_to_comment_id", "reply_to_id", "parent_rpid"
         ))
         root_id = nonzero_id(first(row, "root_comment_id", "root_id", "root_rpid"))
-        sub_count = int(float(str(first(row, "sub_comment_count", "reply_comment_total", "reply_count") or 0)))
+        sub_count = to_int(first(row, "sub_comment_count", "reply_comment_total", "reply_count"))
         if parent:
             nested += 1
             reply_rows.append((cid, parent, root_id))
