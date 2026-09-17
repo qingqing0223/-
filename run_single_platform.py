@@ -49,7 +49,6 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                 item["queue_signal"] = "visible_comment_count"
                 item["comment_count_unknown"] = False
                 continue
-            # Queue-only signal: do not treat this as a real platform count.
             item["visible_comment_count"] = 1
             item["queue_signal"] = "kuaishou_unknown_comment_count"
             item["comment_count_unknown"] = True
@@ -77,8 +76,6 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
         if not candidates:
             return 0, 0
 
-        # Keep enough headroom for search, ingestion and status writing inside the
-        # 300-second realtime target. Config can tune the budget, but not above 180s.
         budget_seconds = max(30, min(int(cfg.get("kuaishou_realtime_detail_budget_seconds", 120)), 180))
         realtime_comment_cap = max(20, min(int(cfg.get("kuaishou_realtime_max_comments_per_video", 300)), 2000))
         deadline = time.monotonic() + budget_seconds
@@ -86,9 +83,6 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
         success_count = 0
         first_failure_rc: int | None = None
 
-        # Deliberately isolate each candidate. MediaCrawler launches one detail
-        # process per candidate here; a bad/transient video/browser session cannot
-        # abort every other candidate in the bounded queue.
         for identifier in candidates:
             remaining = deadline - time.monotonic()
             if remaining <= 5:
@@ -146,9 +140,6 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                     "continuing_with_next_candidate=yes\n"
                 )
 
-        # If at least one isolated candidate completed, keep the cycle alive so
-        # persisted comments can be ingested and inspected. Failed candidates stay
-        # recoverable on a later refresh cycle through the persistent queue.
         if success_count > 0:
             return 0, attempts
         if first_failure_rc is not None:
@@ -158,6 +149,117 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
     crawler_runner._update_queue_from_content = update_with_kuaishou_fallback
     crawler_runner._run_detail_comment_recovery = bounded_kuaishou_detail
     crawler_runner._promotion_week_ks_unknown_count_fallback = True
+
+
+def _install_douyin_realtime_policy() -> None:
+    """Bound and isolate Douyin deep-comment work inside the five-minute cycle.
+
+    Search remains discovery-only in realtime mode. Comment-bearing videos are
+    selected by the shared persistent queue. Each detail candidate runs in its own
+    subprocess so one timeout/login/API failure cannot abort all remaining videos.
+    """
+    import monitor.crawler_runner as crawler_runner
+
+    if getattr(crawler_runner, "_promotion_week_dy_realtime_policy", False):
+        return
+
+    original_detail = crawler_runner._run_detail_comment_recovery
+
+    def bounded_douyin_detail(
+        cfg: dict,
+        platform: str,
+        candidates: list[str],
+        output_dir: Path,
+        stdout_log: Path,
+        stderr_log: Path,
+        *,
+        batch_size: int | None = None,
+    ) -> tuple[int | None, int]:
+        if platform != "dy" or not bool(cfg.get("realtime_mode", False)):
+            return original_detail(
+                cfg,
+                platform,
+                candidates,
+                output_dir,
+                stdout_log,
+                stderr_log,
+                batch_size=batch_size,
+            )
+        if not candidates:
+            return 0, 0
+
+        budget_seconds = max(30, min(int(cfg.get("douyin_realtime_detail_budget_seconds", 120)), 180))
+        realtime_comment_cap = max(20, min(int(cfg.get("douyin_realtime_max_comments_per_video", 300)), 2000))
+        deadline = time.monotonic() + budget_seconds
+        attempts = 0
+        success_count = 0
+        first_failure_rc: int | None = None
+
+        for identifier in candidates:
+            remaining = deadline - time.monotonic()
+            if remaining <= 5:
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write("\n[monitor] DOUYIN_REALTIME_DETAIL_BUDGET_EXHAUSTED before next candidate\n")
+                break
+
+            cmd = [
+                "uv", "run", "main.py",
+                "--platform", platform,
+                "--lt", cfg.get("login_type", "qrcode"),
+                "--type", "detail",
+                "--specified_id", identifier,
+                "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
+                "--get_comment", "yes",
+                "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
+                "--save_data_option", cfg.get("save_data_option", "jsonl"),
+                "--save_data_path", str(output_dir),
+                "--max_comments_count_singlenotes", str(realtime_comment_cap),
+            ]
+            with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
+                out.write(
+                    f"\n[monitor] DOUYIN_REALTIME_DETAIL candidate={attempts + 1}/{len(candidates)} "
+                    f"budget_remaining={int(remaining)}s comment_cap={realtime_comment_cap}\n"
+                )
+                try:
+                    proc = subprocess.run(
+                        cmd,
+                        cwd=cfg["media_crawler_root"],
+                        stdout=out,
+                        stderr=err,
+                        text=True,
+                        timeout=max(5, int(remaining)),
+                    )
+                except subprocess.TimeoutExpired:
+                    out.write(
+                        "\n[monitor] DOUYIN_REALTIME_DETAIL_BUDGET_EXHAUSTED "
+                        "partial_rows_preserved=yes\n"
+                    )
+                    attempts += 1
+                    break
+
+            attempts += 1
+            if proc.returncode == 0:
+                success_count += 1
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write("[monitor] DOUYIN_REALTIME_DETAIL_CANDIDATE_SUCCESS\n")
+                continue
+
+            if first_failure_rc is None:
+                first_failure_rc = proc.returncode
+            with stdout_log.open("a", encoding="utf-8") as out:
+                out.write(
+                    f"[monitor] DOUYIN_REALTIME_DETAIL_CANDIDATE_FAILED rc={proc.returncode}; "
+                    "continuing_with_next_candidate=yes\n"
+                )
+
+        if success_count > 0:
+            return 0, attempts
+        if first_failure_rc is not None:
+            return first_failure_rc, attempts
+        return 0, attempts
+
+    crawler_runner._run_detail_comment_recovery = bounded_douyin_detail
+    crawler_runner._promotion_week_dy_realtime_policy = True
 
 
 def _install_kuaishou_precise_failure_classifier() -> None:
@@ -187,9 +289,6 @@ def _install_kuaishou_precise_failure_classifier() -> None:
         comment_row_count=0,
         comments_enabled=False,
     ):
-        # Once both discovery and comment rows have been durably written, a later
-        # isolated detail failure is a partial success, not a reason to discard or
-        # hide the usable realtime cycle.
         if not runner_error and content_row_count > 0 and comment_row_count > 0:
             return "PARTIAL_SUCCESS" if return_code not in (0, None) else "SUCCESS"
 
@@ -236,6 +335,8 @@ def main():
     if args.platform == "ks":
         _install_kuaishou_unknown_comment_queue_fallback()
         _install_kuaishou_precise_failure_classifier()
+    elif args.platform == "dy":
+        _install_douyin_realtime_policy()
 
     cfg = load_config(Path(args.config))
     configured_codes = {str(p.get("code") or "") for p in cfg.get("platforms", [])}
