@@ -49,6 +49,37 @@ class MonitoringRegressionTests(unittest.TestCase):
         finally:
             tmp.cleanup()
 
+    def test_successful_rows_beat_recovered_transport_warning(self):
+        tmp, out, err = self._logs()
+        try:
+            out.write_text(
+                "CDP browser launch failed: HTTP 502; fallback to standard mode; later collection completed",
+                encoding="utf-8",
+            )
+            state = _classify_state(
+                0, out, err,
+                content_row_count=124,
+                comment_row_count=12,
+                comments_enabled=True,
+            )
+            self.assertEqual(state, "SUCCESS")
+        finally:
+            tmp.cleanup()
+
+    def test_transport_error_still_detected_when_run_failed(self):
+        tmp, out, err = self._logs()
+        try:
+            err.write_text("Page.goto timed out after HTTP 502", encoding="utf-8")
+            state = _classify_state(
+                1, out, err,
+                content_row_count=0,
+                comment_row_count=0,
+                comments_enabled=True,
+            )
+            self.assertEqual(state, "NETWORK_ERROR")
+        finally:
+            tmp.cleanup()
+
     def test_verification_marker_beats_zero_exit(self):
         tmp, out, err = self._logs()
         try:
