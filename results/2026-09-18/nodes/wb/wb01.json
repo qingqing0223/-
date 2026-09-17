@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T06:49:45+08:00",
+  "generated_at": "2026-09-18T06:57:33+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T06:49:45+08:00",
+    "generated_at": "2026-09-18T06:57:33+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T00:39:37+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -673,70 +673,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_063914",
+      "cycle": "20260918_065240",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
       "jsonl_files": [
         {
           "kind": "content",
-          "name": "detail_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_063914/wb_20260918_063914/weibo/jsonl/detail_contents_2026-09-18.jsonl",
-          "bytes": 7950,
-          "rows": 1,
-          "sha256": "1b59c935d878e00dde7c4cb21f081912d70436e948ae037dfbb70979e3d13cbe",
-          "modified_at": "2026-09-18T06:47:18+08:00",
-          "sanitized_schema_samples": [
-            {
-              "fields": [
-                "comments_count",
-                "content",
-                "create_date_time",
-                "create_time",
-                "creator_hash",
-                "ip_location",
-                "last_modify_ts",
-                "liked_count",
-                "nickname",
-                "note_id",
-                "note_url",
-                "shared_count",
-                "source_keyword"
-              ],
-              "field_types": {
-                "note_id": "str",
-                "content": "str",
-                "create_time": "int",
-                "create_date_time": "str",
-                "liked_count": "str",
-                "comments_count": "str",
-                "shared_count": "str",
-                "last_modify_ts": "int",
-                "note_url": "str",
-                "creator_hash": "str",
-                "nickname": "str",
-                "source_keyword": "str",
-                "ip_location": "str"
-              },
-              "stable_id_hashes": {
-                "note_id": "1624171f44e88b265561"
-              },
-              "safe_values": {
-                "comments_count": "0",
-                "liked_count": "0",
-                "create_time": 1776337579,
-                "last_modify_ts": 1789685238043
-              },
-              "nested_fields": {}
-            }
-          ]
-        },
-        {
-          "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_063914/wb_20260918_063914/weibo/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 426089,
-          "rows": 133,
-          "sha256": "22b2687ef665fa11f6ee9adffe066304a395163932c3fc6672ba4dd4126fe1bd",
-          "modified_at": "2026-09-18T06:46:39+08:00",
+          "relative_path": "raw_runs/20260918_065240/wb_20260918_065240/weibo/jsonl/search_contents_2026-09-18.jsonl",
+          "bytes": 271954,
+          "rows": 89,
+          "sha256": "bd1581b00540a8ac96e17c89c7528fb7512bd9c54b73c588283fe68a0f27622b",
+          "modified_at": "2026-09-18T06:57:18+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -776,7 +723,7 @@
                 "comments_count": "0",
                 "liked_count": "0",
                 "create_time": 1789382012,
-                "last_modify_ts": 1789684804074,
+                "last_modify_ts": 1789685609891,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -819,7 +766,7 @@
                 "comments_count": "0",
                 "liked_count": "0",
                 "create_time": 1789380286,
-                "last_modify_ts": 1789684804078,
+                "last_modify_ts": 1789685609897,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -862,7 +809,7 @@
                 "comments_count": "0",
                 "liked_count": "0",
                 "create_time": 1789381919,
-                "last_modify_ts": 1789684804088,
+                "last_modify_ts": 1789685609906,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -905,7 +852,7 @@
                 "comments_count": "0",
                 "liked_count": "0",
                 "create_time": 1788829497,
-                "last_modify_ts": 1789684804090,
+                "last_modify_ts": 1789685609908,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -948,7 +895,7 @@
                 "comments_count": "0",
                 "liked_count": "0",
                 "create_time": 1789380694,
-                "last_modify_ts": 1789684804091,
+                "last_modify_ts": 1789685609910,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -959,15 +906,15 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_063914/wb_20260918_063914/stderr.log",
-          "bytes": 92288,
-          "sha256": "a9926f6e8105dc99cad2f82fce0e40fb7ff90d5e3f2ad53aa1de068dc89a1726"
+          "relative_path": "raw_runs/20260918_065240/wb_20260918_065240/stderr.log",
+          "bytes": 55142,
+          "sha256": "82b2fd211a32c674bc0791ec8e31cab60173512386a8ee69709ac63d6b13f78e"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_063914/wb_20260918_063914/stdout.log",
-          "bytes": 297,
-          "sha256": "eeb93af20bd83419f5b3566376cbff9f678020257a25951813d6ea29cf809b67"
+          "relative_path": "raw_runs/20260918_065240/wb_20260918_065240/stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
       ]
     }
