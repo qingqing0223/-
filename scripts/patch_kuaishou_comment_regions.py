@@ -5,10 +5,11 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V3"
+MARKER = "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V4"
 LEGACY_MARKERS = (
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V1",
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V2",
+    "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V3",
 )
 
 
@@ -31,8 +32,7 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 
 def insert_before_client(text: str, block: str, label: str) -> str:
-    anchor = "\n\nclass KuaiShouClient"
-    return replace_once(text, anchor, block + anchor, label)
+    return replace_once(text, "\n\nclass KuaiShouClient", block + "\n\nclass KuaiShouClient", label)
 
 
 def ensure_base_helpers(text: str) -> str:
@@ -114,14 +114,6 @@ def _ks_enrich_comment_regions(response, comments):
             comment.setdefault("authorArea", region)
             enriched += 1
     return enriched
-'''
-    return insert_before_client(text, helper, "kuaishou base comment-region helpers")
-
-
-def ensure_graphql_helpers(text: str) -> str:
-    if "async def _ks_graphql_root_regions" in text and "async def _ks_graphql_sub_regions" in text:
-        return text
-    helper = r'''
 
 
 def _ks_merge_region_by_comment_id(target_comments, supplemental_comments):
@@ -129,16 +121,10 @@ def _ks_merge_region_by_comment_id(target_comments, supplemental_comments):
     for item in supplemental_comments or []:
         if not isinstance(item, dict):
             continue
-        region = _ks_direct_public_region(item)
         cid = _ks_comment_id(item)
+        region = _ks_direct_public_region(item)
         if cid and region:
             region_by_comment[cid] = region
-        for sub in item.get("subComments") or []:
-            if isinstance(sub, dict):
-                sub_region = _ks_direct_public_region(sub)
-                sub_id = _ks_comment_id(sub)
-                if sub_id and sub_region:
-                    region_by_comment[sub_id] = sub_region
     merged = 0
     for comment in target_comments or []:
         if not isinstance(comment, dict):
@@ -149,56 +135,100 @@ def _ks_merge_region_by_comment_id(target_comments, supplemental_comments):
             comment.setdefault("authorArea", region)
             merged += 1
     return merged
-
-
-_KS_GRAPHQL_ROOT_REGION_QUERY = r"""
-query commentListQuery($photoId: String, $pcursor: String) {
-  visionCommentList(photoId: $photoId, pcursor: $pcursor) {
-    pcursor
-    rootComments {
-      commentId
-      authorId
-      authorArea
-      subComments { commentId authorId authorArea }
-    }
-  }
-}
-"""
-
-_KS_GRAPHQL_SUB_REGION_QUERY = r"""
-mutation visionSubCommentList($photoId: String, $rootCommentId: String, $pcursor: String) {
-  visionSubCommentList(photoId: $photoId, rootCommentId: $rootCommentId, pcursor: $pcursor) {
-    pcursor
-    subComments { commentId authorId authorArea }
-  }
-}
-"""
-
-
-async def _ks_graphql_root_regions(client, photo_id, pcursor=""):
-    data = await client.post("", {
-        "operationName": "commentListQuery",
-        "variables": {"photoId": str(photo_id), "pcursor": str(pcursor or "")},
-        "query": _KS_GRAPHQL_ROOT_REGION_QUERY,
-    })
-    payload = data.get("visionCommentList") or {}
-    return payload.get("rootComments") or []
-
-
-async def _ks_graphql_sub_regions(client, photo_id, root_comment_id, pcursor=""):
-    data = await client.post("", {
-        "operationName": "visionSubCommentList",
-        "variables": {
-            "photoId": str(photo_id),
-            "rootCommentId": str(root_comment_id),
-            "pcursor": str(pcursor or ""),
-        },
-        "query": _KS_GRAPHQL_SUB_REGION_QUERY,
-    })
-    payload = data.get("visionSubCommentList") or {}
-    return payload.get("subComments") or []
 '''
-    return insert_before_client(text, helper, "kuaishou GraphQL comment-region helpers")
+    return insert_before_client(text, helper, "kuaishou base comment-region helpers")
+
+
+def ensure_h5_helpers(text: str) -> str:
+    if "async def _ks_h5_comment_regions" in text:
+        return text
+    helper = r'''
+
+_KS_H5_COMMENT_REGION_URL = "https://kph8gvfz.m.chenzhongtech.com/rest/wd/photo/comment/list"
+
+
+def _ks_flatten_h5_comment_items(payload):
+    items = []
+    stack = [payload]
+    seen = set()
+    while stack:
+        obj = stack.pop()
+        oid = id(obj)
+        if oid in seen:
+            continue
+        seen.add(oid)
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if key in ("rootComments", "rootCommentsV2", "subComments", "subCommentsV2") and isinstance(value, list):
+                    items.extend(item for item in value if isinstance(item, dict))
+                elif key == "subCommentsMap" and isinstance(value, dict):
+                    for entry in value.values():
+                        if isinstance(entry, dict):
+                            subs = entry.get("subComments") or entry.get("subCommentsV2") or []
+                            if isinstance(subs, list):
+                                items.extend(item for item in subs if isinstance(item, dict))
+                if isinstance(value, (dict, list, tuple)):
+                    stack.append(value)
+        elif isinstance(obj, (list, tuple)):
+            stack.extend(obj)
+    deduped = []
+    known = set()
+    for item in items:
+        cid = _ks_comment_id(item)
+        key = cid or str(id(item))
+        if key in known:
+            continue
+        known.add(key)
+        deduped.append(item)
+    return deduped
+
+
+async def _ks_h5_comment_regions(client, photo_id):
+    cache = getattr(client, "_ks_h5_comment_region_cache", None)
+    if not isinstance(cache, dict):
+        cache = {}
+        setattr(client, "_ks_h5_comment_region_cache", cache)
+    cache_key = str(photo_id)
+    if cache_key in cache:
+        return cache[cache_key]
+
+    headers = {
+        "User-Agent": client.headers.get("User-Agent", ""),
+        "Accept": "application/json, text/plain, */*",
+        "Content-Type": "application/json;charset=UTF-8",
+        "Origin": "https://m.gifshow.com",
+        "Referer": f"https://m.gifshow.com/fw/photo/{photo_id}",
+    }
+    cookies = {}
+    if isinstance(getattr(client, "cookie_dict", None), dict):
+        did = client.cookie_dict.get("did")
+        if did:
+            cookies["did"] = did
+
+    async with make_async_client(proxy=client.proxy) as http_client:
+        response = await http_client.request(
+            method="POST",
+            url=_KS_H5_COMMENT_REGION_URL,
+            json={"photoId": str(photo_id), "count": 300},
+            headers=headers,
+            cookies=cookies or None,
+            timeout=max(float(getattr(client, "timeout", 10) or 10), 15.0),
+        )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict):
+        raise RuntimeError("Kuaishou H5 comment response is not a JSON object")
+    items = _ks_flatten_h5_comment_items(payload)
+    region_items = sum(1 for item in items if _ks_direct_public_region(item))
+    top_keys = sorted(str(k) for k in payload.keys())[:20]
+    utils.logger.info(
+        f"[KS_COMMENT_REGION_H5] photo={photo_id} items={len(items)} "
+        f"region_items={region_items} top_keys={top_keys} did_cookie={bool(cookies.get('did'))}"
+    )
+    cache[cache_key] = items
+    return items
+'''
+    return insert_before_client(text, helper, "kuaishou H5 comment-region helpers")
 
 
 def ensure_debug_helper(text: str) -> str:
@@ -258,18 +288,33 @@ def patch_client(root: Path) -> None:
         )
 
     text = ensure_base_helpers(text)
-    text = ensure_graphql_helpers(text)
+    text = ensure_h5_helpers(text)
     text = ensure_debug_helper(text)
 
+    # Upgrade V3 in place: keep the already-stable REST V2 comment chain, but use
+    # the public H5 comment representation only as a same-comment-id region source.
+    text = text.replace(
+        "await _ks_graphql_root_regions(self, photo_id, pcursor)",
+        "await _ks_h5_comment_regions(self, photo_id)",
+    )
+    text = text.replace(
+        "await _ks_graphql_sub_regions(self, photo_id, root_comment_id, pcursor)",
+        "await _ks_h5_comment_regions(self, photo_id)",
+    )
+    text = text.replace("[KS_COMMENT_REGION_GRAPHQL] label=root", "[KS_COMMENT_REGION_H5_MERGE] label=root")
+    text = text.replace("[KS_COMMENT_REGION_GRAPHQL] label=sub", "[KS_COMMENT_REGION_H5_MERGE] label=sub")
+    text = text.replace("[KS_COMMENT_REGION_GRAPHQL_FAILED] label=root", "[KS_COMMENT_REGION_H5_FAILED] label=root")
+    text = text.replace("[KS_COMMENT_REGION_GRAPHQL_FAILED] label=sub", "[KS_COMMENT_REGION_H5_FAILED] label=sub")
+
     root_old = '        return await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n'
-    if "[KS_COMMENT_REGION_GRAPHQL] label=root" not in text:
-        root_new = f'''        result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n        _ks_root_comments = result.get("rootCommentsV2", [])\n        if _ks_root_comments and not any(_ks_direct_public_region(c) for c in _ks_root_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_graphql_root_regions(self, photo_id, pcursor)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_root_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_GRAPHQL] label=root merged={{_ks_merged}} comments={{len(_ks_root_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_GRAPHQL_FAILED] label=root type={{type(_ks_region_exc).__name__}}")\n        return result\n'''
-        text = replace_once(text, root_old, root_new, "kuaishou root GraphQL region fallback")
+    if "[KS_COMMENT_REGION_H5_MERGE] label=root" not in text:
+        root_new = f'''        result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n        _ks_root_comments = result.get("rootCommentsV2", [])\n        if _ks_root_comments and not any(_ks_direct_public_region(c) for c in _ks_root_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_h5_comment_regions(self, photo_id)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_root_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_MERGE] label=root merged={{_ks_merged}} comments={{len(_ks_root_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_FAILED] label=root type={{type(_ks_region_exc).__name__}} detail={{str(_ks_region_exc)[:240]}}")\n        return result\n'''
+        text = replace_once(text, root_old, root_new, "kuaishou root H5 region fallback")
 
     sub_old = '        return await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n'
-    if "[KS_COMMENT_REGION_GRAPHQL] label=sub" not in text:
-        sub_new = f'''        result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n        _ks_sub_comments = result.get("subCommentsV2", [])\n        if _ks_sub_comments and not any(_ks_direct_public_region(c) for c in _ks_sub_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_graphql_sub_regions(self, photo_id, root_comment_id, pcursor)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_sub_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_GRAPHQL] label=sub merged={{_ks_merged}} comments={{len(_ks_sub_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_GRAPHQL_FAILED] label=sub type={{type(_ks_region_exc).__name__}}")\n        return result\n'''
-        text = replace_once(text, sub_old, sub_new, "kuaishou sub GraphQL region fallback")
+    if "[KS_COMMENT_REGION_H5_MERGE] label=sub" not in text:
+        sub_new = f'''        result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n        _ks_sub_comments = result.get("subCommentsV2", [])\n        if _ks_sub_comments and not any(_ks_direct_public_region(c) for c in _ks_sub_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_h5_comment_regions(self, photo_id)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_sub_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_MERGE] label=sub merged={{_ks_merged}} comments={{len(_ks_sub_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_FAILED] label=sub type={{type(_ks_region_exc).__name__}} detail={{str(_ks_region_exc)[:240]}}")\n        return result\n'''
+        text = replace_once(text, sub_old, sub_new, "kuaishou sub H5 region fallback")
 
     root_anchor = '            comments = comments_res.get("rootCommentsV2", [])\n'
     if "_ks_root_region_count = _ks_enrich_comment_regions" not in text:
@@ -309,8 +354,9 @@ def check(root: Path) -> dict:
         "root_enrichment": False,
         "sub_enrichment": False,
         "schema_debug_present": False,
-        "graphql_fallback_present": False,
-        "graphql_helpers_defined": False,
+        "h5_fallback_present": False,
+        "h5_helpers_defined": False,
+        "legacy_graphql_calls_present": False,
         "ok": False,
     }
     if not path.exists():
@@ -323,20 +369,24 @@ def check(root: Path) -> dict:
         result["root_enrichment"] = "_ks_root_region_count = _ks_enrich_comment_regions(comments_res, comments)" in text
         result["sub_enrichment"] = "_ks_sub_region_count = _ks_enrich_comment_regions(comments_res, sub_comments)" in text
         result["schema_debug_present"] = "[KS_COMMENT_REGION_DEBUG]" in text
-        result["graphql_fallback_present"] = all([
-            "[KS_COMMENT_REGION_GRAPHQL] label=root" in text,
-            "[KS_COMMENT_REGION_GRAPHQL] label=sub" in text,
+        result["h5_fallback_present"] = all([
+            "[KS_COMMENT_REGION_H5_MERGE] label=root" in text,
+            "[KS_COMMENT_REGION_H5_MERGE] label=sub" in text,
         ])
-        result["graphql_helpers_defined"] = all([
-            "async def _ks_graphql_root_regions" in text,
-            "async def _ks_graphql_sub_regions" in text,
-            "def _ks_merge_region_by_comment_id" in text,
+        result["h5_helpers_defined"] = all([
+            "async def _ks_h5_comment_regions" in text,
+            "_KS_H5_COMMENT_REGION_URL" in text,
+            "def _ks_flatten_h5_comment_items" in text,
+        ])
+        result["legacy_graphql_calls_present"] = any([
+            "await _ks_graphql_root_regions(" in text,
+            "await _ks_graphql_sub_regions(" in text,
         ])
         result["ok"] = all([
             result["marker_present"], result["authorArea_supported"],
             result["root_enrichment"], result["sub_enrichment"],
-            result["schema_debug_present"], result["graphql_fallback_present"],
-            result["graphql_helpers_defined"],
+            result["schema_debug_present"], result["h5_fallback_present"],
+            result["h5_helpers_defined"], not result["legacy_graphql_calls_present"],
         ])
     except Exception:
         pass
