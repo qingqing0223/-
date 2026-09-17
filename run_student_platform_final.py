@@ -4,6 +4,7 @@ import sys
 
 import run_single_platform
 from monitor.final_realtime_policy import install_final_realtime_policy
+from monitor.unknown_comment_queue_policy import install_unknown_comment_count_fallback
 
 
 def _platform_from_argv(argv: list[str]) -> str:
@@ -22,6 +23,7 @@ def main() -> None:
     # The other student platforms use the shared isolated, atomic realtime policy.
     if platform and platform != "ks":
         install_final_realtime_policy(platform)
+        install_unknown_comment_count_fallback(platform)
 
     # run_single_platform installs its older Douyin hard-budget policy inside main().
     # The final student wrapper has already installed the newer soft-budget/atomic
