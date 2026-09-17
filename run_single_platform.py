@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import subprocess
+import time
 
 from monitor.orchestrator import load_config, run_forever, run_one_cycle
 
@@ -10,18 +12,18 @@ PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "tieba", "zhihu"}
 
 
 def _install_kuaishou_unknown_comment_queue_fallback() -> None:
-    """Allow bounded realtime Kuaishou detail probing when search rows expose no count.
+    """Install the Kuaishou-specific five-minute realtime policy.
 
-    The current Kuaishou search JSONL can contain ``comment_count`` but leave it at
-    zero even for videos whose comments are retrievable.  The shared queue already
-    records every discovered identifier, but its normal selector only deep-crawls
-    items with a positive visible comment count.  For Kuaishou only, mark such
-    count-less discoveries with an explicit ``comment_count_unknown`` signal and a
-    synthetic queue priority of 1.  This value is queue-internal; it is never
-    written back as a claimed platform comment count.
+    Kuaishou search JSONL currently exposes a ``comment_count`` field but may leave
+    it at zero even when comments are retrievable.  The fallback therefore lets
+    newly discovered Kuaishou videos enter the persistent detail queue even when
+    the public count is unknown.  The queue-only priority value is never written
+    back as a claimed platform comment count.
 
-    The existing realtime_detail_max_items_per_cycle / batch-size / refresh limits
-    remain in force, so this does not turn discovery into an unbounded comment scan.
+    Realtime deep-comment crawling is also given a finite wall-clock budget and a
+    realtime per-video comment cap.  Historical backfill remains separate and may
+    crawl to natural end; the realtime path must not let a very large thread delay
+    the next new-content discovery indefinitely.
     """
     import monitor.crawler_runner as crawler_runner
 
@@ -29,6 +31,7 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
         return
 
     original_update = crawler_runner._update_queue_from_content
+    original_detail = crawler_runner._run_detail_comment_recovery
 
     def update_with_kuaishou_fallback(platform: str, content_files: list[Path], queue: dict) -> None:
         original_update(platform, content_files, queue)
@@ -47,7 +50,91 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
             item["queue_signal"] = "kuaishou_unknown_comment_count"
             item["comment_count_unknown"] = True
 
+    def bounded_kuaishou_detail(
+        cfg: dict,
+        platform: str,
+        candidates: list[str],
+        output_dir: Path,
+        stdout_log: Path,
+        stderr_log: Path,
+        *,
+        batch_size: int | None = None,
+    ) -> tuple[int | None, int]:
+        if platform != "ks" or not bool(cfg.get("realtime_mode", False)):
+            return original_detail(
+                cfg,
+                platform,
+                candidates,
+                output_dir,
+                stdout_log,
+                stderr_log,
+                batch_size=batch_size,
+            )
+        if not candidates:
+            return 0, 0
+
+        # Keep enough headroom for search, ingestion and status writing inside the
+        # 300-second realtime target.  Config can tune the budget, but not above 180s.
+        budget_seconds = max(30, min(int(cfg.get("kuaishou_realtime_detail_budget_seconds", 120)), 180))
+        realtime_comment_cap = max(20, min(int(cfg.get("kuaishou_realtime_max_comments_per_video", 300)), 2000))
+        requested_batch = max(1, int(batch_size or cfg.get("realtime_detail_batch_size", 4)))
+        effective_batch = min(requested_batch, max(1, int(cfg.get("kuaishou_realtime_detail_batch_size", 2))))
+        deadline = time.monotonic() + budget_seconds
+        batches = 0
+
+        for start in range(0, len(candidates), effective_batch):
+            remaining = deadline - time.monotonic()
+            if remaining <= 5:
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write("\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED before next batch\n")
+                break
+
+            batch = candidates[start:start + effective_batch]
+            cmd = [
+                "uv", "run", "main.py",
+                "--platform", platform,
+                "--lt", cfg.get("login_type", "qrcode"),
+                "--type", "detail",
+                "--specified_id", ",".join(batch),
+                "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
+                "--get_comment", "yes",
+                "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
+                "--save_data_option", cfg.get("save_data_option", "jsonl"),
+                "--save_data_path", str(output_dir),
+                "--max_comments_count_singlenotes", str(realtime_comment_cap),
+            ]
+            with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
+                out.write(
+                    f"\n[monitor] KUAISHOU_REALTIME_DETAIL batch={batches + 1} "
+                    f"items={len(batch)} budget_remaining={int(remaining)}s "
+                    f"comment_cap={realtime_comment_cap}\n"
+                )
+                try:
+                    proc = subprocess.run(
+                        cmd,
+                        cwd=cfg["media_crawler_root"],
+                        stdout=out,
+                        stderr=err,
+                        text=True,
+                        timeout=max(5, int(remaining)),
+                    )
+                except subprocess.TimeoutExpired:
+                    # Partial JSONL already written by MediaCrawler remains useful.
+                    # Treat wall-clock budget exhaustion as a scheduled yield, not a
+                    # network failure; the persistent queue becomes eligible again
+                    # after the configured refresh interval.
+                    out.write("\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED partial_rows_preserved=yes\n")
+                    batches += 1
+                    return 0, batches
+
+            batches += 1
+            if proc.returncode != 0:
+                return proc.returncode, batches
+
+        return 0, batches
+
     crawler_runner._update_queue_from_content = update_with_kuaishou_fallback
+    crawler_runner._run_detail_comment_recovery = bounded_kuaishou_detail
     crawler_runner._promotion_week_ks_unknown_count_fallback = True
 
 
