@@ -90,7 +90,9 @@ if ($inspectCode -eq 0) {
     Write-Host "Next: inspect public IP-region availability and then configure GitHub result/raw synchronization." -ForegroundColor Green
 } else {
     Write-Host "Kuaishou realtime live acceptance still has a blocking gap." -ForegroundColor Yellow
-    Write-Host "Send the complete latest_cycle / checks / blocking_gaps sections. Do not start a long historical recrawl." -ForegroundColor Yellow
+    Write-Host "Running automatic failure diagnosis from the latest stdout/stderr logs..." -ForegroundColor Cyan
+    python .\scripts\diagnose_kuaishou_latest_failure.py --config $TestConfig
+    Write-Host "Do not start a long historical recrawl. Send the diagnosis output above." -ForegroundColor Yellow
 }
 
 exit $inspectCode
