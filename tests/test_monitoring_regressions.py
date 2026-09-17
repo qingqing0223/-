@@ -76,6 +76,44 @@ class MonitoringRegressionTests(unittest.TestCase):
             got = _detail_recovery_candidates("dy", [path], 10)
             self.assertEqual(got, ["https://www.douyin.com/video/a1", "https://www.douyin.com/video/a3"])
 
+    def test_kuaishou_unknown_comment_count_enters_bounded_realtime_queue(self):
+        import monitor.crawler_runner as crawler_runner
+        from run_single_platform import _install_kuaishou_unknown_comment_queue_fallback
+
+        original_update = crawler_runner._update_queue_from_content
+        original_flag = getattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback", None)
+        try:
+            if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
+                delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
+            crawler_runner._update_queue_from_content = original_update
+            _install_kuaishou_unknown_comment_queue_fallback()
+
+            with tempfile.TemporaryDirectory() as td:
+                path = Path(td) / "search_contents_2026-09-17.jsonl"
+                path.write_text(
+                    json.dumps({
+                        "video_id": "ks-video-1",
+                        "video_url": "https://www.kuaishou.com/short-video/ks-video-1",
+                        "comment_count": 0,
+                    }, ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+                queue = {"version": 1, "items": {}}
+                crawler_runner._update_queue_from_content("ks", [path], queue)
+                item = queue["items"]["https://www.kuaishou.com/short-video/ks-video-1"]
+                self.assertTrue(item["comment_count_unknown"])
+                self.assertEqual(item["queue_signal"], "kuaishou_unknown_comment_count")
+                self.assertEqual(item["visible_comment_count"], 1)
+                got = crawler_runner._select_queue_candidates(queue, max_items=12, refresh_seconds=300)
+                self.assertEqual(got, ["https://www.kuaishou.com/short-video/ks-video-1"])
+        finally:
+            crawler_runner._update_queue_from_content = original_update
+            if original_flag is None:
+                if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
+                    delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
+            else:
+                crawler_runner._promotion_week_ks_unknown_count_fallback = original_flag
+
     def test_region_aliases_cover_realistic_nested_platform_shapes(self):
         cases = [
             ({"ip_label": "IP属地：山东"}, "山东"),
