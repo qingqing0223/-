@@ -22,19 +22,21 @@ Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Public result sync: ON (300 seconds)" -ForegroundColor Green
 
-$argsList = @(
-    "-Platform", $Platform,
-    "-NodeId", $NodeId,
-    "-Config", $Config,
-    "-PushGithub"
-)
+# IMPORTANT: use hashtable splatting for named PowerShell parameters.
+# Passing an array such as @("-Platform", "ks", ...) to a script is positional
+# splatting and can bind the literal string "-Platform" as the value of the first
+# parameter, which then fails ValidateSet. Hashtable splatting preserves names.
+$invokeArgs = @{
+    Platform = $Platform
+    NodeId = $NodeId
+    Config = $Config
+    PushGithub = $true
+}
 
 if ($autoRaw -and $rawRepo -and $privateConfirmed -and (Test-Path (Join-Path $rawRepo ".git"))) {
-    $argsList += @(
-        "-ArchiveRaw",
-        "-RawArchiveRepo", $rawRepo,
-        "-PrivateRepoConfirmed"
-    )
+    $invokeArgs["ArchiveRaw"] = $true
+    $invokeArgs["RawArchiveRepo"] = $rawRepo
+    $invokeArgs["PrivateRepoConfirmed"] = $true
     Write-Host "Private raw/GPT feed sync: ON (300 seconds)" -ForegroundColor Green
     Write-Host "Private archive: $rawRepo" -ForegroundColor Green
 } else {
@@ -46,5 +48,5 @@ Write-Host "Attitude classifier availability does NOT control collection." -Fore
 Write-Host "If the external classifier reports arrears/quota/API errors, collected posts/comments are retained and marked unclassified/degraded instead of being discarded." -ForegroundColor Yellow
 Write-Host "Official login/captcha/security verification still requires normal manual completion." -ForegroundColor Yellow
 
-& .\scripts\start_student_platform_windows.ps1 @argsList
+& .\scripts\start_student_platform_windows.ps1 @invokeArgs
 exit $LASTEXITCODE
