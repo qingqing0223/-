@@ -18,6 +18,7 @@ if (-not $MediaCrawlerRoot) { $MediaCrawlerRoot = "E:\MediaCrawler_clean" }
 Write-Host "=== Kuaishou five-minute realtime acceptance ===" -ForegroundColor Cyan
 Write-Host "This is a single bounded REALTIME cycle, not historical full backfill." -ForegroundColor Yellow
 Write-Host "Discovery is prioritized; comment detail work has a finite time budget." -ForegroundColor Yellow
+Write-Host "Comment IP-region is now a strict acceptance item because Kuaishou publicly displays it." -ForegroundColor Yellow
 Write-Host ""
 
 Write-Host "Applying/verifying Kuaishou startup resilience patch..." -ForegroundColor Cyan
@@ -30,6 +31,12 @@ Write-Host "Applying/verifying current Kuaishou comment/hierarchy patch..." -For
 python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Write-Host "Applying/verifying Kuaishou comment public-region restoration..." -ForegroundColor Cyan
+python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot --check
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 function Set-ConfigProperty($obj, [string]$name, $value) {
@@ -75,7 +82,7 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 Write-Host "Realtime test config: $TestConfig" -ForegroundColor Cyan
 Write-Host "Realtime test data:   $testDataRoot`_ks" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "[1/2] Running one bounded realtime cycle..." -ForegroundColor Cyan
+Write-Host "[1/3] Running one bounded realtime cycle..." -ForegroundColor Cyan
 $started = Get-Date
 python .\run_single_platform.py --platform ks --config $TestConfig --once
 $runCode = $LASTEXITCODE
@@ -86,19 +93,30 @@ if ($runCode -ne 0) {
 }
 
 Write-Host ""
-Write-Host "[2/2] Inspecting five-minute + comments + hierarchy acceptance..." -ForegroundColor Cyan
+Write-Host "[2/3] Inspecting five-minute + comments + hierarchy acceptance..." -ForegroundColor Cyan
 python .\scripts\inspect_kuaishou_acceptance.py --config $TestConfig
 $inspectCode = $LASTEXITCODE
 
 Write-Host ""
+Write-Host "[3/3] Strictly verifying Kuaishou comment public IP-region restoration..." -ForegroundColor Cyan
+python .\scripts\inspect_kuaishou_comment_regions.py --config $TestConfig
+$regionCode = $LASTEXITCODE
+if ($regionCode -ne 0) { $inspectCode = $regionCode }
+
+Write-Host ""
 if ($inspectCode -eq 0) {
-    Write-Host "KUAISHOU REALTIME LIVE ACCEPTANCE PASSED." -ForegroundColor Green
-    Write-Host "Next: inspect public IP-region availability and then configure GitHub result/raw synchronization." -ForegroundColor Green
+    Write-Host "KUAISHOU REALTIME LIVE ACCEPTANCE PASSED, INCLUDING COMMENT PUBLIC IP-REGION." -ForegroundColor Green
+    Write-Host "The restored chain now covers discovery, first-level comments, nested replies, parent/root and comment public region." -ForegroundColor Green
 } else {
-    Write-Host "Kuaishou realtime live acceptance still has a blocking gap." -ForegroundColor Yellow
-    Write-Host "Running automatic failure diagnosis from the latest stdout/stderr logs..." -ForegroundColor Cyan
-    python .\scripts\diagnose_kuaishou_latest_failure.py --config $TestConfig
-    Write-Host "Do not start a long historical recrawl. Send the diagnosis output above." -ForegroundColor Yellow
+    Write-Host "Kuaishou realtime acceptance still has a blocking gap." -ForegroundColor Yellow
+    if ($regionCode -ne 0) {
+        Write-Host "Blocking gap: comment public IP-region has not yet been restored; do not mark Kuaishou fully accepted." -ForegroundColor Yellow
+    }
+    if ($runCode -ne 0) {
+        Write-Host "Running automatic failure diagnosis from the latest stdout/stderr logs..." -ForegroundColor Cyan
+        python .\scripts\diagnose_kuaishou_latest_failure.py --config $TestConfig
+    }
+    Write-Host "Do not start a long historical recrawl. Send the final JSON sections above." -ForegroundColor Yellow
 }
 
 exit $inspectCode
