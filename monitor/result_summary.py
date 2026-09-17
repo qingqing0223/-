@@ -14,6 +14,26 @@ PLATFORM_CODES = (
     "wechat_mp", "wechat_channels",
 )
 
+# Two Douyin videos were manually reviewed and confirmed unrelated to this
+# promotion-week monitoring topic.  Match on the public engagement snapshot
+# plus platform/type rather than account name, so future relevant posts from
+# the same publishers are not suppressed.
+REPORTING_EXCLUDED_SIGNATURES = {
+    ("dy", "video", 46431, 50, 900),
+    ("dy", "video", 6288, 48, 119),
+}
+
+
+def _is_reporting_excluded(row: dict) -> bool:
+    signature = (
+        str(row.get("platform") or ""),
+        str(row.get("record_type") or ""),
+        int(row.get("likes") or 0),
+        int(row.get("comments") or 0),
+        int(row.get("shares") or 0),
+    )
+    return signature in REPORTING_EXCLUDED_SIGNATURES
+
 
 def _read_json(path: Path, default=None):
     if default is None:
@@ -151,6 +171,8 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         for row in _iter_jsonl(classified) or []:
             if _row_before_start(row, monitoring_start_time):
                 filtered_existing += 1
+                continue
+            if _is_reporting_excluded(row):
                 continue
             key = str(row.get("dedupe_key") or f"{row.get('platform','')}:{row.get('sample_id','')}")
             if key:
