@@ -6,22 +6,22 @@
   "results_date": "2026-09-17",
   "node_id": "ks01",
   "platform": "ks",
-  "generated_at": "2026-09-17T22:39:46+08:00",
+  "generated_at": "2026-09-17T22:44:52+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_ks"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T22:39:46+08:00",
+    "generated_at": "2026-09-17T22:44:52+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-17T22:31:17+08:00",
+    "latest_seen_time": "2026-09-17T22:42:11+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 62,
+      "unique_records": 63,
       "filtered_before_start_from_existing_output": 0,
-      "region_records": 16,
-      "region_coverage_rate": 0.2581,
+      "region_records": 17,
+      "region_coverage_rate": 0.2698,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 2,
@@ -32,34 +32,34 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 2,
-      "public_publisher_accounts": 44,
+      "public_publisher_accounts": 45,
       "likes": 6,
       "comments": 0,
       "shares": 0,
-      "views": 45821,
+      "views": 45842,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "ks": 62
+      "ks": 63
     },
     "platform_attitude": {
       "ks": {
-        "neutral": 54,
+        "neutral": 55,
         "support": 8
       }
     },
     "languages": {
-      "汉语": 62
+      "汉语": 63
     },
     "minority_languages": {},
     "regions": {
       "内蒙古": 4,
       "海南": 3,
       "新疆": 3,
+      "宁夏": 3,
       "西藏": 2,
-      "宁夏": 2,
       "重庆": 1,
       "甘肃": 1
     },
@@ -67,22 +67,22 @@
       "内蒙古": 4,
       "海南": 3,
       "新疆": 3,
+      "宁夏": 3,
       "西藏": 2,
-      "宁夏": 2,
       "重庆": 1,
       "甘肃": 1
     },
     "comment_regions": {},
     "v2_status": {
-      "neutral": 54,
+      "neutral": 55,
       "normal": 8
     },
     "v2_type": {
-      "null": 54,
+      "null": 55,
       "support": 8
     },
     "attitude": {
-      "neutral": 54,
+      "neutral": 55,
       "support": 8
     },
     "comment_v2_status": {
@@ -95,24 +95,24 @@
       "support": 2
     },
     "source_types": {
-      "权威媒体/新闻评论": 52,
+      "权威媒体/新闻评论": 53,
       "自媒体观点": 5,
       "普通用户舆情": 4,
       "二创/剪辑解读": 1
     },
     "record_types": {
-      "video": 60,
+      "video": 61,
       "comment": 2
     },
     "keywords": {
       "2026年民族团结进步宣传周": 32,
-      "首个民族团结进步宣传周": 11,
+      "首个民族团结进步宣传周": 12,
       "民族团结进步宣传周主场活动": 7,
       "促进民族团结进步，奋进伟大复兴征程": 6,
       "石榴花开——铸牢中华民族共同体意识": 3
     },
     "video_analysis": {
-      "video_records": 60,
+      "video_records": 61,
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,
@@ -457,6 +457,30 @@
           "comments": 0,
           "shares": 0,
           "views": 623,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "今***夏",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {
+          "宁夏": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 21,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -1107,26 +1131,28 @@
         }
       }
     ],
-    "public_account_stats_total": 44,
+    "public_account_stats_total": 45,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_ks",
-        "cycle_finished_at": "2026-09-17T22:37:17+08:00",
+        "cycle_finished_at": "2026-09-17T22:42:20+08:00",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS_NO_COMMENTS",
         "return_code": 0,
-        "duration_seconds": 170.27,
-        "new_records": 0,
-        "filtered_before_start": 1,
-        "classified_records": 0,
+        "duration_seconds": 164.45,
+        "new_records": 1,
+        "filtered_before_start": 3,
+        "classified_records": 1,
         "ingest_comments": true,
         "input_file_count": 2,
         "comment_input_file_count": 0,
-        "region_records": 0,
-        "region_rate": 0.0,
+        "region_records": 1,
+        "region_rate": 1.0,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 1
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -1139,17 +1165,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260917_223927",
+      "cycle": "20260917_224427",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_ks",
       "jsonl_files": [
         {
           "kind": "content",
           "name": "search_contents_2026-09-17.jsonl",
-          "relative_path": "raw_runs/20260917_223927/ks_20260917_223927/kuaishou/jsonl/search_contents_2026-09-17.jsonl",
-          "bytes": 43087,
-          "rows": 40,
-          "sha256": "1ccb46fc8f7589810074528a54517a2fba4caeea926c56cc80e801c8994c35c6",
-          "modified_at": "2026-09-17T22:39:45+08:00",
+          "relative_path": "raw_runs/20260917_224427/ks_20260917_224427/kuaishou/jsonl/search_contents_2026-09-17.jsonl",
+          "bytes": 63222,
+          "rows": 60,
+          "sha256": "fdb027a24c967ed61ac8e4f0c12330d35fd12c711aaad1d3874d5d480185164a",
+          "modified_at": "2026-09-17T22:44:51+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1195,7 +1221,7 @@
                 "comment_count": "0",
                 "liked_count": "None",
                 "create_time": 1789611420701,
-                "last_modify_ts": 1789655981268,
+                "last_modify_ts": 1789656282151,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -1244,7 +1270,7 @@
                 "comment_count": "0",
                 "liked_count": "None",
                 "create_time": 1789552564710,
-                "last_modify_ts": 1789655981270,
+                "last_modify_ts": 1789656282152,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -1294,56 +1320,7 @@
                 "comment_count": "0",
                 "liked_count": "None",
                 "create_time": 1789530452918,
-                "last_modify_ts": 1789655981271,
-                "source_keyword": "2026年民族团结进步宣传周"
-              },
-              "nested_fields": {}
-            },
-            {
-              "fields": [
-                "comment_count",
-                "create_time",
-                "creator_hash",
-                "desc",
-                "ip_location",
-                "last_modify_ts",
-                "liked_count",
-                "nickname",
-                "source_keyword",
-                "title",
-                "video_cover_url",
-                "video_id",
-                "video_play_url",
-                "video_type",
-                "video_url",
-                "viewd_count"
-              ],
-              "field_types": {
-                "video_id": "str",
-                "video_type": "str",
-                "title": "str",
-                "desc": "str",
-                "create_time": "int",
-                "creator_hash": "str",
-                "nickname": "str",
-                "liked_count": "str",
-                "viewd_count": "str",
-                "comment_count": "str",
-                "last_modify_ts": "int",
-                "video_url": "str",
-                "video_cover_url": "str",
-                "video_play_url": "str",
-                "source_keyword": "str",
-                "ip_location": "str"
-              },
-              "stable_id_hashes": {
-                "video_id": "3013abc34a76978318df"
-              },
-              "safe_values": {
-                "comment_count": "0",
-                "liked_count": "None",
-                "create_time": 1789473284120,
-                "last_modify_ts": 1789655981272,
+                "last_modify_ts": 1789656282153,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -1393,7 +1370,56 @@
                 "comment_count": "0",
                 "liked_count": "None",
                 "create_time": 1789627862853,
-                "last_modify_ts": 1789655981272,
+                "last_modify_ts": 1789656282154,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "video_id": "fe1c949dbb213f817755"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "None",
+                "create_time": 1789540495798,
+                "last_modify_ts": 1789656282155,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -1404,13 +1430,13 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260917_223927/ks_20260917_223927/stderr.log",
-          "bytes": 16896,
-          "sha256": "cf6a6d532491aa61ca8a59f0062d8d536298ed78b2223c889b2b7afbee85add1"
+          "relative_path": "raw_runs/20260917_224427/ks_20260917_224427/stderr.log",
+          "bytes": 23189,
+          "sha256": "ce274ab9cecfb98b3740bfc3484df8771f2614b162f4eb2c907f6dc37b140f2b"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260917_223927/ks_20260917_223927/stdout.log",
+          "relative_path": "raw_runs/20260917_224427/ks_20260917_224427/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
