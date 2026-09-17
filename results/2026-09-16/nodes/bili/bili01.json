@@ -6,13 +6,13 @@
   "results_date": "2026-09-16",
   "node_id": "bili01",
   "platform": "bili",
-  "generated_at": "2026-09-17T13:50:27+08:00",
+  "generated_at": "2026-09-17T13:55:33+08:00",
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T13:50:27+08:00",
+    "generated_at": "2026-09-17T13:55:33+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-16T16:00:39+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
