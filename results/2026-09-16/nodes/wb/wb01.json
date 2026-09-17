@@ -6,18 +6,18 @@
   "results_date": "2026-09-16",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-17T08:20:36+08:00",
+  "generated_at": "2026-09-17T08:28:14+08:00",
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T08:20:36+08:00",
+    "generated_at": "2026-09-17T08:28:14+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-16T22:47:20+08:00",
+    "latest_seen_time": "2026-09-17T08:23:28+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 6,
+      "unique_records": 7,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
@@ -31,7 +31,7 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 0,
-      "public_publisher_accounts": 6,
+      "public_publisher_accounts": 7,
       "likes": 2,
       "comments": 0,
       "shares": 2,
@@ -41,40 +41,40 @@
       "coins": 0
     },
     "platforms": {
-      "wb": 6
+      "wb": 7
     },
     "platform_attitude": {
       "wb": {
-        "neutral": 6
+        "neutral": 7
       }
     },
     "languages": {
-      "汉语": 6
+      "汉语": 7
     },
     "minority_languages": {},
     "regions": {},
     "content_regions": {},
     "comment_regions": {},
     "v2_status": {
-      "neutral": 6
+      "neutral": 7
     },
     "v2_type": {
-      "null": 6
+      "null": 7
     },
     "attitude": {
-      "neutral": 6
+      "neutral": 7
     },
     "comment_v2_status": {},
     "comment_v2_type": {},
     "comment_attitude": {},
     "source_types": {
-      "权威媒体/新闻评论": 6
+      "权威媒体/新闻评论": 7
     },
     "record_types": {
-      "post": 6
+      "post": 7
     },
     "keywords": {
-      "2026年民族团结进步宣传周": 6
+      "2026年民族团结进步宣传周": 7
     },
     "video_analysis": {
       "video_records": 0,
@@ -173,6 +173,28 @@
         }
       },
       {
+        "account": "活***古",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "热***江",
         "platforms": {
           "wb": 1
@@ -217,26 +239,28 @@
         }
       }
     ],
-    "public_account_stats_total": 6,
+    "public_account_stats_total": 7,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-17T08:09:56",
+        "cycle_finished_at": "2026-09-17T08:23:37",
         "crawler_status": "ok",
         "crawler_state": "NATURAL_END",
         "return_code": 1,
-        "duration_seconds": 784.68,
-        "new_records": 0,
+        "duration_seconds": 812.53,
+        "new_records": 1,
         "filtered_before_start": 0,
-        "classified_records": 0,
+        "classified_records": 1,
         "ingest_comments": true,
         "input_file_count": 2,
         "comment_input_file_count": 1,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 1
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
