@@ -18,7 +18,7 @@ if (-not $MediaCrawlerRoot) { $MediaCrawlerRoot = "E:\MediaCrawler_clean" }
 Write-Host "=== Douyin full-function five-minute realtime acceptance ===" -ForegroundColor Cyan
 Write-Host "This is one bounded realtime cycle, not historical full backfill." -ForegroundColor Yellow
 Write-Host "Matrix: discovery, root comments, nested replies, parent/root, public region, source type, raw JSONL, dedupe, five-minute timing." -ForegroundColor Yellow
-Write-Host "Realtime policy reserves end-to-end time for ingest/classification/sync after collection." -ForegroundColor Yellow
+Write-Host "The same atomic realtime runner used by student production monitoring is used here." -ForegroundColor Yellow
 Write-Host ""
 
 Write-Host "Applying/verifying shared public-region patch..." -ForegroundColor Cyan
@@ -61,7 +61,9 @@ Set-ConfigProperty $cfg "realtime_discovery_max_notes_count" 30
 Set-ConfigProperty $cfg "realtime_detail_max_items_per_cycle" 6
 Set-ConfigProperty $cfg "realtime_detail_batch_size" 1
 Set-ConfigProperty $cfg "realtime_comment_refresh_seconds" 300
+Set-ConfigProperty $cfg "realtime_detail_min_start_remaining_seconds" 30
 Set-ConfigProperty $cfg "douyin_realtime_detail_budget_seconds" 70
+Set-ConfigProperty $cfg "douyin_realtime_candidate_timeout_seconds" 100
 Set-ConfigProperty $cfg "douyin_realtime_max_comments_per_video" 200
 Set-ConfigProperty $cfg "get_comment" "yes"
 Set-ConfigProperty $cfg "get_sub_comment" "yes"
@@ -76,12 +78,13 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 Write-Host "Realtime test config: $TestConfig" -ForegroundColor Cyan
 Write-Host "Realtime test data:   $platformTestRoot" -ForegroundColor Cyan
 Write-Host "Discovery cap/keyword: 30" -ForegroundColor Cyan
-Write-Host "Detail budget:          70 seconds" -ForegroundColor Cyan
+Write-Host "Detail soft budget:     70 seconds" -ForegroundColor Cyan
+Write-Host "Candidate timeout:      100 seconds" -ForegroundColor Cyan
 Write-Host "Realtime comments/video: 200" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[1/2] Running one bounded Douyin realtime cycle..." -ForegroundColor Cyan
 $started = Get-Date
-python .\run_single_platform.py --platform dy --config $TestConfig --once
+python .\run_student_platform_final.py --platform dy --config $TestConfig --once
 $runCode = $LASTEXITCODE
 $elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
 Write-Host "Wall-clock elapsed: $elapsed seconds" -ForegroundColor Cyan
