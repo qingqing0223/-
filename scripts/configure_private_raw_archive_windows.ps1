@@ -14,6 +14,32 @@ if (-not $PrivateRepoConfirmed) {
     exit 2
 }
 
+# Private GitHub repositories deliberately return "Repository not found" when the
+# current HTTPS Git credential is missing or does not have access. Check access
+# before cloning so the error is diagnosed as authentication rather than as a
+# missing repository.
+Write-Host "Checking private GitHub repository access with current Windows Git credentials..." -ForegroundColor Cyan
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+git ls-remote $RepoUrl HEAD | Out-Host
+$remoteAccessCode = $LASTEXITCODE
+$ErrorActionPreference = $previousErrorActionPreference
+if ($remoteAccessCode -ne 0) {
+    Write-Host "" 
+    Write-Host "ERROR: Git cannot access the private repository with the credential currently cached for github.com." -ForegroundColor Red
+    Write-Host "The repository may exist and be visible in the browser; GitHub returns 'Repository not found' to unauthenticated/unauthorized Git clients for private repositories." -ForegroundColor Yellow
+    Write-Host "Fix the Windows Git credential, then rerun this setup." -ForegroundColor Yellow
+    Write-Host "Recommended PowerShell steps:" -ForegroundColor Cyan
+    Write-Host '  @"' -ForegroundColor Gray
+    Write-Host '  protocol=https' -ForegroundColor Gray
+    Write-Host '  host=github.com' -ForegroundColor Gray
+    Write-Host '  ' -ForegroundColor Gray
+    Write-Host '  "@ | git credential reject' -ForegroundColor Gray
+    Write-Host '  git credential-manager github login' -ForegroundColor Gray
+    Write-Host "Then complete the normal GitHub browser sign-in for the account that owns/has access to the private repository." -ForegroundColor Yellow
+    exit 4
+}
+
 $parent = Split-Path -Parent $ArchiveRepo
 if ($parent -and -not (Test-Path $parent)) {
     New-Item -ItemType Directory -Path $parent -Force | Out-Null
