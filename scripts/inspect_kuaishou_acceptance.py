@@ -130,7 +130,7 @@ def _probe_rows(rows: list[dict]) -> dict:
     verify_paths = defaultdict(lambda: {"occurrences": 0, "samples": []})
 
     count_needles = ("commentcount", "commentscount", "commentnum", "videocomment", "totalcomments", "replycount")
-    region_needles = ("iplocation", "ipregion", "iplabel", "regionname", "province", "location")
+    region_needles = ("iplocation", "ipregion", "iplabel", "regionname", "province", "location", "area")
     verify_needles = ("verified", "verify", "official", "cert", "badge", "authority", "authentication", "accounttype")
 
     for row in rows:
@@ -241,6 +241,17 @@ def _raw_acceptance(root: Path) -> dict:
     }
 
 
+def _unknown_count_queue_fallback_present() -> bool:
+    try:
+        text = (ROOT / "run_single_platform.py").read_text(encoding="utf-8")
+    except Exception:
+        return False
+    return (
+        "_install_kuaishou_unknown_comment_queue_fallback" in text
+        and "kuaishou_unknown_comment_count" in text
+    )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Inspect Kuaishou collection against the PPT acceptance fields.")
     ap.add_argument("--config", default=str(ROOT / "config" / "monitoring.local.json"))
@@ -269,9 +280,6 @@ def main() -> int:
     reprocess_pipeline = reprocess.get("pipeline") or {}
     reprocess_classification = reprocess.get("classification") or {}
 
-    # If a current reprocess result exists, it is the authoritative post-normalization
-    # acceptance view. The production classified file may legitimately still reflect
-    # the earlier failed classifier run and must not overwrite a successful reprocess.
     effective_ppt = reprocess_ppt or {
         "videos_or_posts": max(0, int(legacy_totals.get("unique_records") or 0) - int(legacy_totals.get("comment_records") or 0)),
         "source_type_counts": legacy_source_types,
@@ -293,6 +301,13 @@ def main() -> int:
     parent_integrity = min(float(raw.get("parent_integrity_rate") or 1.0), float(effective_ppt.get("parent_integrity_rate") or 1.0))
     source_types = effective_ppt.get("source_type_counts") or {}
     queue_signal = int(raw.get("content_comment_count_positive") or 0) > 0
+    fallback_present = _unknown_count_queue_fallback_present()
+    queue_policy_ready = queue_signal or fallback_present
+
+    latest_realtime_mode = bool(run.get("realtime_mode", False))
+    latest_within_target = bool(status.get("realtime_cycle_within_target", False))
+    latest_detail_candidates = int(run.get("detail_recovery_candidates") or 0)
+    latest_comment_rows = int(run.get("comment_row_count") or 0)
 
     checks = {
         "content_collected": effective_content > 0,
@@ -311,7 +326,12 @@ def main() -> int:
         ),
         "comment_ingest_enabled": bool(cfg.get("ingest_comments", False) or ingest.get("ingest_comments", False)),
         "classification_degraded": bool(reprocess_classification.get("degraded", False) or effective_pipeline.get("classification_degraded", False)),
-        "realtime_comment_queue_signal_present": queue_signal,
+        "realtime_comment_count_signal_present": queue_signal,
+        "realtime_unknown_count_fallback_available": fallback_present,
+        "realtime_queue_policy_ready": queue_policy_ready,
+        "realtime_mode_observed": latest_realtime_mode,
+        "realtime_cycle_within_300s": latest_realtime_mode and latest_within_target,
+        "realtime_detail_queue_exercised": latest_realtime_mode and latest_detail_candidates > 0 and latest_comment_rows > 0,
     }
 
     structural_ok = all([
@@ -323,21 +343,39 @@ def main() -> int:
         checks["nested_parent_links_complete"],
         checks["comment_ingest_enabled"],
     ])
-    realtime_ready = structural_ok and checks["realtime_comment_queue_signal_present"]
+    realtime_policy_ready = structural_ok and checks["realtime_queue_policy_ready"]
+    realtime_live_verified = all([
+        realtime_policy_ready,
+        checks["realtime_mode_observed"],
+        checks["realtime_cycle_within_300s"],
+        checks["realtime_detail_queue_exercised"],
+    ])
 
-    remaining_gaps = []
-    if not checks["realtime_comment_queue_signal_present"]:
-        remaining_gaps.append("content JSON has no positive comment-count signal; five-minute realtime detail queue cannot reliably select comment-bearing videos yet")
+    blocking_gaps = []
+    if not checks["realtime_queue_policy_ready"]:
+        blocking_gaps.append("no positive comment-count signal and no bounded unknown-count fallback is installed")
+    if not checks["realtime_mode_observed"]:
+        blocking_gaps.append("the five-minute realtime path has not yet been live-tested after the Kuaishou queue fallback patch")
+    elif not checks["realtime_cycle_within_300s"]:
+        blocking_gaps.append("the latest realtime cycle exceeded the 300-second discovery target")
+    if checks["realtime_mode_observed"] and not checks["realtime_detail_queue_exercised"]:
+        blocking_gaps.append("the latest realtime cycle did not yet prove that the bounded detail queue produced comment rows")
+
+    observations = []
+    if not queue_signal and fallback_present:
+        observations.append("Kuaishou search rows expose no positive comment count; the bounded unknown-count queue fallback is installed instead")
     if not checks["comment_public_ip_region_present"]:
-        remaining_gaps.append("no platform-displayed coarse IP-region value found in current comment raw JSON")
+        observations.append("no platform-displayed coarse IP-region value was present in the current persisted comment JSONL")
     if not checks["content_public_ip_region_present"]:
-        remaining_gaps.append("no platform-displayed coarse IP-region value found in current content raw JSON")
+        observations.append("no platform-displayed coarse IP-region value was present in the current persisted content JSONL")
     if checks["classification_degraded"]:
-        remaining_gaps.append("external attitude classifier is degraded; collected records are preserved as unclassified")
+        observations.append("external attitude classifier is degraded; collected records are preserved as unclassified")
 
     result = {
         "ok": structural_ok,
-        "realtime_ready": realtime_ready,
+        "realtime_policy_ready": realtime_policy_ready,
+        "realtime_live_verified": realtime_live_verified,
+        "realtime_ready": realtime_live_verified,
         "platform": "ks",
         "config": str(cfg_path),
         "data_root": str(root),
@@ -352,13 +390,15 @@ def main() -> int:
             "detail_recovery_candidates": run.get("detail_recovery_candidates", 0),
             "detail_recovery_batches": run.get("detail_recovery_batches", 0),
             "deep_queue_pending": run.get("deep_queue_pending", 0),
+            "realtime_mode": run.get("realtime_mode", False),
         },
         "raw_ppt_fields": raw,
         "reprocessed_ppt_fields": effective_ppt,
         "pipeline": effective_pipeline,
         "classification": reprocess_classification,
         "checks": checks,
-        "remaining_gaps": remaining_gaps,
+        "blocking_gaps": blocking_gaps,
+        "observations": observations,
         "interpretation": {
             "current_result_source": "acceptance/ks_reprocess_latest.json when its source_cycle matches the latest raw cycle; otherwise production classified summary",
             "source_type": (
@@ -367,20 +407,17 @@ def main() -> int:
             ),
             "ip": (
                 "Only platform-displayed coarse IP-location labels are retained. Network IP addresses and precise coordinates are rejected. "
-                "If region counts are zero, inspect raw schema probe candidates before changing mappings."
+                "A zero count means the persisted response did not expose a usable coarse label; it must not be fabricated."
             ),
             "realtime_queue": (
-                "Five-minute realtime mode discovers content first and deep-crawls comments from a queue. "
-                "A positive public comment-count field (or another safe queue signal) is required to enqueue comment-bearing videos without crawling all comments during discovery."
+                "Five-minute realtime mode discovers content first and deep-crawls comments from a bounded queue. "
+                "When Kuaishou omits a usable comment count, newly discovered videos can enter the queue through an explicit unknown-count fallback; the queue limit, batch size and refresh interval still apply."
             ),
         },
     }
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    # Structural acceptance may pass while realtime queue readiness is still pending.
-    # Return non-zero until both are ready so local one-command recheck cannot falsely
-    # announce that the five-minute Kuaishou path is fully complete.
-    return 0 if realtime_ready else 1
+    return 0 if realtime_live_verified else 1
 
 
 if __name__ == "__main__":
