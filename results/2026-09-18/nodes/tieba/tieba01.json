@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-18T06:16:32+08:00",
+  "generated_at": "2026-09-18T06:21:37+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T06:16:32+08:00",
+    "generated_at": "2026-09-18T06:21:37+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T06:14:35+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -199,10 +199,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_061540/tieba_20260918_061540/tieba/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 31439,
-          "rows": 10,
-          "sha256": "fda7de0f21e0405fed0bb0a3e50a8ed8fe5384de35141d9c28434e9643963042",
-          "modified_at": "2026-09-18T06:16:17+08:00",
+          "bytes": 295604,
+          "rows": 135,
+          "sha256": "4bf92fd8585972af7acce27a7f0fcdd256b557b02b290dd47b1aced0fefac4ce",
+          "modified_at": "2026-09-18T06:21:33+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -421,8 +421,8 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_061540/tieba_20260918_061540/stderr.log",
-          "bytes": 45745,
-          "sha256": "ee525f304d46e28fe038815a028a916220832b12791e6866d2745cbc93efa751"
+          "bytes": 385604,
+          "sha256": "abddc0c68ea9b81a43f2a3a783c6350a47c9c0922e95580ed6b946dba1fdf2f5"
         },
         {
           "name": "stdout.log",
