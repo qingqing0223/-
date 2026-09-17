@@ -130,7 +130,7 @@ if ($inspectCode -eq 0) {
             "TimeoutError",
             "HTTP 502",
             "VERIFY_REQUIRED",
-            "验证码"
+            "captcha"
         )
         foreach ($log in $latestLogs) {
             Write-Host "--- $($log.FullName) ---" -ForegroundColor DarkCyan
