@@ -6,18 +6,18 @@
   "results_date": "2026-09-16",
   "node_id": "wechatmp01",
   "platform": "wechat_mp",
-  "generated_at": "2026-09-17T11:05:16+08:00",
+  "generated_at": "2026-09-17T11:10:22+08:00",
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wechat_mp"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T11:05:16+08:00",
+    "generated_at": "2026-09-17T11:10:22+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-17T10:56:39+08:00",
+    "latest_seen_time": "2026-09-17T11:06:36+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 364,
+      "unique_records": 437,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
@@ -41,52 +41,52 @@
       "coins": 0
     },
     "platforms": {
-      "wechat_mp": 364
+      "wechat_mp": 437
     },
     "platform_attitude": {
       "wechat_mp": {
-        "neutral": 359,
-        "support": 5
+        "neutral": 430,
+        "support": 7
       }
     },
     "languages": {
-      "汉语": 364
+      "汉语": 437
     },
     "minority_languages": {},
     "regions": {},
     "content_regions": {},
     "comment_regions": {},
     "v2_status": {
-      "neutral": 359,
-      "normal": 5
+      "neutral": 430,
+      "normal": 7
     },
     "v2_type": {
-      "null": 359,
-      "support": 5
+      "null": 430,
+      "support": 7
     },
     "attitude": {
-      "neutral": 359,
-      "support": 5
+      "neutral": 430,
+      "support": 7
     },
     "comment_v2_status": {},
     "comment_v2_type": {},
     "comment_attitude": {},
     "source_types": {
-      "权威媒体/新闻评论": 304,
+      "权威媒体/新闻评论": 375,
       "普通用户舆情": 56,
-      "二创/剪辑解读": 3,
+      "二创/剪辑解读": 5,
       "自媒体观点": 1
     },
     "record_types": {
-      "post": 364
+      "post": 437
     },
     "keywords": {
-      "2026年民族团结进步宣传周": 144,
-      "首个民族团结进步宣传周": 92,
-      "促进民族团结进步，奋进伟大复兴征程": 73,
-      "石榴花开——铸牢中华民族共同体意识": 23,
-      "民族团结进步倡议": 16,
-      "民族团结进步宣传周主场活动": 16
+      "2026年民族团结进步宣传周": 171,
+      "首个民族团结进步宣传周": 107,
+      "促进民族团结进步，奋进伟大复兴征程": 92,
+      "石榴花开——铸牢中华民族共同体意识": 29,
+      "民族团结进步倡议": 19,
+      "民族团结进步宣传周主场活动": 19
     },
     "video_analysis": {
       "video_records": 0,
@@ -101,14 +101,14 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wechat_mp",
-        "cycle_finished_at": "2026-09-17T10:58:55+08:00",
+        "cycle_finished_at": "2026-09-17T11:09:35+08:00",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 593.98,
-        "new_records": 74,
-        "filtered_before_start": 459,
-        "classified_records": 74,
+        "duration_seconds": 639.97,
+        "new_records": 73,
+        "filtered_before_start": 461,
+        "classified_records": 73,
         "ingest_comments": false,
         "input_file_count": 1,
         "comment_input_file_count": 0,
@@ -116,13 +116,13 @@
         "region_rate": 0.0,
         "minority_language_records": 0,
         "language_counts": {
-          "汉语": 74
+          "汉语": 73
         },
         "dashboard_ok": false,
-        "dashboard_sent": 326,
+        "dashboard_sent": 399,
         "dashboard_inserted": 0,
         "dashboard_skipped": 0,
-        "outbox_after": 326
+        "outbox_after": 399
       }
     ]
   }
