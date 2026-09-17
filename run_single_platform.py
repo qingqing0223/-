@@ -15,13 +15,13 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
     """Install the Kuaishou-specific five-minute realtime policy.
 
     Kuaishou search JSONL currently exposes a ``comment_count`` field but may leave
-    it at zero even when comments are retrievable.  The fallback therefore lets
+    it at zero even when comments are retrievable. The fallback therefore lets
     newly discovered Kuaishou videos enter the persistent detail queue even when
-    the public count is unknown.  The queue-only priority value is never written
+    the public count is unknown. The queue-only priority value is never written
     back as a claimed platform comment count.
 
     Realtime deep-comment crawling is also given a finite wall-clock budget and a
-    realtime per-video comment cap.  Historical backfill remains separate and may
+    realtime per-video comment cap. Historical backfill remains separate and may
     crawl to natural end; the realtime path must not let a very large thread delay
     the next new-content discovery indefinitely.
     """
@@ -74,7 +74,7 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
             return 0, 0
 
         # Keep enough headroom for search, ingestion and status writing inside the
-        # 300-second realtime target.  Config can tune the budget, but not above 180s.
+        # 300-second realtime target. Config can tune the budget, but not above 180s.
         budget_seconds = max(30, min(int(cfg.get("kuaishou_realtime_detail_budget_seconds", 120)), 180))
         realtime_comment_cap = max(20, min(int(cfg.get("kuaishou_realtime_max_comments_per_video", 300)), 2000))
         requested_batch = max(1, int(batch_size or cfg.get("realtime_detail_batch_size", 4)))
@@ -138,6 +138,76 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
     crawler_runner._promotion_week_ks_unknown_count_fallback = True
 
 
+def _install_kuaishou_precise_failure_classifier() -> None:
+    """Avoid false NETWORK_ERROR states caused by the bare word 'network'.
+
+    The shared runner historically treats any log containing the literal word
+    ``network`` as a network failure. Browser/framework logs can contain that word
+    even when the actual failure is a platform API, browser, signing, or generic
+    crawler error. For Kuaishou only, preserve NETWORK_ERROR only when an explicit
+    transport/network marker is present; otherwise fall back to the ordinary
+    crawler result. Request behavior is unchanged and platform verification is not
+    bypassed.
+    """
+    import monitor.crawler_runner as crawler_runner
+
+    if getattr(crawler_runner, "_promotion_week_ks_precise_failure_classifier", False):
+        return
+
+    original_classify = crawler_runner._classify_state
+    explicit_network_markers = (
+        "connecttimeout", "readtimeout", "timed out", "timeouterror",
+        "err_timed_out", "err_connection_reset", "err_connection_refused",
+        "err_network_changed", "connection reset", "connection refused",
+        "httpx.connecterror", "httpx.readtimeout", "temporary failure in name resolution",
+        "name or service not known", "nodename nor servname", "http 502", "status 502",
+        "http 503", "status 503", "http 504", "status 504",
+    )
+
+    def classify_precisely(
+        return_code,
+        stdout_log,
+        stderr_log,
+        runner_error="",
+        *,
+        content_row_count=0,
+        comment_row_count=0,
+        comments_enabled=False,
+    ):
+        state = original_classify(
+            return_code,
+            stdout_log,
+            stderr_log,
+            runner_error=runner_error,
+            content_row_count=content_row_count,
+            comment_row_count=comment_row_count,
+            comments_enabled=comments_enabled,
+        )
+        if state != "NETWORK_ERROR":
+            return state
+
+        text = crawler_runner._tail_text(stdout_log, stderr_log)
+        if any(marker in text for marker in explicit_network_markers):
+            return "NETWORK_ERROR"
+
+        # The shared classifier was triggered only by an incidental bare 'network'
+        # token. Reconstruct the ordinary non-network outcome.
+        if runner_error:
+            return "RUNNER_ERROR"
+        if return_code == 0:
+            if content_row_count == 0 and comment_row_count == 0:
+                return "SOFT_EMPTY"
+            if comments_enabled and content_row_count > 0 and comment_row_count == 0:
+                return "SUCCESS_NO_COMMENTS"
+            return "SUCCESS"
+        if return_code is None:
+            return "RUNNER_ERROR"
+        return "CRAWLER_FAILED"
+
+    crawler_runner._classify_state = classify_precisely
+    crawler_runner._promotion_week_ks_precise_failure_classifier = True
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run one platform only, using the shared monitoring config.")
     parser.add_argument("--platform", required=True, choices=sorted(PLATFORMS))
@@ -148,6 +218,7 @@ def main():
 
     if args.platform == "ks":
         _install_kuaishou_unknown_comment_queue_fallback()
+        _install_kuaishou_precise_failure_classifier()
 
     cfg = load_config(Path(args.config))
     configured_codes = {str(p.get("code") or "") for p in cfg.get("platforms", [])}
