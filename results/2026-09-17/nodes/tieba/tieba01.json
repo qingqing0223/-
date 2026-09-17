@@ -6,14 +6,14 @@
   "results_date": "2026-09-17",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-17T23:35:24+08:00",
+  "generated_at": "2026-09-17T23:40:29+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T23:35:24+08:00",
+    "generated_at": "2026-09-17T23:40:29+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -104,10 +104,10 @@
           "kind": "comment",
           "name": "detail_comments_2026-09-17.jsonl",
           "relative_path": "raw_runs/20260917_224756/tieba_20260917_224756/tieba/jsonl/detail_comments_2026-09-17.jsonl",
-          "bytes": 10276395,
-          "rows": 7690,
-          "sha256": "f699e49e529f1ce1f7c80f94dc613e9a38c60c709bb873242475b84cf545206a",
-          "modified_at": "2026-09-17T23:35:23+08:00",
+          "bytes": 10846917,
+          "rows": 7986,
+          "sha256": "7cd6017e6726ed72fa4b5d9ef6aac8ed57c66d8e07382505cc33a311f3a1721e",
+          "modified_at": "2026-09-17T23:39:02+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -768,14 +768,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260917_224756/tieba_20260917_224756/stderr.log",
-          "bytes": 12465571,
-          "sha256": "22dcfd888325bacd29e53d0c08f6f6295837b29afa535d95a99e03f6585e2dca"
+          "bytes": 13114958,
+          "sha256": "0c31ee9ab6f39af73c28e1bc918197af812cbe3950b0cce4751daffb63f9902d"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260917_224756/tieba_20260917_224756/stdout.log",
-          "bytes": 106,
-          "sha256": "d3e632d7f173ae4cd7b99c2fc21ca7051564065b15c2beee5da910d7c8734354"
+          "bytes": 159,
+          "sha256": "44707fb084a2b6f296aebff74a84f2bd002e9fd4900d2a757012fd79ff7ce811"
         }
       ]
     }
