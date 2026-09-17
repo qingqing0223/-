@@ -5,7 +5,8 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V1"
+MARKER = "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V2"
+LEGACY_MARKER = "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V1"
 
 
 def _read(path: Path) -> str:
@@ -17,14 +18,8 @@ def _write(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def patch_core(root: Path) -> None:
-    path = root / "media_platform/kuaishou/core.py"
-    text = _read(path)
-    if MARKER in text:
-        return
-
-    old = '            await self.context_page.goto(f"{self.index_url}?isHome=1")\n'
-    new = (
+def _resilient_block() -> str:
+    return (
         f'            # {MARKER}: do not wait for every homepage resource to finish.\n'
         '            # Slow ads/static assets can keep Playwright\'s default "load" event pending\n'
         '            # even though the page is already usable for login/session/bootstrap.\n'
@@ -43,11 +38,75 @@ def patch_core(root: Path) -> None:
         '                    )\n'
         '                    await asyncio.sleep(2)\n'
     )
-    if text.count(old) != 1:
+
+
+def _startup_window(text: str, path: Path) -> tuple[int, int]:
+    """Return the exact Kuaishou startup bootstrap window.
+
+    The same homepage goto may appear elsewhere in a locally patched MediaCrawler
+    tree.  We only modify the navigation immediately after KS_SIGN_CAPTURE_SCRIPT
+    injection and before client creation.  This keeps the patch deterministic even
+    when another identical goto exists elsewhere in core.py.
+    """
+    left_anchor = "            await self.context_page.add_init_script(KS_SIGN_CAPTURE_SCRIPT)\n"
+    right_anchor = "            # Create a client to interact with the kuaishou website.\n"
+
+    left_positions: list[int] = []
+    pos = 0
+    while True:
+        idx = text.find(left_anchor, pos)
+        if idx < 0:
+            break
+        left_positions.append(idx)
+        pos = idx + len(left_anchor)
+    if len(left_positions) != 1:
         raise RuntimeError(
-            f"{path}: expected exactly one Kuaishou homepage navigation anchor, found {text.count(old)}"
+            f"{path}: expected exactly one KS_SIGN_CAPTURE_SCRIPT startup anchor, found {len(left_positions)}"
         )
-    text = text.replace(old, new, 1)
+
+    start = left_positions[0] + len(left_anchor)
+    end = text.find(right_anchor, start)
+    if end < 0:
+        raise RuntimeError(f"{path}: Kuaishou client-creation anchor not found after startup script injection")
+    return start, end
+
+
+def patch_core(root: Path) -> None:
+    path = root / "media_platform/kuaishou/core.py"
+    text = _read(path)
+
+    # Already on V2: fully idempotent.
+    if MARKER in text:
+        return
+
+    # A previous V1 patch is already functionally resilient. Upgrade only its
+    # marker so repeated setup/checks agree on the current patch version.
+    if LEGACY_MARKER in text and 'wait_until="domcontentloaded"' in text and "for navigation_attempt in range(2):" in text:
+        text = text.replace(LEGACY_MARKER, MARKER, 1)
+        _write(path, text)
+        return
+
+    start, end = _startup_window(text, path)
+    window = text[start:end]
+
+    # If another local patch already introduced the same resilient navigation but
+    # omitted our marker, adopt it rather than inserting a second retry loop.
+    if 'wait_until="domcontentloaded"' in window and "for navigation_attempt in range(2):" in window:
+        insertion = f"            # {MARKER}: adopted existing resilient Kuaishou homepage navigation.\n"
+        text = text[:start] + insertion + text[start:]
+        _write(path, text)
+        return
+
+    old = '            await self.context_page.goto(f"{self.index_url}?isHome=1")\n'
+    count_in_window = window.count(old)
+    if count_in_window != 1:
+        raise RuntimeError(
+            f"{path}: expected exactly one Kuaishou homepage navigation inside startup window, found {count_in_window}; "
+            "other identical goto calls elsewhere in core.py are intentionally ignored"
+        )
+
+    patched_window = window.replace(old, _resilient_block(), 1)
+    text = text[:start] + patched_window + text[end:]
     _write(path, text)
 
 
@@ -58,6 +117,7 @@ def check(root: Path) -> dict:
         "marker_present": False,
         "domcontentloaded_present": False,
         "retry_present": False,
+        "startup_window_valid": False,
         "ok": False,
     }
     if not path.exists():
@@ -65,13 +125,17 @@ def check(root: Path) -> dict:
     text = _read(path)
     try:
         ast.parse(text, filename=str(path))
-        result["marker_present"] = MARKER in text
-        result["domcontentloaded_present"] = 'wait_until="domcontentloaded"' in text
-        result["retry_present"] = "for navigation_attempt in range(2):" in text
+        start, end = _startup_window(text, path)
+        window = text[start:end]
+        result["marker_present"] = MARKER in window
+        result["domcontentloaded_present"] = 'wait_until="domcontentloaded"' in window
+        result["retry_present"] = "for navigation_attempt in range(2):" in window
+        result["startup_window_valid"] = True
         result["ok"] = bool(
             result["marker_present"]
             and result["domcontentloaded_present"]
             and result["retry_present"]
+            and result["startup_window_valid"]
         )
     except Exception:
         pass
@@ -100,7 +164,7 @@ def main() -> int:
     print(json.dumps({
         "root": str(root),
         **result,
-        "purpose": "domcontentloaded_retry_for_kuaishou_homepage_startup",
+        "purpose": "anchor_specific_domcontentloaded_retry_for_kuaishou_homepage_startup",
     }, ensure_ascii=False, indent=2))
     return 0 if result.get("ok") else 3
 
