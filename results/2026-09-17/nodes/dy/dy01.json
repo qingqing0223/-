@@ -6,14 +6,14 @@
   "results_date": "2026-09-17",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-17T22:41:40+08:00",
+  "generated_at": "2026-09-17T22:46:48+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T22:41:40+08:00",
+    "generated_at": "2026-09-17T22:46:48+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-17T10:55:51+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -601,11 +601,11 @@
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-17T22:32:57",
+        "cycle_finished_at": "2026-09-17T22:42:21+08:00",
         "crawler_status": "failed",
-        "crawler_state": "NETWORK_ERROR",
-        "return_code": 1,
-        "duration_seconds": 23.53,
+        "crawler_state": "SOFT_EMPTY",
+        "return_code": 0,
+        "duration_seconds": 41.62,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -635,8 +635,8 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260917_224140/dy_20260917_224140/stderr.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 4352,
+          "sha256": "f1d4207e1669fd7788021400587804849b10b87b49576df03d039aaf24419eb6"
         },
         {
           "name": "stdout.log",
