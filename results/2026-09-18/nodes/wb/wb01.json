@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T01:43:09+08:00",
+  "generated_at": "2026-09-18T01:48:20+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T01:43:09+08:00",
+    "generated_at": "2026-09-18T01:48:20+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T00:39:37+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -646,13 +646,13 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T01:28:33+08:00",
+        "cycle_finished_at": "2026-09-18T01:43:58+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 1,
-        "duration_seconds": 632.3,
+        "duration_seconds": 624.5,
         "new_records": 0,
-        "filtered_before_start": 13,
+        "filtered_before_start": 2,
         "classified_records": 0,
         "ingest_comments": true,
         "input_file_count": 3,
@@ -676,6 +676,278 @@
       "cycle": "20260918_013333",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
       "jsonl_files": [
+        {
+          "kind": "comment",
+          "name": "detail_comments_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_013333/wb_20260918_013333/weibo/jsonl/detail_comments_2026-09-18.jsonl",
+          "bytes": 1726,
+          "rows": 4,
+          "sha256": "508608086d946ce5a202dc28ca3838d2f8ebae0289918924ded2de99779c1f9e",
+          "modified_at": "2026-09-18T01:43:55+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "83ab655b88457f74ef0a",
+                "parent_comment_id": "33c397849d8e4f0db7de",
+                "note_id": "9d8449feba79102a8ad2"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1746769726,
+                "last_modify_ts": 1789667006420
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "bbf6c9b09d2bfc5977f7",
+                "parent_comment_id": "074d54a56d7c3e05d2a1",
+                "note_id": "9d8449feba79102a8ad2"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1746755235,
+                "last_modify_ts": 1789667006422
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "0051e6f415a1de2221d6",
+                "parent_comment_id": "020d81cbeb1b4de1ccad",
+                "note_id": "9d8449feba79102a8ad2"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1746722004,
+                "last_modify_ts": 1789667006433
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "b53f8ecc33c81d4e2f08",
+                "parent_comment_id": "d272f3426f938db96076",
+                "note_id": "4d6327f50e0a82b182ea"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1781434110,
+                "last_modify_ts": 1789667035200
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
+          "name": "detail_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_013333/wb_20260918_013333/weibo/jsonl/detail_contents_2026-09-18.jsonl",
+          "bytes": 20001,
+          "rows": 2,
+          "sha256": "b916b6912b91e0a34cd92a826d98f9e03fc4abca6706e315288e9d0064d102e9",
+          "modified_at": "2026-09-18T01:43:50+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comments_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "note_id",
+                "note_url",
+                "shared_count",
+                "source_keyword"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "content": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "liked_count": "str",
+                "comments_count": "str",
+                "shared_count": "str",
+                "last_modify_ts": "int",
+                "note_url": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "note_id": "9d8449feba79102a8ad2"
+              },
+              "safe_values": {
+                "ip_location": "湖北",
+                "comments_count": "6",
+                "liked_count": "5",
+                "create_time": 1746721993,
+                "last_modify_ts": 1789667002045
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comments_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "note_id",
+                "note_url",
+                "shared_count",
+                "source_keyword"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "content": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "liked_count": "str",
+                "comments_count": "str",
+                "shared_count": "str",
+                "last_modify_ts": "int",
+                "note_url": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "note_id": "4d6327f50e0a82b182ea"
+              },
+              "safe_values": {
+                "ip_location": "北京",
+                "comments_count": "3",
+                "liked_count": "28",
+                "create_time": 1781430345,
+                "last_modify_ts": 1789667030760
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
         {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
@@ -907,14 +1179,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_013333/wb_20260918_013333/stderr.log",
-          "bytes": 88266,
-          "sha256": "cbf6925f5bb420368914ac902962fe78bb3dc563a8bbd3dff644e8b4624db89b"
+          "bytes": 94848,
+          "sha256": "def07a4c5d8a24b4ff577e929049448a6b5f70c5a6f56c281b72bd91e07cf644"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_013333/wb_20260918_013333/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 454,
+          "sha256": "10eb7902ca1055345be83b854917d83e40c6c84439f6b94c7cb35e5600aa74d9"
         }
       ]
     }
