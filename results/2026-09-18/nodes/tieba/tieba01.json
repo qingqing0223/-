@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-18T00:18:03+08:00",
+  "generated_at": "2026-09-18T00:23:08+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T00:18:03+08:00",
+    "generated_at": "2026-09-18T00:23:08+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-17T23:39:18+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -167,10 +167,10 @@
           "kind": "comment",
           "name": "detail_comments_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260917_235021/tieba_20260917_235021/tieba/jsonl/detail_comments_2026-09-18.jsonl",
-          "bytes": 742938,
-          "rows": 1250,
-          "sha256": "4de3ce795422b191a56a5fc9a74dd83ed9e5c2be2fba97f833b8cb5ccd9ee392",
-          "modified_at": "2026-09-18T00:17:59+08:00",
+          "bytes": 822941,
+          "rows": 1395,
+          "sha256": "5efcad56950d6b1d58bbe941be12235320b601bd4c81e0d567f70c51efbde3cc",
+          "modified_at": "2026-09-18T00:19:48+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1052,14 +1052,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260917_235021/tieba_20260917_235021/stderr.log",
-          "bytes": 2004644,
-          "sha256": "a36852b6c201b79368535eaf9806e5520b1cf0113ab67d24b2dd6bb19e647e75"
+          "bytes": 2111576,
+          "sha256": "c1a4567d25abf99ad9e6a31306b59ef1338dcc9f8dc24ea3610c1004b54bb681"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260917_235021/tieba_20260917_235021/stdout.log",
-          "bytes": 106,
-          "sha256": "d3e632d7f173ae4cd7b99c2fc21ca7051564065b15c2beee5da910d7c8734354"
+          "bytes": 159,
+          "sha256": "44707fb084a2b6f296aebff74a84f2bd002e9fd4900d2a757012fd79ff7ce811"
         }
       ]
     }
