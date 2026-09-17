@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-18T00:49:49+08:00",
+  "generated_at": "2026-09-18T00:56:54+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T00:49:49+08:00",
+    "generated_at": "2026-09-18T00:56:54+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T00:19:50+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -172,13 +172,414 @@
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
       "jsonl_files": [
         {
+          "kind": "comment",
+          "name": "detail_comments_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_003740/tieba_20260918_003740/tieba/jsonl/detail_comments_2026-09-18.jsonl",
+          "bytes": 225566,
+          "rows": 432,
+          "sha256": "e484520581191aee80a9dd85f0be97bf26d8d173f5629b66d8c756523cffd3d3",
+          "modified_at": "2026-09-18T00:56:50+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "creator_hash",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "parent_comment_id",
+                "publish_time",
+                "sub_comment_count",
+                "tieba_id",
+                "tieba_link",
+                "tieba_name",
+                "user_nickname"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "parent_comment_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "publish_time": "str",
+                "sub_comment_count": "int",
+                "note_id": "str",
+                "note_url": "str",
+                "tieba_id": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "comment_id": "37b9e9910030d4a6e326",
+                "note_id": "090e96ed643d03153866",
+                "tieba_id": "5e47852d326a66d49a35"
+              },
+              "safe_values": {
+                "sub_comment_count": 6,
+                "publish_time": "2026-05-29 20:47:07",
+                "last_modify_ts": 1789663994318
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "creator_hash",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "parent_comment_id",
+                "publish_time",
+                "sub_comment_count",
+                "tieba_id",
+                "tieba_link",
+                "tieba_name",
+                "user_nickname"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "parent_comment_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "publish_time": "str",
+                "sub_comment_count": "int",
+                "note_id": "str",
+                "note_url": "str",
+                "tieba_id": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "comment_id": "4bd0ecfd873b1662b629",
+                "note_id": "090e96ed643d03153866",
+                "tieba_id": "5e47852d326a66d49a35"
+              },
+              "safe_values": {
+                "sub_comment_count": 13,
+                "publish_time": "2026-05-29 23:13:30",
+                "last_modify_ts": 1789663994319
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "creator_hash",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "parent_comment_id",
+                "publish_time",
+                "sub_comment_count",
+                "tieba_id",
+                "tieba_link",
+                "tieba_name",
+                "user_nickname"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "parent_comment_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "publish_time": "str",
+                "sub_comment_count": "int",
+                "note_id": "str",
+                "note_url": "str",
+                "tieba_id": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "comment_id": "9f5620c2cd31f74dc40d",
+                "note_id": "090e96ed643d03153866",
+                "tieba_id": "5e47852d326a66d49a35"
+              },
+              "safe_values": {
+                "sub_comment_count": 8,
+                "publish_time": "2026-05-29 23:55:45",
+                "last_modify_ts": 1789663994343
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "creator_hash",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "parent_comment_id",
+                "publish_time",
+                "sub_comment_count",
+                "tieba_id",
+                "tieba_link",
+                "tieba_name",
+                "user_nickname"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "parent_comment_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "publish_time": "str",
+                "sub_comment_count": "int",
+                "note_id": "str",
+                "note_url": "str",
+                "tieba_id": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "comment_id": "d65ea38e1cec856eb5a3",
+                "note_id": "090e96ed643d03153866",
+                "tieba_id": "5e47852d326a66d49a35"
+              },
+              "safe_values": {
+                "sub_comment_count": 22,
+                "publish_time": "2026-05-30 00:07:57",
+                "last_modify_ts": 1789663994344
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "creator_hash",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "parent_comment_id",
+                "publish_time",
+                "sub_comment_count",
+                "tieba_id",
+                "tieba_link",
+                "tieba_name",
+                "user_nickname"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "parent_comment_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "publish_time": "str",
+                "sub_comment_count": "int",
+                "note_id": "str",
+                "note_url": "str",
+                "tieba_id": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "comment_id": "aacfae9fdc0317eb2dc2",
+                "note_id": "090e96ed643d03153866",
+                "tieba_id": "5e47852d326a66d49a35"
+              },
+              "safe_values": {
+                "sub_comment_count": 0,
+                "publish_time": "2026-05-30 00:16:08",
+                "last_modify_ts": 1789663994345
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
+          "name": "detail_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_003740/tieba_20260918_003740/tieba/jsonl/detail_contents_2026-09-18.jsonl",
+          "bytes": 6912,
+          "rows": 4,
+          "sha256": "d029392bc3a28f8d822391fa7e8a1c40554bfb39847fe737380aa932436fddcd",
+          "modified_at": "2026-09-18T00:53:11+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "090e96ed643d03153866"
+              },
+              "safe_values": {
+                "total_replay_num": 585,
+                "publish_time": "2026-05-29 17:07:26",
+                "last_modify_ts": 1789663991744
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "f4a64a7663289ea177ea"
+              },
+              "safe_values": {
+                "total_replay_num": 93,
+                "publish_time": "2012-04-25 19:02:24",
+                "last_modify_ts": 1789663991746
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "a4576bb5d66c521f7822"
+              },
+              "safe_values": {
+                "total_replay_num": 89,
+                "publish_time": "2026-09-02 09:29:15",
+                "last_modify_ts": 1789663991752
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "b47324da71157368238d"
+              },
+              "safe_values": {
+                "total_replay_num": 88,
+                "publish_time": "2012-06-08 23:01:58",
+                "last_modify_ts": 1789663991753
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_003740/tieba_20260918_003740/tieba/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 658201,
-          "rows": 283,
-          "sha256": "c61588a34ee8e2c53199f6dd9d0af03cd5bf392287a026cfa6efb740085e2401",
-          "modified_at": "2026-09-18T00:49:48+08:00",
+          "bytes": 752401,
+          "rows": 353,
+          "sha256": "96e7acf0cdc1a0c05a112af22ad790416ff2057baf65a836c514e79cd0557d0f",
+          "modified_at": "2026-09-18T00:52:44+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -397,8 +798,8 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_003740/tieba_20260918_003740/stderr.log",
-          "bytes": 838663,
-          "sha256": "4ef92298310eabade47468f59f75289e0e75e771d6e3012a44c29ac5e53e2cf1"
+          "bytes": 1288264,
+          "sha256": "b2e507f960358aa37f0e04473e8e2ee04bc17185e3b63d8d859c5e46b1130255"
         },
         {
           "name": "stdout.log",
