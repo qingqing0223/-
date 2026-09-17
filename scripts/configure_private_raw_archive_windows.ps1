@@ -35,6 +35,22 @@ if (Test-Path (Join-Path $ArchiveRepo ".git")) {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
+# Make first push robust even when the user created an empty private repository.
+# GitHub normally uses main as the default branch, but an empty clone can leave the
+# local HEAD unborn or without an upstream. The archive process should not require
+# the user to manually create a README first.
+git -C $ArchiveRepo config push.autoSetupRemote true
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+git -C $ArchiveRepo rev-parse --verify HEAD *> $null
+$hasCommit = ($LASTEXITCODE -eq 0)
+$ErrorActionPreference = $previousErrorActionPreference
+if (-not $hasCommit) {
+    git -C $ArchiveRepo symbolic-ref HEAD refs/heads/main
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    Write-Host "Empty private repository detected; local first-push branch prepared as main." -ForegroundColor Cyan
+}
+
 Write-Host "Checking GitHub authentication/write target..." -ForegroundColor Cyan
 git -C $ArchiveRepo ls-remote origin HEAD | Out-Host
 if ($LASTEXITCODE -ne 0) {
@@ -50,7 +66,7 @@ $env:PROMOTION_RAW_ARCHIVE_REPO = $ArchiveRepo
 $env:PROMOTION_RAW_ARCHIVE_AUTO = "1"
 $env:PROMOTION_RAW_ARCHIVE_PRIVATE_CONFIRMED = "1"
 
-Write-Host "" 
+Write-Host ""
 Write-Host "Private raw archive configured." -ForegroundColor Green
 Write-Host "Archive path: $ArchiveRepo" -ForegroundColor Green
 Write-Host "Future final-start wrapper runs will automatically enable 300-second raw archive sync." -ForegroundColor Green
