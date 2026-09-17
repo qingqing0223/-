@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "bili01",
   "platform": "bili",
-  "generated_at": "2026-09-18T02:03:55+08:00",
+  "generated_at": "2026-09-18T02:09:01+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T02:03:55+08:00",
+    "generated_at": "2026-09-18T02:09:01+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-17T23:32:08+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -426,10 +426,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_015958/bili_20260918_015958/bili/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 33835,
-          "rows": 40,
-          "sha256": "215f2490f8af89a1c9c1a1d9e9881fdd85b53c682bf47bc83defd9f8df59c0b6",
-          "modified_at": "2026-09-18T02:02:50+08:00",
+          "bytes": 108885,
+          "rows": 120,
+          "sha256": "7679faf2b76c6caf49461f365eaf1858a97d2afff1b41f685df39e5159ddbac7",
+          "modified_at": "2026-09-18T02:08:11+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -723,14 +723,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_015958/bili_20260918_015958/stderr.log",
-          "bytes": 27268,
-          "sha256": "3fd57d1b8306e463d3077a08c65b029888290e8d39e86b9df9d65a659f8a7a72"
+          "bytes": 77505,
+          "sha256": "dee2e4047a68692fb841a67ba68aa4655727c8184d29c350aecb1d88a9f07ba7"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_015958/bili_20260918_015958/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 326,
+          "sha256": "de6f06dd671a376c95328a7c7ec2b1dabac489d817af143ab114dc725184b2dd"
         }
       ]
     }
