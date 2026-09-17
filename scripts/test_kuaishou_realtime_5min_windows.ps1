@@ -27,6 +27,12 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot --check
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+Write-Host "Applying/verifying Kuaishou session/login resilience patch..." -ForegroundColor Cyan
+python .\scripts\patch_kuaishou_login_resilience.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_kuaishou_login_resilience.py --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 Write-Host "Applying/verifying current Kuaishou comment/hierarchy patch..." -ForegroundColor Cyan
 python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -122,6 +128,12 @@ if ($inspectCode -eq 0) {
         Select-Object -First 2
     if ($latestLogs) {
         $patterns = @(
+            "KUAISHOU_SESSION_PROBE",
+            "KUAISHOU_LOGIN_REQUIRED",
+            "KUAISHOU_LOGIN_UI",
+            "KS_COMMENT_REGION_H5",
+            "KS_COMMENT_REGION_H5_MERGE",
+            "KS_COMMENT_REGION_H5_FAILED",
             "KS_COMMENT_REGION_DEBUG",
             "KUAISHOU_REALTIME_DETAIL_CANDIDATE_SUCCESS",
             "KUAISHOU_REALTIME_DETAIL_CANDIDATE_FAILED",
@@ -135,7 +147,7 @@ if ($inspectCode -eq 0) {
         foreach ($log in $latestLogs) {
             Write-Host "--- $($log.FullName) ---" -ForegroundColor DarkCyan
             Select-String -Path $log.FullName -Pattern $patterns -SimpleMatch -ErrorAction SilentlyContinue |
-                Select-Object -Last 80 |
+                Select-Object -Last 100 |
                 ForEach-Object { $_.Line }
         }
     } else {
