@@ -279,7 +279,9 @@ def _classify_state(
     )
     network_markers = (
         "connecttimeout", "readtimeout", "timed out", "timeout", "err_timed_out",
-        "connection reset", "connection refused", "http 502", "status 502", "network",
+        "connection reset", "connection refused", "err_connection_reset", "err_connection_refused",
+        "http 502", "status 502", "http 503", "status 503", "http 504", "status 504",
+        "name resolution", "dns error", "networkerror",
     )
     natural_end_markers = (
         "这里还没有内容",
@@ -288,6 +290,18 @@ def _classify_state(
         "cards=[]",
     )
 
+    # A zero process exit plus valid persisted data means the collector recovered
+    # successfully.  Startup/fallback warnings (for example a CDP 502 followed by
+    # a healthy standard-Playwright run) must not downgrade the whole cycle to a
+    # transport failure merely because the warning remains in stdout/stderr.
+    if return_code == 0 and (content_row_count > 0 or comment_row_count > 0):
+        if comments_enabled and content_row_count > 0 and comment_row_count == 0:
+            return "SUCCESS_NO_COMMENTS"
+        return "SUCCESS"
+
+    # When no usable data was produced, explicit verification/login evidence still
+    # takes precedence over generic transport errors so humans receive the correct
+    # recovery instruction instead of an automatic network retry.
     if any(marker in text for marker in verify_markers):
         return "VERIFY_REQUIRED"
     if any(marker in text for marker in login_markers):
@@ -299,11 +313,7 @@ def _classify_state(
         return "NATURAL_END"
 
     if return_code == 0:
-        if content_row_count == 0 and comment_row_count == 0:
-            return "SOFT_EMPTY"
-        if comments_enabled and content_row_count > 0 and comment_row_count == 0:
-            return "SUCCESS_NO_COMMENTS"
-        return "SUCCESS"
+        return "SOFT_EMPTY"
 
     if return_code is None:
         return "RUNNER_ERROR"
