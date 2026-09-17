@@ -6,107 +6,126 @@
   "results_date": "2026-09-16",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-17T04:35:42+08:00",
+  "generated_at": "2026-09-17T14:21:23+08:00",
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T04:35:42+08:00",
+    "generated_at": "2026-09-17T14:21:23+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-16T20:25:12+08:00",
+    "latest_seen_time": "2026-09-17T10:55:51+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 33,
+      "unique_records": 435,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
-      "comment_records": 18,
-      "root_comment_records": 17,
-      "reply_comment_records": 1,
-      "parent_linked_comment_records": 1,
+      "comment_records": 414,
+      "root_comment_records": 359,
+      "reply_comment_records": 55,
+      "parent_linked_comment_records": 55,
       "comment_parent_link_rate": 1.0,
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
-      "unique_comment_authors": 17,
-      "public_publisher_accounts": 15,
-      "likes": 52947,
-      "comments": 112,
-      "shares": 1025,
+      "unique_comment_authors": 394,
+      "public_publisher_accounts": 21,
+      "likes": 60468,
+      "comments": 452,
+      "shares": 1200,
       "views": 0,
-      "favorites": 0,
+      "favorites": 271,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "dy": 33
+      "dy": 435
     },
     "platform_attitude": {
       "dy": {
-        "support": 20,
-        "neutral": 12,
-        "non_support": 1
+        "support": 335,
+        "neutral": 65,
+        "non_support": 25,
+        "attention": 10
       }
     },
     "languages": {
-      "汉语": 31,
-      "未知": 2
+      "汉语": 413,
+      "未知": 22
     },
     "minority_languages": {},
     "regions": {},
     "content_regions": {},
     "comment_regions": {},
     "v2_status": {
-      "normal": 20,
-      "neutral": 12,
-      "problematic": 1
+      "normal": 335,
+      "neutral": 65,
+      "problematic": 25,
+      "attention": 10
     },
     "v2_type": {
-      "support": 20,
-      "null": 12,
-      "skepticism": 1
+      "support": 335,
+      "null": 65,
+      "concern": 7,
+      "discriminatory_expression": 7,
+      "consultation": 6,
+      "criticism": 6,
+      "information_gap": 4,
+      "skepticism": 3,
+      "implementation_issue": 1,
+      "fairness_dispute": 1
     },
     "attitude": {
-      "support": 20,
-      "neutral": 12,
-      "non_support": 1
+      "support": 335,
+      "neutral": 65,
+      "non_support": 25,
+      "attention": 10
     },
     "comment_v2_status": {
-      "normal": 16,
-      "problematic": 1,
-      "neutral": 1
+      "normal": 328,
+      "neutral": 51,
+      "problematic": 25,
+      "attention": 10
     },
     "comment_v2_type": {
-      "support": 16,
-      "skepticism": 1,
-      "null": 1
+      "support": 328,
+      "null": 51,
+      "concern": 7,
+      "discriminatory_expression": 7,
+      "consultation": 6,
+      "criticism": 6,
+      "information_gap": 4,
+      "skepticism": 3,
+      "implementation_issue": 1,
+      "fairness_dispute": 1
     },
     "comment_attitude": {
-      "support": 16,
-      "non_support": 1,
-      "neutral": 1
+      "support": 328,
+      "neutral": 51,
+      "non_support": 25,
+      "attention": 10
     },
     "source_types": {
-      "普通用户舆情": 20,
-      "权威媒体/新闻评论": 10,
-      "自媒体观点": 2,
-      "律师/专家解读": 1
+      "普通用户舆情": 406,
+      "权威媒体/新闻评论": 15,
+      "自媒体观点": 12,
+      "律师/专家解读": 2
     },
     "record_types": {
-      "comment": 18,
-      "video": 15
+      "comment": 414,
+      "video": 21
     },
     "keywords": {
       "首个民族团结进步宣传周": 10,
+      "2026年民族团结进步宣传周": 6,
       "促进民族团结进步，奋进伟大复兴征程": 2,
-      "2026年民族团结进步宣传周": 1,
-      "民族团结进步宣传周主场活动": 1,
-      "民族团结进步倡议": 1
+      "民族团结进步倡议": 2,
+      "民族团结进步宣传周主场活动": 1
     },
     "video_analysis": {
-      "video_records": 15,
+      "video_records": 21,
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,
@@ -180,6 +199,28 @@
         }
       },
       {
+        "account": "乌***现",
+        "platforms": {
+          "dy": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 11,
+          "comments": 0,
+          "shares": 1,
+          "views": 0,
+          "favorites": 1,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "乌***纳",
         "platforms": {
           "dy": 1
@@ -193,6 +234,72 @@
         "regions": {},
         "engagement": {
           "likes": 1,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "乌***草",
+        "platforms": {
+          "dy": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 7,
+          "comments": 2,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "凤***视",
+        "platforms": {
+          "dy": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 2458,
+          "comments": 98,
+          "shares": 149,
+          "views": 0,
+          "favorites": 213,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "听***马",
+        "platforms": {
+          "dy": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 2,
           "comments": 0,
           "shares": 0,
           "views": 0,
@@ -312,6 +419,28 @@
         }
       },
       {
+        "account": "疆***孜",
+        "platforms": {
+          "dy": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 1287,
+          "comments": 208,
+          "shares": 1,
+          "views": 0,
+          "favorites": 28,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "科***媒",
         "platforms": {
           "dy": 1
@@ -422,6 +551,28 @@
         }
       },
       {
+        "account": "革*",
+        "platforms": {
+          "dy": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 365,
+          "comments": 32,
+          "shares": 24,
+          "views": 0,
+          "favorites": 29,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "香***杰",
         "platforms": {
           "dy": 1
@@ -444,16 +595,16 @@
         }
       }
     ],
-    "public_account_stats_total": 15,
+    "public_account_stats_total": 21,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-17T04:05:37",
-        "crawler_status": "failed",
-        "crawler_state": "NETWORK_ERROR",
-        "return_code": 1,
-        "duration_seconds": 34.88,
+        "cycle_finished_at": "2026-09-17T14:18:40",
+        "crawler_status": "ok",
+        "crawler_state": "SUCCESS",
+        "return_code": 0,
+        "duration_seconds": 39.7,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
