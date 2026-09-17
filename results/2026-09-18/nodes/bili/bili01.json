@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "bili01",
   "platform": "bili",
-  "generated_at": "2026-09-18T03:35:53+08:00",
+  "generated_at": "2026-09-18T03:40:59+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T03:35:53+08:00",
+    "generated_at": "2026-09-18T03:40:59+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-17T23:32:08+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -426,10 +426,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_033323/bili_20260918_033323/bili/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 18439,
-          "rows": 20,
-          "sha256": "791bb693ae4d63512a755ec54ee8b6c8c25f8491fac31631c4b59385b632f9a0",
-          "modified_at": "2026-09-18T03:34:58+08:00",
+          "bytes": 89025,
+          "rows": 100,
+          "sha256": "533a4b04b5dff0da6ebf5f66973a2bf2344f74c234704e44e034d2a15605a48d",
+          "modified_at": "2026-09-18T03:40:21+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -723,8 +723,8 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_033323/bili_20260918_033323/stderr.log",
-          "bytes": 16076,
-          "sha256": "63e33dc34324b5eaacc82806edc4250a86b633001290820f34d77627e98db744"
+          "bytes": 57482,
+          "sha256": "ecda6cfcb5f9e45379c5421471a5353f0d9031176c3e7ea597b38219853b1713"
         },
         {
           "name": "stdout.log",
