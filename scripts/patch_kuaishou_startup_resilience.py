@@ -3,12 +3,14 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import re
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V3"
+MARKER = "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V4"
 LEGACY_MARKERS = (
     "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V1",
     "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V2",
+    "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V3",
 )
 
 
@@ -47,18 +49,6 @@ def _resilient_block(indent: str) -> str:
     )
 
 
-def _find_all(text: str, needle: str) -> list[int]:
-    positions: list[int] = []
-    pos = 0
-    while True:
-        idx = text.find(needle, pos)
-        if idx < 0:
-            break
-        positions.append(idx)
-        pos = idx + len(needle)
-    return positions
-
-
 def _line_bounds(text: str, index: int) -> tuple[int, int]:
     start = text.rfind("\n", 0, index) + 1
     end = text.find("\n", index)
@@ -70,67 +60,84 @@ def _line_bounds(text: str, index: int) -> tuple[int, int]:
 
 
 def _startup_window(text: str, path: Path) -> tuple[int, int]:
-    """Return the exact Kuaishou startup bootstrap window without relying on indentation."""
-    left_token = "await self.context_page.add_init_script(KS_SIGN_CAPTURE_SCRIPT)"
+    """Locate only Kuaishou.start() bootstrap code around the first context page.
+
+    The upstream file can contain additional homepage goto calls in helper/fallback
+    paths.  Those must not make this patch fail.  We deliberately scope matching to
+    the page-creation -> client-creation window used by start().
+    """
+    page_anchor = "self.context_page = await self.browser_context.new_page()"
+    inject_anchor = "await self.context_page.add_init_script(KS_SIGN_CAPTURE_SCRIPT)"
     right_token = "# Create a client to interact with the kuaishou website."
 
-    left_positions = _find_all(text, left_token)
-    if len(left_positions) != 1:
-        raise RuntimeError(
-            f"{path}: expected exactly one KS_SIGN_CAPTURE_SCRIPT startup anchor, found {len(left_positions)}"
-        )
+    page_idx = text.find(page_anchor)
+    if page_idx < 0:
+        raise RuntimeError(f"{path}: Kuaishou context-page creation anchor not found")
 
-    _, left_line_end = _line_bounds(text, left_positions[0])
-    right_index = text.find(right_token, left_line_end)
-    if right_index < 0:
-        raise RuntimeError(f"{path}: Kuaishou client-creation anchor not found after startup script injection")
-    right_line_start, _ = _line_bounds(text, right_index)
-    return left_line_end, right_line_start
+    inject_idx = text.find(inject_anchor, page_idx)
+    if inject_idx < 0:
+        raise RuntimeError(f"{path}: KS_SIGN_CAPTURE_SCRIPT startup anchor not found after page creation")
+
+    _, start = _line_bounds(text, inject_idx)
+    right_idx = text.find(right_token, start)
+    if right_idx < 0:
+        raise RuntimeError(f"{path}: Kuaishou client-creation anchor not found after startup injection")
+    end, _ = _line_bounds(text, right_idx)
+    return start, end
 
 
-def _goto_line_in_window(window: str, path: Path) -> tuple[int, int, str]:
-    token = 'await self.context_page.goto(f"{self.index_url}?isHome=1")'
-    positions = _find_all(window, token)
-    if len(positions) != 1:
-        raise RuntimeError(
-            f"{path}: expected exactly one Kuaishou homepage navigation inside startup window, found {len(positions)}; "
-            "other identical goto calls elsewhere in core.py are intentionally ignored"
-        )
-    line_start, line_end = _line_bounds(window, positions[0])
-    line = window[line_start:line_end]
-    indent = line[: len(line) - len(line.lstrip(" \t"))]
-    return line_start, line_end, indent
+def _raw_goto_matches(window: str) -> list[re.Match[str]]:
+    pattern = re.compile(
+        r'(?m)^(?P<indent>[ \t]*)await\s+self\.context_page\.goto\(\s*'
+        r'f["\']\{self\.index_url\}\?isHome=1["\']\s*\)\s*\r?\n?'
+    )
+    return list(pattern.finditer(window))
 
 
 def patch_core(root: Path) -> None:
     path = root / "media_platform/kuaishou/core.py"
     text = _read(path)
-
-    if MARKER in text:
-        return
-
-    # Older resilience versions are already functionally safe. Upgrade their
-    # marker in place rather than stacking another retry block.
-    if 'wait_until="domcontentloaded"' in text and "for navigation_attempt in range(2):" in text:
-        for legacy in LEGACY_MARKERS:
-            if legacy in text:
-                text = text.replace(legacy, MARKER, 1)
-                _write(path, text)
-                return
-
     start, end = _startup_window(text, path)
     window = text[start:end]
 
-    if 'wait_until="domcontentloaded"' in window and "for navigation_attempt in range(2):" in window:
-        first_nonempty = next((ln for ln in window.splitlines() if ln.strip()), "")
-        indent = first_nonempty[: len(first_nonempty) - len(first_nonempty.lstrip(" \t"))]
-        insertion = f"{indent}# {MARKER}: adopted existing resilient Kuaishou homepage navigation.\n"
-        text = text[:start] + insertion + text[start:]
+    resilient = 'wait_until="domcontentloaded"' in window and "for navigation_attempt in range(2):" in window
+    if resilient:
+        if MARKER in window:
+            return
+        upgraded = window
+        replaced = False
+        for legacy in LEGACY_MARKERS:
+            if legacy in upgraded:
+                upgraded = upgraded.replace(legacy, MARKER, 1)
+                replaced = True
+                break
+        if not replaced:
+            first_nonempty = next((ln for ln in upgraded.splitlines() if ln.strip()), "")
+            indent = first_nonempty[: len(first_nonempty) - len(first_nonempty.lstrip(" \t"))]
+            upgraded = f"{indent}# {MARKER}: adopted existing resilient Kuaishou homepage navigation.\n" + upgraded
+        text = text[:start] + upgraded + text[end:]
         _write(path, text)
         return
 
-    line_start, line_end, indent = _goto_line_in_window(window, path)
-    patched_window = window[:line_start] + _resilient_block(indent) + window[line_end:]
+    matches = _raw_goto_matches(window)
+    if not matches:
+        raise RuntimeError(
+            f"{path}: Kuaishou startup window has neither resilient navigation nor a raw homepage goto anchor"
+        )
+
+    # Patch the first startup goto and remove any exact duplicate raw goto lines in
+    # the same bootstrap window.  Identical calls elsewhere in core.py are ignored.
+    first = matches[0]
+    indent = first.group("indent")
+    pieces = []
+    cursor = 0
+    for idx, match in enumerate(matches):
+        pieces.append(window[cursor:match.start()])
+        if idx == 0:
+            pieces.append(_resilient_block(indent))
+        cursor = match.end()
+    pieces.append(window[cursor:])
+    patched_window = "".join(pieces)
     text = text[:start] + patched_window + text[end:]
     _write(path, text)
 
@@ -138,11 +145,13 @@ def patch_core(root: Path) -> None:
 def check(root: Path) -> dict:
     path = root / "media_platform/kuaishou/core.py"
     result = {
+        "patch_version": 4,
         "core_exists": path.exists(),
         "marker_present": False,
         "domcontentloaded_present": False,
         "retry_present": False,
         "startup_window_valid": False,
+        "raw_homepage_goto_remaining": None,
         "ok": False,
     }
     if not path.exists():
@@ -155,12 +164,14 @@ def check(root: Path) -> dict:
         result["marker_present"] = MARKER in window
         result["domcontentloaded_present"] = 'wait_until="domcontentloaded"' in window
         result["retry_present"] = "for navigation_attempt in range(2):" in window
+        result["raw_homepage_goto_remaining"] = len(_raw_goto_matches(window))
         result["startup_window_valid"] = True
         result["ok"] = bool(
             result["marker_present"]
             and result["domcontentloaded_present"]
             and result["retry_present"]
             and result["startup_window_valid"]
+            and result["raw_homepage_goto_remaining"] == 0
         )
     except Exception:
         pass
@@ -182,6 +193,7 @@ def main() -> int:
     except Exception as exc:
         print(json.dumps({
             "ok": False,
+            "patch_version": 4,
             "root": str(root),
             "error": f"{type(exc).__name__}: {exc}",
         }, ensure_ascii=False, indent=2))
@@ -189,7 +201,7 @@ def main() -> int:
     print(json.dumps({
         "root": str(root),
         **result,
-        "purpose": "indentation_agnostic_anchor_specific_kuaishou_homepage_retry",
+        "purpose": "startup_window_scoped_duplicate_tolerant_kuaishou_homepage_retry",
     }, ensure_ascii=False, indent=2))
     return 0 if result.get("ok") else 3
 
