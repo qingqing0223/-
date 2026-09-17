@@ -6,22 +6,22 @@
   "results_date": "2026-09-18",
   "node_id": "ks01",
   "platform": "ks",
-  "generated_at": "2026-09-18T07:30:00+08:00",
+  "generated_at": "2026-09-18T07:35:15+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_ks"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T07:30:00+08:00",
+    "generated_at": "2026-09-18T07:35:15+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T07:18:13+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
       "unique_records": 142,
       "filtered_before_start_from_existing_output": 0,
-      "region_records": 18,
-      "region_coverage_rate": 0.1268,
+      "region_records": 19,
+      "region_coverage_rate": 0.1338,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 64,
@@ -63,7 +63,8 @@
       "宁夏": 3,
       "重庆": 2,
       "西藏": 2,
-      "甘肃": 1
+      "甘肃": 1,
+      "陕西": 1
     },
     "content_regions": {
       "内蒙古": 4,
@@ -72,7 +73,8 @@
       "宁夏": 3,
       "重庆": 2,
       "西藏": 2,
-      "甘肃": 1
+      "甘肃": 1,
+      "陕西": 1
     },
     "comment_regions": {},
     "v2_status": {
@@ -866,7 +868,9 @@
         "attitude": {
           "neutral": 1
         },
-        "regions": {},
+        "regions": {
+          "陕西": 1
+        },
         "engagement": {
           "likes": 4,
           "comments": 0,
@@ -1351,13 +1355,13 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_ks",
-        "cycle_finished_at": "2026-09-18T07:27:13+08:00",
+        "cycle_finished_at": "2026-09-18T07:32:10+08:00",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 165.82,
+        "duration_seconds": 163.19,
         "new_records": 0,
-        "filtered_before_start": 22,
+        "filtered_before_start": 42,
         "classified_records": 0,
         "ingest_comments": true,
         "input_file_count": 3,
@@ -1382,13 +1386,273 @@
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_ks",
       "jsonl_files": [
         {
+          "kind": "comment",
+          "name": "detail_comments_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_072927/ks_20260918_072927/kuaishou/jsonl/detail_comments_2026-09-18.jsonl",
+          "bytes": 92527,
+          "rows": 256,
+          "sha256": "3074570f7b5bd0029265c1aae2d113baf0b5964a1a48150f99c4c1206f4f44b2",
+          "modified_at": "2026-09-18T07:34:07+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "parent_comment_id",
+                "root_comment_id",
+                "sub_comment_count",
+                "video_id"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "video_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "parent_comment_id": "str",
+                "root_comment_id": "str",
+                "last_modify_ts": "int",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "c74c9625c05201e0a87a",
+                "video_id": "88d09f2fdc8c980b6847"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1787592119212,
+                "last_modify_ts": 1789687834592
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "parent_comment_id",
+                "root_comment_id",
+                "sub_comment_count",
+                "video_id"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "video_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "parent_comment_id": "str",
+                "root_comment_id": "str",
+                "last_modify_ts": "int",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "8fce1bf73b30b96296d0",
+                "video_id": "88d09f2fdc8c980b6847"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1787327615666,
+                "last_modify_ts": 1789687834593
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "parent_comment_id",
+                "root_comment_id",
+                "sub_comment_count",
+                "video_id"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "video_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "parent_comment_id": "str",
+                "root_comment_id": "str",
+                "last_modify_ts": "int",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "7400ab365b0c93ef2408",
+                "video_id": "88d09f2fdc8c980b6847"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1785037045738,
+                "last_modify_ts": 1789687834594
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "parent_comment_id",
+                "root_comment_id",
+                "sub_comment_count",
+                "video_id"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "video_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "parent_comment_id": "str",
+                "root_comment_id": "str",
+                "last_modify_ts": "int",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "b35d4530caff0b4cc375",
+                "video_id": "88d09f2fdc8c980b6847"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1784305573595,
+                "last_modify_ts": 1789687834595
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "parent_comment_id",
+                "root_comment_id",
+                "sub_comment_count",
+                "video_id"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "video_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "parent_comment_id": "str",
+                "root_comment_id": "str",
+                "last_modify_ts": "int",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "7e2a8f54f0a04057c161",
+                "video_id": "88d09f2fdc8c980b6847"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1784298464271,
+                "last_modify_ts": 1789687834596
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
+          "name": "detail_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_072927/ks_20260918_072927/kuaishou/jsonl/detail_contents_2026-09-18.jsonl",
+          "bytes": 1293,
+          "rows": 1,
+          "sha256": "f53af7dbaad4424229a24374055239142911b1fd4e649d9b3d9cdf3e45adc009",
+          "modified_at": "2026-09-18T07:30:30+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "video_id": "88d09f2fdc8c980b6847"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "956",
+                "create_time": 1782459172175,
+                "last_modify_ts": 1789687830521
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_072927/ks_20260918_072927/kuaishou/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 81201,
-          "rows": 80,
-          "sha256": "a486fbba5d0396a64e15cd2c6ccfc18ea5ba0aec982adc7c378a6f585f6ae53b",
-          "modified_at": "2026-09-18T07:29:56+08:00",
+          "bytes": 125280,
+          "rows": 120,
+          "sha256": "2d56b9c7977f6f0c4f22e73c7a16b4d5050182415d3fc81767e7815fb754cdf6",
+          "modified_at": "2026-09-18T07:30:06+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1644,14 +1908,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_072927/ks_20260918_072927/stderr.log",
-          "bytes": 29125,
-          "sha256": "9d7e5853243c8b496bbab3d1a1e7ba9b48805e8e5c082b83bfc23633c68f1677"
+          "bytes": 236845,
+          "sha256": "4244f93c93e6b023118f5f7d8f612eeab888b56346e49d81bb05da7071352a9e"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_072927/ks_20260918_072927/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 242,
+          "sha256": "b2c116b1279f2c08a943a97bf9e38540a6d546cdc7cde82f62be213f47bbed78"
         }
       ]
     }
