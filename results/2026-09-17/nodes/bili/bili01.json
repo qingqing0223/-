@@ -6,14 +6,14 @@
   "results_date": "2026-09-17",
   "node_id": "bili01",
   "platform": "bili",
-  "generated_at": "2026-09-17T15:08:16+08:00",
+  "generated_at": "2026-09-17T15:13:22+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-17T15:08:16+08:00",
+    "generated_at": "2026-09-17T15:13:22+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-16T16:00:39+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -147,10 +147,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-17.jsonl",
           "relative_path": "raw_runs/20260917_144750/bili_20260917_144750/bili/jsonl/search_contents_2026-09-17.jsonl",
-          "bytes": 253029,
-          "rows": 280,
-          "sha256": "57046dced5482e07d5d4595c87cc404a7128407c78bdf1a1052651ec4c2e03a7",
-          "modified_at": "2026-09-17T15:07:11+08:00",
+          "bytes": 328258,
+          "rows": 360,
+          "sha256": "1f6f36fb9fedc1b07e05002bfa8fe9a0bd69399e365919d8c3a870684f04cb35",
+          "modified_at": "2026-09-17T15:12:35+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -444,14 +444,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260917_144750/bili_20260917_144750/stderr.log",
-          "bytes": 150808,
-          "sha256": "1c6baaea8db9b22a2b9c95dbe34ffa25ec0c53733ac4fb916de7138b0525a620"
+          "bytes": 201109,
+          "sha256": "f80f13b0ca13182e939bdc1403066be0a6b9371ccd27a2887b19b5ea154c171e"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260917_144750/bili_20260917_144750/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 106,
+          "sha256": "d3e632d7f173ae4cd7b99c2fc21ca7051564065b15c2beee5da910d7c8734354"
         }
       ]
     }
