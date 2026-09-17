@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-18T06:48:45+08:00",
+  "generated_at": "2026-09-18T06:53:50+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T06:48:45+08:00",
+    "generated_at": "2026-09-18T06:53:50+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T06:32:48+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -163,23 +163,21 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
-        "cycle_finished_at": "2026-09-18T06:33:16+08:00",
+        "cycle_finished_at": "2026-09-18T06:50:58+08:00",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 1028.31,
-        "new_records": 8,
-        "filtered_before_start": 34,
-        "classified_records": 8,
+        "duration_seconds": 1001.52,
+        "new_records": 0,
+        "filtered_before_start": 10,
+        "classified_records": 0,
         "ingest_comments": true,
         "input_file_count": 3,
         "comment_input_file_count": 1,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {
-          "汉语": 8
-        },
+        "language_counts": {},
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -192,17 +190,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_063416",
+      "cycle": "20260918_065158",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
       "jsonl_files": [
         {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_063416/tieba_20260918_063416/tieba/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 780253,
-          "rows": 336,
-          "sha256": "bd1415971f52e1ce728ebad5f97b4b2f1de4ef769efc8d3563972aae22a2cea0",
-          "modified_at": "2026-09-18T06:48:31+08:00",
+          "relative_path": "raw_runs/20260918_065158/tieba_20260918_065158/tieba/jsonl/search_contents_2026-09-18.jsonl",
+          "bytes": 56190,
+          "rows": 30,
+          "sha256": "729fbb2b8355451ed43f5544f521aa1991f8f82b1ca3e15c77b17dd6f53558ca",
+          "modified_at": "2026-09-18T06:53:25+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -241,7 +239,7 @@
               "safe_values": {
                 "total_replay_num": 9,
                 "publish_time": "2026-07-16 01:20:39",
-                "last_modify_ts": 1789684494007,
+                "last_modify_ts": 1789685555817,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -283,7 +281,7 @@
               "safe_values": {
                 "total_replay_num": 16,
                 "publish_time": "2026-02-18 20:56:39",
-                "last_modify_ts": 1789684494009,
+                "last_modify_ts": 1789685555818,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -325,7 +323,7 @@
               "safe_values": {
                 "total_replay_num": 143,
                 "publish_time": "2026-03-14 06:14:35",
-                "last_modify_ts": 1789684494009,
+                "last_modify_ts": 1789685555819,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -367,7 +365,7 @@
               "safe_values": {
                 "total_replay_num": 14,
                 "publish_time": "2026-03-23 18:35:57",
-                "last_modify_ts": 1789684494010,
+                "last_modify_ts": 1789685555819,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -409,7 +407,7 @@
               "safe_values": {
                 "total_replay_num": 6,
                 "publish_time": "2026-02-26 17:54:49",
-                "last_modify_ts": 1789684494010,
+                "last_modify_ts": 1789685555820,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -420,13 +418,13 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_063416/tieba_20260918_063416/stderr.log",
-          "bytes": 997844,
-          "sha256": "02a65145bb4b80720db0a9ad0eabfe88ba87b624d0f09c0a47c07d4bd7c92697"
+          "relative_path": "raw_runs/20260918_065158/tieba_20260918_065158/stderr.log",
+          "bytes": 84534,
+          "sha256": "71869deabc254da6aeb8a061f3c2636b8d588c24631beaa9f8ecf94de17233a8"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_063416/tieba_20260918_063416/stdout.log",
+          "relative_path": "raw_runs/20260918_065158/tieba_20260918_065158/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
