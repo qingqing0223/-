@@ -6,22 +6,22 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T00:37:05+08:00",
+  "generated_at": "2026-09-18T00:42:29+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T00:37:05+08:00",
+    "generated_at": "2026-09-18T00:42:29+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-17T23:18:40+08:00",
+    "latest_seen_time": "2026-09-18T00:39:37+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 22,
+      "unique_records": 29,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 4,
-      "region_coverage_rate": 0.1818,
+      "region_coverage_rate": 0.1379,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 0,
@@ -32,8 +32,8 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 0,
-      "public_publisher_accounts": 19,
-      "likes": 22,
+      "public_publisher_accounts": 24,
+      "likes": 29,
       "comments": 1,
       "shares": 13,
       "views": 0,
@@ -42,16 +42,16 @@
       "coins": 0
     },
     "platforms": {
-      "wb": 22
+      "wb": 29
     },
     "platform_attitude": {
       "wb": {
-        "unknown": 15,
+        "unknown": 22,
         "neutral": 7
       }
     },
     "languages": {
-      "汉语": 22
+      "汉语": 29
     },
     "minority_languages": {},
     "regions": {
@@ -66,30 +66,34 @@
     },
     "comment_regions": {},
     "v2_status": {
-      "unclassified": 15,
+      "unclassified": 22,
       "neutral": 7
     },
     "v2_type": {
-      "null": 22
+      "null": 29
     },
     "attitude": {
-      "unknown": 15,
+      "unknown": 22,
       "neutral": 7
     },
     "comment_v2_status": {},
     "comment_v2_type": {},
     "comment_attitude": {},
     "source_types": {
-      "权威媒体/新闻评论": 18,
+      "权威媒体/新闻评论": 24,
       "普通用户舆情": 2,
-      "自媒体观点": 2
+      "自媒体观点": 2,
+      "律师/专家解读": 1
     },
     "record_types": {
-      "post": 22
+      "post": 29
     },
     "keywords": {
       "2026年民族团结进步宣传周": 16,
-      "首个民族团结进步宣传周": 6
+      "首个民族团结进步宣传周": 7,
+      "促进民族团结进步，奋进伟大复兴征程": 2,
+      "民族团结进步倡议": 2,
+      "民族团结进步宣传周主场活动": 2
     },
     "video_analysis": {
       "video_records": 0,
@@ -99,6 +103,28 @@
       "multimodal_completion_rate": 0.0
     },
     "public_account_stats": [
+      {
+        "account": "中***报",
+        "platforms": {
+          "wb": 3
+        },
+        "records": 3,
+        "posts": 3,
+        "videos": 0,
+        "attitude": {
+          "unknown": 3
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 8,
+          "comments": 0,
+          "shares": 1,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
       {
         "account": "保***教",
         "platforms": {
@@ -123,7 +149,7 @@
         }
       },
       {
-        "account": "中***报",
+        "account": "人***报",
         "platforms": {
           "wb": 2
         },
@@ -135,9 +161,9 @@
         },
         "regions": {},
         "engagement": {
-          "likes": 4,
+          "likes": 0,
           "comments": 0,
-          "shares": 1,
+          "shares": 0,
           "views": 0,
           "favorites": 0,
           "danmaku": 0,
@@ -182,6 +208,28 @@
           "likes": 0,
           "comments": 0,
           "shares": 7,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "中***网",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 1,
+          "comments": 0,
+          "shares": 0,
           "views": 0,
           "favorites": 0,
           "danmaku": 0,
@@ -459,6 +507,28 @@
         }
       },
       {
+        "account": "石***府",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "网***特",
         "platforms": {
           "wb": 1
@@ -481,6 +551,28 @@
         }
       },
       {
+        "account": "美***江",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 2,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "遂***部",
         "platforms": {
           "wb": 1
@@ -490,6 +582,28 @@
         "videos": 0,
         "attitude": {
           "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "霍***心",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "unknown": 1
         },
         "regions": {},
         "engagement": {
@@ -527,26 +641,28 @@
         }
       }
     ],
-    "public_account_stats_total": 19,
+    "public_account_stats_total": 24,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T00:23:28+08:00",
+        "cycle_finished_at": "2026-09-18T00:40:59+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 1,
-        "duration_seconds": 297.3,
-        "new_records": 0,
-        "filtered_before_start": 0,
-        "classified_records": 0,
+        "duration_seconds": 668.44,
+        "new_records": 7,
+        "filtered_before_start": 80,
+        "classified_records": 7,
         "ingest_comments": true,
-        "input_file_count": 2,
-        "comment_input_file_count": 0,
+        "input_file_count": 3,
+        "comment_input_file_count": 1,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 7
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -563,13 +679,283 @@
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
       "jsonl_files": [
         {
+          "kind": "comment",
+          "name": "detail_comments_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_002828/wb_20260918_002828/weibo/jsonl/detail_comments_2026-09-18.jsonl",
+          "bytes": 12113,
+          "rows": 29,
+          "sha256": "d303023cda49f559eb778fd5ba75d4776fc5dcf35f2549f35606b05bf76bab95",
+          "modified_at": "2026-09-18T00:39:34+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "83da1b3702b9c85535ab",
+                "parent_comment_id": "f740aea05f41c0447759",
+                "note_id": "ee0c4a8f92e1a4d036e6"
+              },
+              "safe_values": {
+                "sub_comment_count": "16",
+                "create_time": 1725781854,
+                "last_modify_ts": 1789663170130
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "fe94c3f8d3b98ed512bb",
+                "parent_comment_id": "bb762915a101ef076fca",
+                "note_id": "ee0c4a8f92e1a4d036e6"
+              },
+              "safe_values": {
+                "sub_comment_count": "8",
+                "create_time": 1725781733,
+                "last_modify_ts": 1789663170133
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "9bd55c55c4ceac66a9b1",
+                "parent_comment_id": "b1fb2fa7fd13a2915c8e",
+                "note_id": "ee0c4a8f92e1a4d036e6"
+              },
+              "safe_values": {
+                "sub_comment_count": "3",
+                "create_time": 1725872679,
+                "last_modify_ts": 1789663170143
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "2b8ad598d97ee0c89f91",
+                "parent_comment_id": "137b9a000a8fca3f3f6e",
+                "note_id": "ee0c4a8f92e1a4d036e6"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1725880721,
+                "last_modify_ts": 1789663170144
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "comment_like_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "note_id",
+                "parent_comment_id",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "note_id": "str",
+                "content": "str",
+                "sub_comment_count": "str",
+                "comment_like_count": "str",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "8011178176d661dc3e64",
+                "parent_comment_id": "fafd9e3c705162e25b1b",
+                "note_id": "ee0c4a8f92e1a4d036e6"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1725880664,
+                "last_modify_ts": 1789663170145
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
+          "name": "detail_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_002828/wb_20260918_002828/weibo/jsonl/detail_contents_2026-09-18.jsonl",
+          "bytes": 1064,
+          "rows": 1,
+          "sha256": "9452eef002cd6674a4f0a869c5f0076d35fdd6e5466936b62318b71a62f6db24",
+          "modified_at": "2026-09-18T00:39:25+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comments_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "note_id",
+                "note_url",
+                "shared_count",
+                "source_keyword"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "content": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "liked_count": "str",
+                "comments_count": "str",
+                "shared_count": "str",
+                "last_modify_ts": "int",
+                "note_url": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "note_id": "ee0c4a8f92e1a4d036e6"
+              },
+              "safe_values": {
+                "ip_location": "湖南",
+                "comments_count": "773",
+                "liked_count": "2590",
+                "create_time": 1725781202,
+                "last_modify_ts": 1789663165434
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_002828/wb_20260918_002828/weibo/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 346933,
-          "rows": 113,
-          "sha256": "0635354f383280affad8c846b1b80829459f7670daff678b32e6d5a5f3b1ca4c",
-          "modified_at": "2026-09-18T00:36:45+08:00",
+          "bytes": 418142,
+          "rows": 133,
+          "sha256": "e0611b7d245297cb9563bf88b7bd8cd5c2faa286c3ef344f017beabee5e1e9d6",
+          "modified_at": "2026-09-18T00:38:32+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -793,14 +1179,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_002828/wb_20260918_002828/stderr.log",
-          "bytes": 69111,
-          "sha256": "08ab7cbf831453d68394578aecee0e866b4ac97b6f38c7fcf8e64f541b0da904"
+          "bytes": 95934,
+          "sha256": "c3ba4fc70c749b12bf5006cecb428fa1b15cd726ba19197567be46d9c24b7ce0"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_002828/wb_20260918_002828/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 297,
+          "sha256": "577edba8ee14b40701f56fc39c165797a60a885e6a2b8636111d0fff09d687e0"
         }
       ]
     }
