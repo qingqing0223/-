@@ -81,13 +81,16 @@ class MonitoringRegressionTests(unittest.TestCase):
         from run_single_platform import _install_kuaishou_unknown_comment_queue_fallback
 
         original_update = crawler_runner._update_queue_from_content
+        original_detail = crawler_runner._run_detail_comment_recovery
         original_flag = getattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback", None)
         try:
             if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
                 delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
             crawler_runner._update_queue_from_content = original_update
+            crawler_runner._run_detail_comment_recovery = original_detail
             _install_kuaishou_unknown_comment_queue_fallback()
 
+            self.assertIsNot(crawler_runner._run_detail_comment_recovery, original_detail)
             with tempfile.TemporaryDirectory() as td:
                 path = Path(td) / "search_contents_2026-09-17.jsonl"
                 path.write_text(
@@ -108,6 +111,7 @@ class MonitoringRegressionTests(unittest.TestCase):
                 self.assertEqual(got, ["https://www.kuaishou.com/short-video/ks-video-1"])
         finally:
             crawler_runner._update_queue_from_content = original_update
+            crawler_runner._run_detail_comment_recovery = original_detail
             if original_flag is None:
                 if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
                     delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
