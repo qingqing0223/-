@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T05:23:28+08:00",
+  "generated_at": "2026-09-18T05:28:40+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T05:23:28+08:00",
+    "generated_at": "2026-09-18T05:28:40+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T00:39:37+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -646,11 +646,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T05:13:51+08:00",
+        "cycle_finished_at": "2026-09-18T05:27:15+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 1,
-        "duration_seconds": 502.58,
+        "duration_seconds": 503.4,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -678,12 +678,65 @@
       "jsonl_files": [
         {
           "kind": "content",
+          "name": "detail_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_051851/wb_20260918_051851/weibo/jsonl/detail_contents_2026-09-18.jsonl",
+          "bytes": 12100,
+          "rows": 1,
+          "sha256": "a7b7c77d06a7ca0bce0a030a93457fbd31ab6f0ed9eb2b0bfb4a52636557cb05",
+          "modified_at": "2026-09-18T05:26:52+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comments_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "note_id",
+                "note_url",
+                "shared_count",
+                "source_keyword"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "content": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "liked_count": "str",
+                "comments_count": "str",
+                "shared_count": "str",
+                "last_modify_ts": "int",
+                "note_url": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "note_id": "6591bb96d17efd540b0b"
+              },
+              "safe_values": {
+                "comments_count": "0",
+                "liked_count": "1",
+                "create_time": 1773451487,
+                "last_modify_ts": 1789680412199
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_051851/wb_20260918_051851/weibo/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 210613,
-          "rows": 81,
-          "sha256": "32e187f83b085579a7a0ca6641142c24a21d9da942dfa4d2584c1bc8aa5a87ac",
-          "modified_at": "2026-09-18T05:22:58+08:00",
+          "bytes": 426088,
+          "rows": 133,
+          "sha256": "57e6fc00601ea971a221ee606e61d8e62853d9120cb70e7b4f04f7031fceb765",
+          "modified_at": "2026-09-18T05:26:13+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -907,14 +960,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_051851/wb_20260918_051851/stderr.log",
-          "bytes": 50937,
-          "sha256": "84aa35f4b1e7a331ea486c97815b1f2ef40f64191450d9af486ab97f6e8fff53"
+          "bytes": 92288,
+          "sha256": "a5a5dca52ecf5d263bdb8b37836c0ede479300a373f0f6d5495a02cd84836de8"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_051851/wb_20260918_051851/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 297,
+          "sha256": "31fc36599137deb26c283cca5685de2a1114ce1c6631586dc76c6b75da8f4a21"
         }
       ]
     }
