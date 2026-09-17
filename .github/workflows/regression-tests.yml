@@ -32,7 +32,8 @@ jobs:
         run: |
           $paths = @(
             'scripts/test_kuaishou_realtime_5min_windows.ps1',
-            'scripts/test_douyin_realtime_5min_windows.ps1'
+            'scripts/test_douyin_realtime_5min_windows.ps1',
+            'scripts/test_remaining_platform_realtime_5min_windows.ps1'
           )
           foreach ($path in $paths) {
             $bytes = [System.IO.File]::ReadAllBytes($path)
