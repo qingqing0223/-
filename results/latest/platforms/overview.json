@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-18T10:25:46+00:00",
+  "generated_at": "2026-09-18T10:26:08+00:00",
   "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
@@ -110,7 +110,7 @@
     },
     "wechat_mp": {
       "source_results_date": "2026-09-16",
-      "aggregation_mode": "single_node_passthrough",
+      "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "wechatmp01",
       "latest_node_id": "wechatmp01",
       "unique_records": 4619,
@@ -121,7 +121,7 @@
       "comment_region_records": 0,
       "latest_seen_time": "2026-09-17T22:58:50+08:00",
       "node_count": 1,
-      "all_counting_nodes_have_fingerprints": false
+      "all_counting_nodes_have_fingerprints": true
     }
   }
 }
