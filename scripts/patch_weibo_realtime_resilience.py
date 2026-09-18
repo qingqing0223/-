@@ -5,7 +5,7 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V1"
+MARKER = "PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V2"
 
 
 def read(path: Path) -> str:
@@ -80,7 +80,7 @@ def patch_client(root: Path) -> None:
             "            response = await client.request(method, url, timeout=self.timeout, **kwargs)\n\n"
             f"        # {MARKER}: do not hammer Weibo when it explicitly asks for verification\n"
             "        # or rate-limits the current session. Human recovery/cooldown is required.\n"
-            "        if response.status_code in {418, 429, 432}:\n"
+            "        if response.status_code in {403, 418, 429, 432}:\n"
             "            utils.logger.error(\n"
             "                f\"[WeiboClient.request] WEIBO_VERIFY_REQUIRED status={response.status_code}; \"\n"
             "                \"automatic retry stopped\"\n"
@@ -191,7 +191,7 @@ def check(root: Path) -> dict:
     client = root / "media_platform/weibo/client.py"
     core = root / "media_platform/weibo/core.py"
     result = {
-        "patch_version": 1,
+        "patch_version": 2,
         "client_exists": client.exists(),
         "core_exists": core.exists(),
         "bounded_http_timeout": False,
