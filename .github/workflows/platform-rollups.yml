@@ -27,7 +27,7 @@ jobs:
       - name: Commit rollups
         shell: bash
         run: |
-          if git diff --quiet -- results/*/platforms; then
+          if [ -z "$(git status --porcelain -- results/*/platforms)" ]; then
             echo "No rollup changes."
             exit 0
           fi
