@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-18T10:58:55+00:00",
+  "generated_at": "2026-09-18T10:59:24+00:00",
   "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
@@ -37,7 +37,7 @@
       "source_results_date": "2026-09-18",
       "aggregation_mode": "conservative_authoritative_snapshot_pending_fingerprints",
       "authoritative_node_id": "ks01",
-      "latest_node_id": "ks-main",
+      "latest_node_id": "ks01",
       "unique_records": 142,
       "comment_records": 64,
       "root_comment_records": 62,
