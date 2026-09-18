@@ -23,6 +23,26 @@ cd yuqing-v1/03_live_system
 
 浏览器打开 http://127.0.0.1:8765/ 即可看到实时版大屏。
 
+### Windows 普通 PowerShell 快捷启动
+
+在普通 Windows PowerShell 中执行：
+
+```powershell
+cd "项目目录\yuqing-v1\03_live_system"
+.\start_live_dashboard.ps1
+```
+
+脚本会自动开启真实平台采集、关闭模拟数据和文件监听，启动服务后打开
+`http://127.0.0.1:8765/`。如果 PowerShell 禁止执行本地脚本，可只对当前窗口放行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\start_live_dashboard.ps1
+```
+
+需要换端口时使用 `.\start_live_dashboard.ps1 -Port 9000`，不自动打开浏览器时使用
+`.\start_live_dashboard.ps1 -NoBrowser`。
+
 如果系统自带 Python 不可用（例如缺少 Xcode Command Line Tools），`start.sh` 会自动切换到 Codex 自带运行时。
 
 ### 每日态势报告下载
