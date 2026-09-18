@@ -1,0 +1,256 @@
+from __future__ import annotations
+
+import argparse
+from collections import Counter
+from datetime import datetime
+import json
+from pathlib import Path
+import re
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+
+def _load(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return {}
+
+
+def _iter_jsonl(path: Path):
+    try:
+        with path.open("r", encoding="utf-8-sig", errors="replace") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except Exception:
+                    continue
+                if isinstance(row, dict):
+                    yield row
+    except Exception:
+        return
+
+
+def _platform_root(cfg: dict) -> Path:
+    base = Path(cfg["data_root"])
+    if base.name.endswith("_bili"):
+        return base
+    return base.parent / f"{base.name}_bili"
+
+
+def _latest_cycle(root: Path) -> Path | None:
+    raw = root / "raw_runs"
+    if not raw.exists():
+        return None
+    cycles = sorted((p for p in raw.iterdir() if p.is_dir()), key=lambda p: p.name)
+    return cycles[-1] if cycles else None
+
+
+def _first(row: dict, *keys):
+    for key in keys:
+        value = row.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _region(row: dict) -> str:
+    value = _first(row, "ip_location", "ip_region", "ip_label", "region", "province")
+    if value in (None, ""):
+        reply_control = row.get("reply_control")
+        if isinstance(reply_control, dict):
+            value = _first(reply_control, "location", "ip_location", "ip_region")
+    if value in (None, ""):
+        member = row.get("member")
+        if isinstance(member, dict):
+            value = _first(member, "ip_location", "ip_region", "region", "province")
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    if re.fullmatch(r"(?:\d{1,3}\.){3}\d{1,3}", text):
+        return ""
+    if re.fullmatch(r"[0-9a-fA-F:]{6,}", text):
+        return ""
+    if re.search(r"\d+\.\d+\s*[,，]\s*\d+\.\d+", text):
+        return ""
+    return text
+
+
+def _parse_time(value, default_tz=None):
+    if value in (None, ""):
+        return None
+    if isinstance(value, (int, float)) or str(value).isdigit():
+        try:
+            ts = float(value)
+            if ts > 1e12:
+                ts /= 1000.0
+            return datetime.fromtimestamp(ts).astimezone()
+        except Exception:
+            return None
+    text = str(value).strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+        if dt.tzinfo is None and default_tz is not None:
+            dt = dt.replace(tzinfo=default_tz)
+        return dt
+    except Exception:
+        return None
+
+
+def _comment_time(row: dict, start):
+    return _parse_time(
+        _first(row, "publish_time", "create_time", "ctime", "created_at", "time"),
+        default_tz=(start.tzinfo if start else None),
+    )
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Inspect the latest Bilibili realtime cycle: SLA, comments, recency, hierarchy and public coarse IP-region.")
+    ap.add_argument("--config", default=str(ROOT / "config" / "monitoring.local.json"))
+    args = ap.parse_args()
+
+    cfg_path = Path(args.config).resolve()
+    cfg = _load(cfg_path)
+    if not cfg:
+        print(json.dumps({"ok": False, "error": "config_not_readable", "config": str(cfg_path)}, ensure_ascii=False, indent=2))
+        return 2
+
+    root = _platform_root(cfg)
+    cycle = _latest_cycle(root)
+    if cycle is None:
+        print(json.dumps({"ok": False, "error": "no_bilibili_raw_cycle", "root": str(root)}, ensure_ascii=False, indent=2))
+        return 3
+
+    status = _load(root / "status" / "latest_status.json")
+    run = (status.get("platform_runs") or [{}])[0]
+    ingest = (status.get("ingest") or [{}])[0]
+
+    jsonl = sorted(cycle.rglob("*.jsonl"))
+    content_files = [p for p in jsonl if "content" in p.name.lower()]
+    comment_files = [p for p in jsonl if "comment" in p.name.lower()]
+    content_rows = [row for p in content_files for row in (_iter_jsonl(p) or [])]
+    comment_rows = [row for p in comment_files for row in (_iter_jsonl(p) or [])]
+
+    start = _parse_time(cfg.get("monitoring_start_time"))
+    comment_ids = {
+        str(_first(row, "comment_id", "rpid", "cid") or "").strip()
+        for row in comment_rows
+        if str(_first(row, "comment_id", "rpid", "cid") or "").strip()
+    }
+
+    first_level = 0
+    nested = 0
+    parent_linked = 0
+    orphan = 0
+    recent = 0
+    regions = Counter()
+    recent_regions = Counter()
+    recent_first_level = 0
+    recent_nested = 0
+
+    for row in comment_rows:
+        parent = str(_first(row, "parent_comment_id", "parent_id", "parent", "parent_rpid") or "").strip()
+        is_nested = parent not in {"", "0", "None", "null"}
+        if is_nested:
+            nested += 1
+            parent_linked += 1
+            if parent not in comment_ids:
+                orphan += 1
+        else:
+            first_level += 1
+
+        region = _region(row)
+        if region:
+            regions[region] += 1
+
+        dt = _comment_time(row, start)
+        is_recent = bool(start is None or dt is None or dt >= start)
+        if is_recent:
+            recent += 1
+            if is_nested:
+                recent_nested += 1
+            else:
+                recent_first_level += 1
+            if region:
+                recent_regions[region] += 1
+
+    parent_integrity = round((parent_linked - orphan) / nested, 4) if nested else 1.0
+    region_count = sum(regions.values())
+
+    checks = {
+        "crawler_success": str(run.get("state") or "") == "SUCCESS" and int(run.get("return_code") or 0) == 0,
+        "realtime_cycle_within_300s": bool(status.get("realtime_cycle_within_target", False)),
+        "content_present": len(content_rows) > 0,
+        "comments_present": len(comment_rows) > 0,
+        "recent_comments_present": recent > 0,
+        "first_level_present": first_level > 0,
+        "nested_replies_present": nested > 0,
+        "nested_parent_integrity": parent_integrity == 1.0,
+        "public_coarse_ip_region_present": region_count > 0,
+        "recent_comments_reached_ingest": int(ingest.get("classified_comment_records") or 0) > 0,
+    }
+
+    structural_ok = all([
+        checks["crawler_success"],
+        checks["realtime_cycle_within_300s"],
+        checks["content_present"],
+        checks["comments_present"],
+        checks["first_level_present"],
+        checks["nested_replies_present"],
+        checks["nested_parent_integrity"],
+    ])
+    full_ok = structural_ok and checks["recent_comments_present"] and checks["recent_comments_reached_ingest"] and checks["public_coarse_ip_region_present"]
+
+    out = {
+        "ok": full_ok,
+        "structural_ok": structural_ok,
+        "cycle": cycle.name,
+        "root": str(root),
+        "runtime": {
+            "state": run.get("state"),
+            "return_code": run.get("return_code"),
+            "duration_seconds": run.get("duration_seconds"),
+            "within_300s": status.get("realtime_cycle_within_target"),
+        },
+        "raw": {
+            "content_rows": len(content_rows),
+            "comment_rows": len(comment_rows),
+            "first_level_comments": first_level,
+            "nested_replies": nested,
+            "parent_linked_replies": parent_linked,
+            "orphan_parent_links": orphan,
+            "parent_integrity_rate": parent_integrity,
+            "comments_at_or_after_monitoring_start": recent,
+            "recent_first_level_comments": recent_first_level,
+            "recent_nested_replies": recent_nested,
+            "public_coarse_ip_region_records": region_count,
+            "public_coarse_ip_region_rate": round(region_count / len(comment_rows), 4) if comment_rows else 0.0,
+            "regions": dict(regions.most_common()),
+            "recent_regions": dict(recent_regions.most_common()),
+            "content_files": [str(p) for p in content_files],
+            "comment_files": [str(p) for p in comment_files],
+        },
+        "ingest": {
+            "raw_comment_rows": ingest.get("raw_comment_rows", 0),
+            "classified_comment_records": ingest.get("classified_comment_records", 0),
+            "filtered_before_start_comment_records": ingest.get("filtered_before_start_comment_records", 0),
+            "region_records": ingest.get("region_records", 0),
+            "classification_degraded": ingest.get("classification_degraded", False),
+        },
+        "checks": checks,
+        "note": "Public coarse platform-displayed region labels only; real network IP and precise location are rejected.",
+    }
+    print(json.dumps(out, ensure_ascii=False, indent=2))
+    return 0 if full_ok else (4 if structural_ok else 5)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
