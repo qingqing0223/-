@@ -27,6 +27,12 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python .\scripts\patch_mediacrawler_public_regions.py --root $MediaCrawlerRoot --check
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+Write-Host "Applying/verifying Douyin startup navigation resilience patch..." -ForegroundColor Cyan
+python .\scripts\patch_douyin_startup_resilience.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_douyin_startup_resilience.py --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 Write-Host "Applying/verifying Douyin parent/root hierarchy patch..." -ForegroundColor Cyan
 python .\scripts\patch_douyin_comment_hierarchy.py --root $MediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
