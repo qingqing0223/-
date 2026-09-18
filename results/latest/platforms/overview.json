@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-18T17:37:20+00:00",
+  "generated_at": "2026-09-18T17:37:46+00:00",
   "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
@@ -53,13 +53,13 @@
       "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "bili01",
       "latest_node_id": "bili01",
-      "unique_records": 52,
-      "comment_records": 37,
-      "root_comment_records": 36,
+      "unique_records": 53,
+      "comment_records": 38,
+      "root_comment_records": 37,
       "reply_comment_records": 1,
-      "region_records": 37,
-      "comment_region_records": 37,
-      "latest_seen_time": "2026-09-18T23:35:41+08:00",
+      "region_records": 38,
+      "comment_region_records": 38,
+      "latest_seen_time": "2026-09-19T01:35:31+08:00",
       "node_count": 1,
       "all_counting_nodes_have_fingerprints": true
     },
