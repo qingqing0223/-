@@ -19,10 +19,12 @@ def coarse_public_region(value) -> str:
     text = str(value).strip()
     if not text:
         return ""
-    for prefix in ("IP属地：", "IP属地:", "IP属地", "来自：", "来自:", "来自"):
+    for prefix in ("IP属地：", "IP属地:", "IP属地", "来自：", "来自:", "来自", "发布于：", "发布于:", "发布于", "所在地：", "所在地:", "所在地"):
         if text.startswith(prefix):
             text = text[len(prefix):].strip()
     if not text or _IP_LIKE.fullmatch(text):
+        return ""
+    if text in {"未知", "暂无", "无", "None", "null", "-", "--"}:
         return ""
     for province in _PROVINCES:
         if province in text:
