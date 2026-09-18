@@ -35,10 +35,13 @@ class TestKuaishouCommentRegionH5Patch(unittest.TestCase):
             text = client.read_text(encoding="utf-8")
 
             self.assertTrue(status["ok"], status)
-            self.assertIn("PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V4", text)
+            self.assertIn("PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V5", text)
             self.assertIn("async def _ks_h5_comment_regions", text)
             self.assertIn("/rest/wd/photo/comment/list", text)
             self.assertIn("await _ks_h5_comment_regions(self, photo_id)", text)
+            self.assertIn("async def _ks_h5_comment_fallback_response", text)
+            self.assertIn("[KS_COMMENT_REST_BLOCKED] label=root", text)
+            self.assertIn("[KS_COMMENT_H5_FETCH_FALLBACK] label=root", text)
             self.assertNotIn("await _ks_graphql_root_regions(", text)
             self.assertNotIn("await _ks_graphql_sub_regions(", text)
 
