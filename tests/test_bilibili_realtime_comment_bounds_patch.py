@@ -26,19 +26,21 @@ class BilibiliClient:
         next_page = 0
         max_retries = 3
         is_first_page = True
-        comment_list = []
-        if is_fetch_sub_comments:
-            for comment in comment_list:
-                comment_id = comment['rpid']
-                if (comment.get("rcount", 0) > 0):
-                    await self.get_video_all_level_two_comments(
-                        video_id,
-                        comment_id,
-                        CommentOrderType.DEFAULT,
-                        10,
-                        crawl_interval,
-                        callback,
-                    )
+        while not is_end:
+            comment_list = []
+            if is_fetch_sub_comments:
+                for comment in comment_list:
+                    comment_id = comment['rpid']
+                    if (comment.get("rcount", 0) > 0):
+                        await self.get_video_all_level_two_comments(
+                            video_id,
+                            comment_id,
+                            CommentOrderType.DEFAULT,
+                            10,
+                            crawl_interval,
+                            callback,
+                        )
+            is_end = True
         return result
 
     async def get_video_all_level_two_comments(
