@@ -76,6 +76,8 @@ def main() -> int:
                 "1.2.3.4": "",
                 "2001:db8::1": "",
                 "未知": "",
+                "CN": "",
+                "China": "",
             }
             got = {k: module.coarse_public_region(k) for k in cases}
             helper_ok = got == cases
@@ -90,9 +92,10 @@ def main() -> int:
         add(checks, rel, path.exists() and MARKER in text, "marker present" if MARKER in text else "marker missing")
 
     semantic = {
-        "dy_content_region": (root / "store/douyin/__init__.py", 'save_content_item["ip_location"] = coarse_public_region('),
-        "dy_comment_region": (root / "store/douyin/__init__.py", 'save_comment_item["ip_location"] = coarse_public_region('),
+        "dy_content_region": (root / "store/douyin/__init__.py", 'save_content_item["ip_location"] = first_coarse_public_region('),
+        "dy_comment_region": (root / "store/douyin/__init__.py", 'save_comment_item["ip_location"] = first_coarse_public_region('),
         "dy_comment_user_fallback": (root / "store/douyin/__init__.py", 'user_info.get("ip_region")'),
+        "dy_first_valid_region_helper": (root / "store/douyin/__init__.py", "first_coarse_public_region"),
         "xhs_content_region": (root / "store/xhs/__init__.py", 'local_db_item["ip_location"] = coarse_public_region('),
         "xhs_content_region_variants": (root / "store/xhs/__init__.py", 'note_item.get("ipLocation")'),
         "xhs_comment_user_fallback": (root / "store/xhs/__init__.py", 'user_info.get("ipRegion")'),
