@@ -11,17 +11,19 @@ from scripts import patch_bilibili_realtime_discovery_bound as patch
 CORE = '''import asyncio
 from typing import Dict, List
 
-async def search_by_keywords(self):
-    keyword = "k"
-    while True:
-        video_list: List[Dict] = []
-        if not video_list:
-            utils.logger.info(f"[BilibiliCrawler.search_by_keywords] No more videos for '{keyword}', moving to next keyword.")
-            break
+class C:
+    async def search_by_keywords(self):
+        for keyword in ["k"]:
+            while True:
+                video_list: List[Dict] = []
+                if not video_list:
+                    utils.logger.info(f"[BilibiliCrawler.search_by_keywords] No more videos for '{keyword}', moving to next keyword.")
+                    break
 
-        semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)
-        break
+                semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)
+                break
 '''
+
 
 
 class BilibiliRealtimeDiscoveryBoundPatchTests(unittest.TestCase):
