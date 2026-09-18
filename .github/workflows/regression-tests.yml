@@ -39,12 +39,24 @@ jobs:
           python scripts/patch_douyin_comment_request_profile.py --root /tmp/MediaCrawler --check
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler --check
-          python scripts/patch_weibo_realtime_resilience.py --root /tmp/MediaCrawler
-          python scripts/patch_weibo_realtime_resilience.py --root /tmp/MediaCrawler --check
-          python scripts/patch_weibo_comment_hierarchy.py --root /tmp/MediaCrawler
-          python scripts/patch_weibo_comment_hierarchy.py --root /tmp/MediaCrawler --check
-          python scripts/patch_weibo_public_regions.py --root /tmp/MediaCrawler
-          python scripts/patch_weibo_public_regions.py --root /tmp/MediaCrawler --check
+          set +e
+          python scripts/patch_weibo_realtime_resilience.py --root /tmp/MediaCrawler 2>&1 | tee /tmp/weibo_patch.log
+          rc=${PIPESTATUS[0]}
+          if [ "$rc" -eq 0 ]; then python scripts/patch_weibo_realtime_resilience.py --root /tmp/MediaCrawler --check 2>&1 | tee -a /tmp/weibo_patch.log; rc=${PIPESTATUS[0]}; fi
+          if [ "$rc" -eq 0 ]; then python scripts/patch_weibo_comment_hierarchy.py --root /tmp/MediaCrawler 2>&1 | tee -a /tmp/weibo_patch.log; rc=${PIPESTATUS[0]}; fi
+          if [ "$rc" -eq 0 ]; then python scripts/patch_weibo_comment_hierarchy.py --root /tmp/MediaCrawler --check 2>&1 | tee -a /tmp/weibo_patch.log; rc=${PIPESTATUS[0]}; fi
+          if [ "$rc" -eq 0 ]; then python scripts/patch_weibo_public_regions.py --root /tmp/MediaCrawler 2>&1 | tee -a /tmp/weibo_patch.log; rc=${PIPESTATUS[0]}; fi
+          if [ "$rc" -eq 0 ]; then python scripts/patch_weibo_public_regions.py --root /tmp/MediaCrawler --check 2>&1 | tee -a /tmp/weibo_patch.log; rc=${PIPESTATUS[0]}; fi
+          if [ "$rc" -ne 0 ]; then
+            {
+              echo "## Weibo patch smoke failure"
+              echo '~~~text'
+              cat /tmp/weibo_patch.log
+              echo '~~~'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit "$rc"
+          fi
+          set -e
 
       - name: Validate Windows PowerShell acceptance scripts
         shell: pwsh
