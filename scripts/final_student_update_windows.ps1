@@ -84,6 +84,44 @@ if ($Platform -eq "dy") {
     }
 }
 
+if ($Platform -eq "wb") {
+    Write-Host "Applying Weibo bounded realtime / anti-abuse stop patch..." -ForegroundColor Cyan
+    python .\scripts\patch_weibo_realtime_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Weibo realtime resilience patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_weibo_realtime_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Weibo realtime resilience verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Weibo first-level/nested comment hierarchy patch..." -ForegroundColor Cyan
+    python .\scripts\patch_weibo_comment_hierarchy.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Weibo comment hierarchy patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_weibo_comment_hierarchy.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Weibo comment hierarchy verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Weibo strict public-region persistence patch..." -ForegroundColor Cyan
+    python .\scripts\patch_weibo_public_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Weibo public-region patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_weibo_public_regions.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Weibo public-region verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
+
 if ($Platform -eq "bili") {
     Write-Host "Applying Bilibili session/login resilience patch..." -ForegroundColor Cyan
     python .\scripts\patch_bilibili_login_resilience.py --root $MediaCrawlerRoot
