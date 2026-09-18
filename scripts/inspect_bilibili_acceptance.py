@@ -112,6 +112,77 @@ def _comment_time(row: dict, start):
     )
 
 
+def _nested_capability_history(root: Path, max_cycles: int = 20) -> dict:
+    raw_root = root / "raw_runs"
+    if not raw_root.exists():
+        return {
+            "observed": False,
+            "cycle": "",
+            "nested_replies": 0,
+            "parent_integrity_rate": 1.0,
+        }
+
+    cycles = sorted(
+        (p for p in raw_root.iterdir() if p.is_dir()),
+        key=lambda p: p.name,
+        reverse=True,
+    )[:max_cycles]
+
+    for cycle in cycles:
+        comment_rows = [
+            row
+            for p in sorted(cycle.rglob("*.jsonl"))
+            if "comment" in p.name.lower()
+            for row in (_iter_jsonl(p) or [])
+        ]
+        if not comment_rows:
+            continue
+
+        comment_ids = {
+            str(_first(row, "comment_id", "rpid", "cid") or "").strip()
+            for row in comment_rows
+            if str(_first(row, "comment_id", "rpid", "cid") or "").strip()
+        }
+        nested = 0
+        linked = 0
+        orphan = 0
+        for row in comment_rows:
+            parent = str(
+                _first(
+                    row,
+                    "parent_comment_id",
+                    "parent_id",
+                    "parent",
+                    "parent_rpid",
+                )
+                or ""
+            ).strip()
+            if parent in {"", "0", "None", "null"}:
+                continue
+            nested += 1
+            linked += 1
+            if parent not in comment_ids:
+                orphan += 1
+
+        if nested > 0:
+            integrity = round((linked - orphan) / nested, 4)
+            return {
+                "observed": True,
+                "cycle": cycle.name,
+                "nested_replies": nested,
+                "parent_linked_replies": linked,
+                "orphan_parent_links": orphan,
+                "parent_integrity_rate": integrity,
+            }
+
+    return {
+        "observed": False,
+        "cycle": "",
+        "nested_replies": 0,
+        "parent_integrity_rate": 1.0,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Inspect the latest Bilibili realtime cycle: SLA, comments, recency, hierarchy and public coarse IP-region.")
     ap.add_argument("--config", default=str(ROOT / "config" / "monitoring.local.json"))
@@ -128,6 +199,8 @@ def main() -> int:
     if cycle is None:
         print(json.dumps({"ok": False, "error": "no_bilibili_raw_cycle", "root": str(root)}, ensure_ascii=False, indent=2))
         return 3
+
+    nested_history = _nested_capability_history(root)
 
     status = _load(root / "status" / "latest_status.json")
     run = (status.get("platform_runs") or [{}])[0]
@@ -192,22 +265,37 @@ def main() -> int:
         "comments_present": len(comment_rows) > 0,
         "recent_comments_present": recent > 0,
         "first_level_present": first_level > 0,
-        "nested_replies_present": nested > 0,
-        "nested_parent_integrity": parent_integrity == 1.0,
+        "nested_replies_present_latest_cycle": nested > 0,
+        "nested_parent_integrity_latest_cycle": parent_integrity == 1.0,
+        "nested_capability_observed_recent_cycles": bool(nested_history.get("observed")),
+        "nested_capability_parent_integrity": (
+            float(nested_history.get("parent_integrity_rate") or 0.0) == 1.0
+            if nested_history.get("observed")
+            else False
+        ),
         "public_coarse_ip_region_present": region_count > 0,
         "recent_comments_reached_ingest": int(ingest.get("classified_comment_records") or 0) > 0,
     }
 
+    # A quiet realtime cycle can legitimately have no nested replies among the
+    # newest comments. Treat nested-comment support as a capability that may be
+    # evidenced by a recent prior cycle, rather than requiring every single cycle
+    # to contain a reply thread.
     structural_ok = all([
         checks["crawler_success"],
         checks["realtime_cycle_within_300s"],
         checks["content_present"],
         checks["comments_present"],
         checks["first_level_present"],
-        checks["nested_replies_present"],
-        checks["nested_parent_integrity"],
     ])
-    full_ok = structural_ok and checks["recent_comments_present"] and checks["recent_comments_reached_ingest"] and checks["public_coarse_ip_region_present"]
+    full_ok = all([
+        structural_ok,
+        checks["recent_comments_present"],
+        checks["recent_comments_reached_ingest"],
+        checks["public_coarse_ip_region_present"],
+        checks["nested_capability_observed_recent_cycles"],
+        checks["nested_capability_parent_integrity"],
+    ])
 
     out = {
         "ok": full_ok,
@@ -238,6 +326,7 @@ def main() -> int:
             "content_files": [str(p) for p in content_files],
             "comment_files": [str(p) for p in comment_files],
         },
+        "nested_capability_history": nested_history,
         "ingest": {
             "raw_comment_rows": ingest.get("raw_comment_rows", 0),
             "classified_comment_records": ingest.get("classified_comment_records", 0),
