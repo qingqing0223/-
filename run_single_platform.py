@@ -262,6 +262,128 @@ def _install_douyin_realtime_policy() -> None:
     crawler_runner._promotion_week_dy_realtime_policy = True
 
 
+def _install_weibo_realtime_policy() -> None:
+    """Bound Weibo deep-comment work and stop immediately on anti-abuse signals."""
+    import monitor.crawler_runner as crawler_runner
+
+    if getattr(crawler_runner, "_promotion_week_wb_realtime_policy", False):
+        return
+
+    original_detail = crawler_runner._run_detail_comment_recovery
+
+    def bounded_weibo_detail(
+        cfg: dict,
+        platform: str,
+        candidates: list[str],
+        output_dir: Path,
+        stdout_log: Path,
+        stderr_log: Path,
+        *,
+        batch_size: int | None = None,
+    ) -> tuple[int | None, int]:
+        if platform != "wb" or not bool(cfg.get("realtime_mode", False)):
+            return original_detail(
+                cfg,
+                platform,
+                candidates,
+                output_dir,
+                stdout_log,
+                stderr_log,
+                batch_size=batch_size,
+            )
+        if not candidates:
+            return 0, 0
+
+        budget_seconds = max(30, min(int(cfg.get("wb_realtime_detail_budget_seconds", 55)), 90))
+        candidate_timeout = max(15, min(int(cfg.get("wb_realtime_candidate_timeout_seconds", 35)), 60))
+        realtime_comment_cap = max(20, min(int(cfg.get("wb_realtime_max_comments_per_video", 100)), 300))
+        deadline = time.monotonic() + budget_seconds
+        attempts = 0
+        success_count = 0
+        first_failure_rc: int | None = None
+
+        for identifier in candidates:
+            remaining = deadline - time.monotonic()
+            if remaining <= 5:
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write("\n[monitor] WB_REALTIME_DETAIL_BUDGET_EXHAUSTED before next candidate\n")
+                break
+
+            cmd = [
+                "uv", "run", "main.py",
+                "--platform", platform,
+                "--lt", cfg.get("login_type", "qrcode"),
+                "--type", "detail",
+                "--specified_id", identifier,
+                "--max_concurrency_num", "1",
+                "--get_comment", "yes",
+                "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
+                "--save_data_option", cfg.get("save_data_option", "jsonl"),
+                "--save_data_path", str(output_dir),
+                "--max_comments_count_singlenotes", str(realtime_comment_cap),
+            ]
+            env = os.environ.copy()
+            env["PROMOTION_WEEK_WB_REALTIME"] = "1"
+            timeout_seconds = max(5, min(int(remaining), candidate_timeout))
+
+            with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
+                out.write(
+                    f"\n[monitor] WB_REALTIME_DETAIL candidate={attempts + 1}/{len(candidates)} "
+                    f"budget_remaining={int(remaining)}s candidate_timeout={timeout_seconds}s "
+                    f"comment_cap={realtime_comment_cap}\n"
+                )
+                try:
+                    proc = subprocess.run(
+                        cmd,
+                        cwd=cfg["media_crawler_root"],
+                        stdout=out,
+                        stderr=err,
+                        text=True,
+                        env=env,
+                        timeout=timeout_seconds,
+                    )
+                except subprocess.TimeoutExpired:
+                    out.write(
+                        "\n[monitor] WB_REALTIME_DETAIL_CANDIDATE_TIMEOUT "
+                        "partial_rows_preserved=yes\n"
+                    )
+                    attempts += 1
+                    continue
+
+            attempts += 1
+            recent = crawler_runner._tail_text(stdout_log, stderr_log, max_chars=6000)
+            if "weibo_verify_required" in recent or "wb_detail_verify_stop" in recent:
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write("[monitor] WB_REALTIME_DETAIL_VERIFY_STOP automatic retries disabled\n")
+                return proc.returncode if proc.returncode not in (0, None) else 86, attempts
+
+            if proc.returncode == 0:
+                success_count += 1
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write("[monitor] WB_REALTIME_DETAIL_CANDIDATE_SUCCESS\n")
+                continue
+
+            if first_failure_rc is None:
+                first_failure_rc = proc.returncode
+            with stdout_log.open("a", encoding="utf-8") as out:
+                out.write(
+                    f"[monitor] WB_REALTIME_DETAIL_CANDIDATE_FAILED rc={proc.returncode}; "
+                    "continuing_with_next_candidate=yes\n"
+                )
+
+        # Local time-budget exhaustion is not a platform/network failure. Any JSONL
+        # already persisted remains valid; unfinished queue items are eligible again
+        # after the normal refresh interval.
+        if success_count > 0:
+            return 0, attempts
+        if first_failure_rc is not None:
+            return first_failure_rc, attempts
+        return 0, attempts
+
+    crawler_runner._run_detail_comment_recovery = bounded_weibo_detail
+    crawler_runner._promotion_week_wb_realtime_policy = True
+
+
 def _install_kuaishou_precise_failure_classifier() -> None:
     """Avoid false NETWORK_ERROR states caused by recovered transport warnings."""
     import monitor.crawler_runner as crawler_runner
@@ -337,6 +459,8 @@ def main():
         _install_kuaishou_precise_failure_classifier()
     elif args.platform == "dy":
         _install_douyin_realtime_policy()
+    elif args.platform == "wb":
+        _install_weibo_realtime_policy()
 
     cfg = load_config(Path(args.config))
 
@@ -363,20 +487,29 @@ def main():
         except Exception:
             configured_discovery = 20
         cfg["realtime_discovery_max_notes_count"] = max(10, min(configured_discovery, 20))
-        cfg["wb_realtime_discovery_max_notes_count"] = max(
-            10, min(int(cfg.get("wb_realtime_discovery_max_notes_count", 20)), 20)
+        cfg["wb_realtime_discovery_max_notes_count"] = 10
+        cfg["wb_realtime_search_timeout_seconds"] = min(
+            120, max(60, int(cfg.get("wb_realtime_search_timeout_seconds", 100)))
         )
         cfg["wb_realtime_detail_max_items_per_cycle"] = min(
-            3, max(1, int(cfg.get("wb_realtime_detail_max_items_per_cycle", 3)))
+            2, max(1, int(cfg.get("wb_realtime_detail_max_items_per_cycle", 2)))
         )
         cfg["wb_realtime_detail_budget_seconds"] = min(
-            60, max(30, int(cfg.get("wb_realtime_detail_budget_seconds", 50)))
+            60, max(30, int(cfg.get("wb_realtime_detail_budget_seconds", 55)))
         )
         cfg["wb_realtime_candidate_timeout_seconds"] = min(
-            50, max(20, int(cfg.get("wb_realtime_candidate_timeout_seconds", 40)))
+            45, max(20, int(cfg.get("wb_realtime_candidate_timeout_seconds", 35)))
         )
         cfg["wb_realtime_max_comments_per_video"] = min(
             100, max(20, int(cfg.get("wb_realtime_max_comments_per_video", 100)))
+        )
+        # A real transport/risk-control failure should not trigger rapid repeated
+        # requests from the student watchdog.
+        cfg["network_error_cooldown_seconds"] = max(
+            600, int(cfg.get("network_error_cooldown_seconds", 300))
+        )
+        cfg["overrun_cooldown_seconds"] = max(
+            120, int(cfg.get("overrun_cooldown_seconds", 60))
         )
         try:
             configured_classifier = int(cfg.get("classifier_concurrency", 4))
