@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-18T10:17:37+00:00",
+  "generated_at": "2026-09-18T10:18:09+00:00",
   "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
@@ -27,8 +27,8 @@
       "comment_records": 414,
       "root_comment_records": 359,
       "reply_comment_records": 55,
-      "region_records": 0,
-      "comment_region_records": 0,
+      "region_records": 341,
+      "comment_region_records": 341,
       "latest_seen_time": "2026-09-18T07:10:52+08:00",
       "node_count": 1,
       "all_counting_nodes_have_fingerprints": false
