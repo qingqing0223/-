@@ -57,6 +57,20 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+if ($Platform -eq "dy") {
+    Write-Host "Applying Douyin startup navigation resilience patch..." -ForegroundColor Cyan
+    python .\scripts\patch_douyin_startup_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Douyin startup resilience patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_douyin_startup_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Douyin startup resilience verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
+
 if ($Platform -eq "ks") {
     Write-Host "Applying Kuaishou public comment-region recovery patch..." -ForegroundColor Cyan
     python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot
