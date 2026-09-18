@@ -374,9 +374,21 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     search_get_comment = "no" if realtime_mode else str(cfg.get("get_comment", "no"))
     search_get_sub_comment = "no" if realtime_mode else str(cfg.get("get_sub_comment", "no"))
     notes_limit = (
-        max(1, int(cfg.get("realtime_discovery_max_notes_count", 60)))
+        max(1, int(cfg.get(
+            f"{code}_realtime_discovery_max_notes_count",
+            cfg.get("realtime_discovery_max_notes_count", 60),
+        )))
         if realtime_mode else _effective_notes_limit(cfg)
     )
+    search_concurrency = max(1, int(cfg.get("max_concurrency_num", 1)))
+    if realtime_mode:
+        try:
+            search_concurrency = max(1, min(
+                int(cfg.get(f"{code}_realtime_search_concurrency", search_concurrency)),
+                6,
+            ))
+        except Exception:
+            search_concurrency = max(1, int(cfg.get("max_concurrency_num", 1)))
 
     cmd = [
         "uv", "run", "main.py",
@@ -385,7 +397,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         "--type", "search",
         "--keywords", ",".join(cfg["keywords"]),
         "--crawler_max_notes_count", str(notes_limit),
-        "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
+        "--max_concurrency_num", str(search_concurrency),
         "--get_comment", search_get_comment,
         "--get_sub_comment", search_get_sub_comment,
         "--save_data_option", cfg.get("save_data_option", "jsonl"),
