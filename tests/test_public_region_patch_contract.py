@@ -45,6 +45,11 @@ class PublicRegionPatchContractTest(unittest.TestCase):
         self.assertTrue((ROOT / "scripts" / "inspect_public_region_acceptance.py").exists())
         self.assertTrue((ROOT / "scripts" / "check_public_region_acceptance_windows.ps1").exists())
 
+    def test_public_region_inspector_bootstraps_repo_root(self):
+        text = (ROOT / "scripts" / "inspect_public_region_acceptance.py").read_text(encoding="utf-8")
+        self.assertIn("ROOT = Path(__file__).resolve().parents[1]", text)
+        self.assertIn("sys.path.insert(0, str(ROOT))", text)
+
     def test_final_student_start_uses_named_splatting(self):
         text = (ROOT / "scripts" / "final_student_update_windows.ps1").read_text(encoding="utf-8")
         self.assertIn('$startArgs = @{', text)
