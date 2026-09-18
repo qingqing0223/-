@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T10:20:37+00:00",
+  "generated_at": "2026-09-18T10:22:56+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "single_node_passthrough",
@@ -18,7 +18,7 @@
       "all_counting_nodes_have_fingerprints": false
     },
     "dy": {
-      "aggregation_mode": "single_node_passthrough",
+      "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "dy01",
       "latest_node_id": "dy01",
       "unique_records": 445,
@@ -29,7 +29,7 @@
       "comment_region_records": 341,
       "latest_seen_time": "2026-09-18T07:10:52+08:00",
       "node_count": 1,
-      "all_counting_nodes_have_fingerprints": false
+      "all_counting_nodes_have_fingerprints": true
     },
     "ks": {
       "aggregation_mode": "conservative_authoritative_snapshot_pending_fingerprints",

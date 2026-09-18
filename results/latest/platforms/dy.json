@@ -2,23 +2,23 @@
   "schema_version": 2,
   "platform": "dy",
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T10:20:37+00:00",
-  "aggregation_mode": "single_node_passthrough",
+  "generated_at": "2026-09-18T10:22:56+00:00",
+  "aggregation_mode": "exact_cross_node_dedupe",
   "aggregation_note": "Exact cross-node totals are used only when every count-bearing node publishes privacy-safe record fingerprints. Until then, the largest complete node snapshot is the conservative reporting total so overlapping nodes are never blindly summed.",
   "authoritative_node_id": "dy01",
   "latest_node_id": "dy01",
   "node_count": 1,
   "diagnostic_node_count": 1,
-  "all_counting_nodes_have_fingerprints": false,
-  "fingerprint_union_records": 0,
+  "all_counting_nodes_have_fingerprints": true,
+  "fingerprint_union_records": 445,
   "known_unique_lower_bound": 445,
   "naive_sum_upper_bound": 445,
   "nodes": [
     {
       "node_id": "dy01",
       "file": "results/2026-09-18/nodes/dy/dy01.json",
-      "schema_version": 4,
-      "generated_at": "2026-09-18T18:17:57+08:00",
+      "schema_version": 5,
+      "generated_at": "2026-09-18T18:22:44+08:00",
       "latest_seen_time": "2026-09-18T07:10:52+08:00",
       "unique_records": 445,
       "comment_records": 414,
@@ -27,8 +27,8 @@
       "region_records": 341,
       "comment_region_records": 341,
       "crawler_state": "SOFT_EMPTY",
-      "fingerprint_records": 0,
-      "has_record_fingerprints": false
+      "fingerprint_records": 445,
+      "has_record_fingerprints": true
     }
   ],
   "diagnostic_nodes": [
@@ -50,18 +50,14 @@
     }
   ],
   "summary": {
-    "schema_version": 6,
-    "generated_at": "2026-09-18T18:17:57+08:00",
-    "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+    "schema_version": 7,
+    "generated_at": "2026-09-18T10:22:56+00:00",
     "latest_seen_time": "2026-09-18T07:10:52+08:00",
-    "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
+    "privacy": "exact_cross_node_dedupe_from_privacy_safe_record_fingerprints",
     "totals": {
       "unique_records": 445,
-      "filtered_before_start_from_existing_output": 0,
       "region_records": 341,
       "region_coverage_rate": 0.7663,
-      "minority_language_records": 0,
-      "minority_language_rate": 0.0,
       "comment_records": 414,
       "root_comment_records": 359,
       "reply_comment_records": 55,
@@ -94,7 +90,6 @@
       "汉语": 423,
       "未知": 22
     },
-    "minority_languages": {},
     "regions": {
       "广东": 37,
       "甘肃": 33,
@@ -104,31 +99,31 @@
       "山东": 19,
       "江苏": 17,
       "湖北": 15,
-      "湖南": 12,
       "陕西": 12,
+      "湖南": 12,
       "安徽": 11,
-      "贵州": 9,
       "浙江": 9,
       "上海": 9,
+      "贵州": 9,
       "天津": 8,
       "广西": 8,
       "山西": 8,
-      "内蒙古": 7,
       "福建": 7,
-      "重庆": 6,
+      "内蒙古": 7,
       "江西": 6,
-      "北京": 5,
+      "重庆": 6,
       "云南": 5,
       "黑龙江": 5,
+      "北京": 5,
       "河北": 4,
-      "海南": 3,
       "吉林": 3,
+      "海南": 3,
       "宁夏": 3,
       "辽宁": 3,
       "西藏": 2,
       "IP未知": 1,
-      "青海": 1,
-      "委内瑞拉": 1
+      "委内瑞拉": 1,
+      "青海": 1
     },
     "content_regions": {},
     "comment_regions": {
@@ -140,31 +135,31 @@
       "山东": 19,
       "江苏": 17,
       "湖北": 15,
-      "湖南": 12,
       "陕西": 12,
+      "湖南": 12,
       "安徽": 11,
-      "贵州": 9,
       "浙江": 9,
       "上海": 9,
+      "贵州": 9,
       "天津": 8,
       "广西": 8,
       "山西": 8,
-      "内蒙古": 7,
       "福建": 7,
-      "重庆": 6,
+      "内蒙古": 7,
       "江西": 6,
-      "北京": 5,
+      "重庆": 6,
       "云南": 5,
       "黑龙江": 5,
+      "北京": 5,
       "河北": 4,
-      "海南": 3,
       "吉林": 3,
+      "海南": 3,
       "宁夏": 3,
       "辽宁": 3,
       "西藏": 2,
       "IP未知": 1,
-      "青海": 1,
-      "委内瑞拉": 1
+      "委内瑞拉": 1,
+      "青海": 1
     },
     "v2_status": {
       "normal": 337,
@@ -177,8 +172,8 @@
       "null": 73,
       "concern": 7,
       "discriminatory_expression": 7,
-      "consultation": 6,
       "criticism": 6,
+      "consultation": 6,
       "information_gap": 4,
       "skepticism": 3,
       "implementation_issue": 1,
@@ -201,8 +196,8 @@
       "null": 51,
       "concern": 7,
       "discriminatory_expression": 7,
-      "consultation": 6,
       "criticism": 6,
+      "consultation": 6,
       "information_gap": 4,
       "skepticism": 3,
       "implementation_issue": 1,
@@ -238,716 +233,6 @@
       "multimodal_complete": 0,
       "multimodal_completion_rate": 0.0
     },
-    "public_account_stats": [
-      {
-        "account": "一***苑",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 2,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "中***网",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 135,
-          "comments": 0,
-          "shares": 4,
-          "views": 0,
-          "favorites": 6,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "乌***现",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 11,
-          "comments": 0,
-          "shares": 1,
-          "views": 0,
-          "favorites": 1,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "乌***纳",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 1,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "乌***草",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 7,
-          "comments": 2,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "凤***视",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 2458,
-          "comments": 98,
-          "shares": 149,
-          "views": 0,
-          "favorites": 213,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "印***龙",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 133,
-          "comments": 7,
-          "shares": 18,
-          "views": 0,
-          "favorites": 5,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "听***马",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 2,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "大***心",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 26,
-          "comments": 1,
-          "shares": 7,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "妙***妙",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 4,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "宁***心",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "巴***媒",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 35,
-          "comments": 3,
-          "shares": 2,
-          "views": 0,
-          "favorites": 8,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "新***声",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 3,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 1,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "新***心",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 7,
-          "comments": 1,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "李*",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 156,
-          "comments": 16,
-          "shares": 4,
-          "views": 0,
-          "favorites": 4,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "法***作",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 60,
-          "comments": 7,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "法***南",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "活***河",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 27,
-          "comments": 0,
-          "shares": 1,
-          "views": 0,
-          "favorites": 2,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "浪***舟",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 14,
-          "comments": 4,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "灵***河",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 84,
-          "comments": 11,
-          "shares": 11,
-          "views": 0,
-          "favorites": 7,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "疆***孜",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 1287,
-          "comments": 208,
-          "shares": 1,
-          "views": 0,
-          "favorites": 28,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "盗***者",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 18,
-          "comments": 4,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "科***媒",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 6,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "茶***味",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 114,
-          "comments": 31,
-          "shares": 2,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "西***媒",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 32,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "辽***心",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 2,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "青***园",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "青***报",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 9,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "静***💕",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 16,
-          "comments": 1,
-          "shares": 4,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "革*",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 365,
-          "comments": 32,
-          "shares": 24,
-          "views": 0,
-          "favorites": 29,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "香***杰",
-        "platforms": {
-          "dy": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 86,
-          "comments": 5,
-          "shares": 2,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      }
-    ],
-    "public_account_stats_total": 31,
-    "public_account_stats_truncated": false,
-    "runtime": [
-      {
-        "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-18T17:56:48+08:00",
-        "crawler_status": "ok",
-        "crawler_state": "SOFT_EMPTY",
-        "return_code": 0,
-        "duration_seconds": 82.56,
-        "new_records": 0,
-        "filtered_before_start": 0,
-        "classified_records": 0,
-        "ingest_comments": true,
-        "input_file_count": 0,
-        "comment_input_file_count": 0,
-        "region_records": 0,
-        "region_rate": 0.0,
-        "minority_language_records": 0,
-        "language_counts": {},
-        "dashboard_ok": null,
-        "dashboard_sent": 0,
-        "dashboard_inserted": 0,
-        "dashboard_skipped": 0,
-        "outbox_after": null
-      }
-    ]
+    "monitoring_start_time": "2026-09-16T00:00:00+08:00"
   }
 }
