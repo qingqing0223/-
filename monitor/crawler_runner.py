@@ -273,7 +273,7 @@ def _classify_state(
 
     verify_markers = (
         "captcha", "security verification", "manual verify", "verify_required",
-        "滑块", "验证码", "安全验证", "人工验证",
+        "滑块", "验证码", "安全验证", "人工验证", "weibo_verify_required",
     )
     login_markers = (
         "login required", "qrcode not found", "scan code", "扫码登录", "登录失效", "需要登录",
@@ -375,7 +375,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     realtime_mode = bool(cfg.get("realtime_mode", False))
     search_get_comment = "no" if realtime_mode else str(cfg.get("get_comment", "no"))
     search_get_sub_comment = "no" if realtime_mode else str(cfg.get("get_sub_comment", "no"))
-    realtime_notes_default = 20 if code == "bili" else int(cfg.get("realtime_discovery_max_notes_count", 60))
+    realtime_notes_default = 20 if code in {"bili", "wb"} else int(cfg.get("realtime_discovery_max_notes_count", 60))
     notes_limit = (
         max(1, int(cfg.get(
             f"{code}_realtime_discovery_max_notes_count",
@@ -423,22 +423,27 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     deep_queue_pending = 0
     try:
         search_env = None
-        if realtime_mode and code == "bili":
+        if realtime_mode and code in {"bili", "wb"}:
             search_env = os.environ.copy()
-            try:
-                realtime_items_per_keyword = max(
-                    1,
-                    min(
-                        int(cfg.get("bili_realtime_items_per_keyword", 5)),
-                        20,
-                    ),
+            if code == "bili":
+                try:
+                    realtime_items_per_keyword = max(
+                        1,
+                        min(
+                            int(cfg.get("bili_realtime_items_per_keyword", 5)),
+                            20,
+                        ),
+                    )
+                except Exception:
+                    realtime_items_per_keyword = 5
+                search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
+                search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
+                    realtime_items_per_keyword
                 )
-            except Exception:
-                realtime_items_per_keyword = 5
-            search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
-            search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
-                realtime_items_per_keyword
-            )
+            elif code == "wb":
+                # Realtime Weibo search uses snippets only; full-text enrichment
+                # remains in the historical/backfill path.
+                search_env["PROMOTION_WEEK_WB_REALTIME"] = "1"
 
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             proc = subprocess.run(
