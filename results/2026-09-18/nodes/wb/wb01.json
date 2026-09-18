@@ -6,22 +6,22 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T10:44:01+08:00",
+  "generated_at": "2026-09-18T10:51:12+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T10:44:01+08:00",
+    "generated_at": "2026-09-18T10:51:12+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-18T09:42:35+08:00",
+    "latest_seen_time": "2026-09-18T10:46:23+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 35,
+      "unique_records": 39,
       "filtered_before_start_from_existing_output": 0,
-      "region_records": 4,
-      "region_coverage_rate": 0.1143,
+      "region_records": 5,
+      "region_coverage_rate": 0.1282,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 0,
@@ -32,8 +32,8 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 0,
-      "public_publisher_accounts": 29,
-      "likes": 31,
+      "public_publisher_accounts": 33,
+      "likes": 32,
       "comments": 1,
       "shares": 15,
       "views": 0,
@@ -42,61 +42,63 @@
       "coins": 0
     },
     "platforms": {
-      "wb": 35
+      "wb": 39
     },
     "platform_attitude": {
       "wb": {
         "unknown": 24,
-        "neutral": 8,
+        "neutral": 12,
         "support": 3
       }
     },
     "languages": {
-      "汉语": 35
+      "汉语": 39
     },
     "minority_languages": {},
     "regions": {
       "云南": 2,
       "新疆": 1,
-      "广东": 1
+      "广东": 1,
+      "山东": 1
     },
     "content_regions": {
       "云南": 2,
       "新疆": 1,
-      "广东": 1
+      "广东": 1,
+      "山东": 1
     },
     "comment_regions": {},
     "v2_status": {
       "unclassified": 24,
-      "neutral": 8,
+      "neutral": 12,
       "normal": 3
     },
     "v2_type": {
-      "null": 32,
+      "null": 36,
       "support": 3
     },
     "attitude": {
       "unknown": 24,
-      "neutral": 8,
+      "neutral": 12,
       "support": 3
     },
     "comment_v2_status": {},
     "comment_v2_type": {},
     "comment_attitude": {},
     "source_types": {
-      "权威媒体/新闻评论": 29,
+      "权威媒体/新闻评论": 33,
       "普通用户舆情": 3,
       "自媒体观点": 2,
       "律师/专家解读": 1
     },
     "record_types": {
-      "post": 35
+      "post": 39
     },
     "keywords": {
       "2026年民族团结进步宣传周": 16,
-      "首个民族团结进步宣传周": 11,
+      "首个民族团结进步宣传周": 13,
       "促进民族团结进步，奋进伟大复兴征程": 4,
-      "民族团结进步倡议": 2,
+      "民族团结进步倡议": 4,
       "民族团结进步宣传周主场活动": 2
     },
     "video_analysis": {
@@ -330,6 +332,50 @@
         }
       },
       {
+        "account": "大***路",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "天***化",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "嵩***布",
         "platforms": {
           "wb": 1
@@ -420,6 +466,28 @@
         }
       },
       {
+        "account": "昆***战",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "最***院",
         "platforms": {
           "wb": 1
@@ -435,6 +503,30 @@
           "likes": 2,
           "comments": 0,
           "shares": 2,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "枣***线",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {
+          "山东": 1
+        },
+        "engagement": {
+          "likes": 1,
+          "comments": 0,
+          "shares": 0,
           "views": 0,
           "favorites": 0,
           "danmaku": 0,
@@ -756,26 +848,28 @@
         }
       }
     ],
-    "public_account_stats_total": 29,
+    "public_account_stats_total": 33,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T10:15:58+08:00",
+        "cycle_finished_at": "2026-09-18T10:46:35+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
-        "return_code": 1,
-        "duration_seconds": 30.48,
-        "new_records": 0,
+        "return_code": 124,
+        "duration_seconds": 1523.89,
+        "new_records": 4,
         "filtered_before_start": 0,
-        "classified_records": 0,
+        "classified_records": 4,
         "ingest_comments": true,
-        "input_file_count": 0,
+        "input_file_count": 1,
         "comment_input_file_count": 0,
-        "region_records": 0,
-        "region_rate": 0.0,
+        "region_records": 1,
+        "region_rate": 0.25,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 4
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -793,12 +887,65 @@
       "jsonl_files": [
         {
           "kind": "content",
+          "name": "detail_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_102058/wb_20260918_102058/weibo/jsonl/detail_contents_2026-09-18.jsonl",
+          "bytes": 2178,
+          "rows": 1,
+          "sha256": "3590f05d25f62ee73eb11c1c13034cacabe399ead721e2faf98b27a0bc44280b",
+          "modified_at": "2026-09-18T10:46:24+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comments_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "note_id",
+                "note_url",
+                "shared_count",
+                "source_keyword"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "content": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "liked_count": "str",
+                "comments_count": "str",
+                "shared_count": "str",
+                "last_modify_ts": "int",
+                "note_url": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "note_id": "0ba86d23c79634b74ab6"
+              },
+              "safe_values": {
+                "comments_count": "0",
+                "liked_count": "0",
+                "create_time": 1780280867,
+                "last_modify_ts": 1789699584440
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_102058/wb_20260918_102058/weibo/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 443576,
-          "rows": 139,
-          "sha256": "092866d9bcf48425d916e745ce2921b70ff1e8a089e7310662cb352747d3d01e",
-          "modified_at": "2026-09-18T10:43:59+08:00",
+          "bytes": 444452,
+          "rows": 140,
+          "sha256": "590cadc775147f03def5336cb4f6ec0182c22dda197c81cbc9d30d53dd4ac955",
+          "modified_at": "2026-09-18T10:44:14+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1022,14 +1169,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_102058/wb_20260918_102058/stderr.log",
-          "bytes": 84623,
-          "sha256": "497cb563b450348a9086a991e75b24b083b420d609e0aaf4caf23356135c146d"
+          "bytes": 96346,
+          "sha256": "9bda590c28c5f8c7b0d8904d640f8011716062f7beaac7efd5db661b62e6f94b"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_102058/wb_20260918_102058/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 361,
+          "sha256": "7ef71d3a78788b8e791a42d5f6aad5b53edef1696980f6b2e96b8fd8d782df79"
         }
       ]
     }
