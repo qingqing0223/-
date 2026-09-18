@@ -39,6 +39,12 @@ jobs:
           python scripts/patch_douyin_comment_request_profile.py --root /tmp/MediaCrawler --check
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler --check
+          python scripts/patch_weibo_realtime_resilience.py --root /tmp/MediaCrawler
+          python scripts/patch_weibo_realtime_resilience.py --root /tmp/MediaCrawler --check
+          python scripts/patch_weibo_comment_hierarchy.py --root /tmp/MediaCrawler
+          python scripts/patch_weibo_comment_hierarchy.py --root /tmp/MediaCrawler --check
+          python scripts/patch_weibo_public_regions.py --root /tmp/MediaCrawler
+          python scripts/patch_weibo_public_regions.py --root /tmp/MediaCrawler --check
 
       - name: Validate Windows PowerShell acceptance scripts
         shell: pwsh
