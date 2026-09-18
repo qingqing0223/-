@@ -94,6 +94,11 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "github_diagnostic_samples" $true
     Set-ConfigProperty $cfgObj "github_diagnostic_sample_rows_per_type" 5
     Set-ConfigProperty $cfgObj "max_concurrency_num" 1
+    if ($Platform -eq "wb") {
+        Set-ConfigProperty $cfgObj "network_error_cooldown_seconds" 600
+        Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 120
+        Set-ConfigProperty $cfgObj "classifier_concurrency" 12
+    }
 
     # Per-platform realtime budgets. These are soft phase budgets: a candidate
     # already in progress is allowed to finish up to its candidate timeout, while
@@ -116,9 +121,12 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "bili_realtime_max_comments_per_video" 20
     Set-ConfigProperty $cfgObj "bili_realtime_subcomment_root_cap" 2
     Set-ConfigProperty $cfgObj "bili_realtime_subcomment_page_cap" 1
-    Set-ConfigProperty $cfgObj "wb_realtime_detail_budget_seconds" 60
-    Set-ConfigProperty $cfgObj "wb_realtime_candidate_timeout_seconds" 90
-    Set-ConfigProperty $cfgObj "wb_realtime_max_comments_per_video" 200
+    Set-ConfigProperty $cfgObj "wb_realtime_discovery_max_notes_count" 10
+    Set-ConfigProperty $cfgObj "wb_realtime_search_timeout_seconds" 100
+    Set-ConfigProperty $cfgObj "wb_realtime_detail_max_items_per_cycle" 2
+    Set-ConfigProperty $cfgObj "wb_realtime_detail_budget_seconds" 55
+    Set-ConfigProperty $cfgObj "wb_realtime_candidate_timeout_seconds" 35
+    Set-ConfigProperty $cfgObj "wb_realtime_max_comments_per_video" 100
     Set-ConfigProperty $cfgObj "tieba_realtime_detail_budget_seconds" 60
     Set-ConfigProperty $cfgObj "tieba_realtime_candidate_timeout_seconds" 90
     Set-ConfigProperty $cfgObj "tieba_realtime_max_comments_per_video" 300
