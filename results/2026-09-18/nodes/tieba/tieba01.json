@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-18T18:35:25+08:00",
+  "generated_at": "2026-09-18T18:40:31+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "a570594702743e0ba37175ff27b76c75f594252e",
+    "repo_head": "b81392de2b01fdbd46c96584d33bdbebcb9d6f07",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,15 +21,15 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T18:35:24+08:00",
+    "generated_at": "2026-09-18T18:40:31+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T14:10:27+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
       "unique_records": 4662,
       "filtered_before_start_from_existing_output": 0,
-      "region_records": 0,
-      "region_coverage_rate": 0.0,
+      "region_records": 1,
+      "region_coverage_rate": 0.0002,
       "minority_language_records": 12,
       "minority_language_rate": 0.0026,
       "comment_records": 4660,
@@ -68,8 +68,12 @@
     "minority_languages": {
       "藏语": 12
     },
-    "regions": {},
-    "content_regions": {},
+    "regions": {
+      "浙江": 1
+    },
+    "content_regions": {
+      "浙江": 1
+    },
     "comment_regions": {},
     "v2_status": {
       "neutral": 2153,
@@ -154,7 +158,9 @@
         "attitude": {
           "non_support": 1
         },
-        "regions": {},
+        "regions": {
+          "浙江": 1
+        },
         "engagement": {
           "likes": 0,
           "comments": 24,
@@ -193,16 +199,16 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
-        "cycle_finished_at": "2026-09-18T18:31:11+08:00",
-        "crawler_status": "failed",
-        "crawler_state": "NETWORK_ERROR",
-        "return_code": 1,
-        "duration_seconds": 34.68,
+        "cycle_finished_at": "2026-09-18T18:37:28+08:00",
+        "crawler_status": "ok",
+        "crawler_state": "SUCCESS_NO_COMMENTS",
+        "return_code": 0,
+        "duration_seconds": 130.07,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
         "ingest_comments": true,
-        "input_file_count": 0,
+        "input_file_count": 2,
         "comment_input_file_count": 0,
         "region_records": 0,
         "region_rate": 0.0,
@@ -218,7 +224,7 @@
     "discussion_thread_stats": {
       "unique_threads": 498,
       "new_threads_on_result_date": 63,
-      "source_rows_scanned": 23618,
+      "source_rows_scanned": 23642,
       "record_type": "discussion_post",
       "count_basis": "unique_tieba_threads_discovered_during_monitoring_window",
       "publish_time_note": "thread original publish_time may predate monitoring_start_time; daily reporting treats these as discussion containers discovered/active during monitoring"
@@ -23586,7 +23592,7 @@
     {
       "record_hash": "3256c2dbc23605a75877",
       "record_type": "post",
-      "region": "",
+      "region": "浙江",
       "language": "汉语",
       "status": "problematic",
       "type": "criticism",
@@ -121452,19 +121458,19 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_183518",
+      "cycle": "20260918_184018",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
       "jsonl_files": [],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_183518/tieba_20260918_183518/stderr.log",
-          "bytes": 1162,
-          "sha256": "284a0464b5b93fea4432868f328d80a857b33fbdae05d88521ed0590a3e7e1e1"
+          "relative_path": "raw_runs/20260918_184018/tieba_20260918_184018/stderr.log",
+          "bytes": 3935,
+          "sha256": "2c20cee388fc0bef48fb0866ddc2f74db2e80175a63426b81aefd26a6c193477"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_183518/tieba_20260918_183518/stdout.log",
+          "relative_path": "raw_runs/20260918_184018/tieba_20260918_184018/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
