@@ -268,6 +268,10 @@ def _install_weibo_realtime_policy() -> None:
 
     if getattr(crawler_runner, "_promotion_week_wb_realtime_policy", False):
         return
+    # The final student wrapper installs the newer shared atomic realtime policy
+    # first. Do not replace that rollback-aware implementation.
+    if getattr(crawler_runner, "_promotion_week_final_realtime_policy_wb", False):
+        return
 
     original_detail = crawler_runner._run_detail_comment_recovery
 
