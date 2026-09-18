@@ -9,10 +9,28 @@ from scripts import patch_bilibili_login_resilience as patch
 
 
 CORE_SOURCE = '''import asyncio
+from playwright._impl._errors import TargetClosedError
 from tools import utils
 import config
 
 async def start(self):
+            # Choose launch mode based on configuration
+            if config.ENABLE_CDP_MODE:
+                utils.logger.info("[BilibiliCrawler] Launching browser using CDP mode")
+                self.browser_context = await self.launch_browser_with_cdp(
+                    playwright,
+                    playwright_proxy_format,
+                    self.user_agent,
+                    headless=config.CDP_HEADLESS,
+                )
+            else:
+                utils.logger.info("[BilibiliCrawler] Launching browser using standard mode")
+                # Launch a browser context.
+                chromium = playwright.chromium
+                self.browser_context = await self.launch_browser(chromium, None, self.user_agent, headless=config.HEADLESS)
+                # stealth.min.js is a js script to prevent the website from detecting the crawler.
+                await self.browser_context.add_init_script(path="libs/stealth.min.js")
+
             if not await self.bili_client.pong():
                 login_obj = BilibiliLogin(
                     login_type=config.LOGIN_TYPE,
@@ -26,6 +44,23 @@ async def start(self):
                     browser_context=self.browser_context,
                     urls=self.cookie_urls,
                 )
+
+async def launch_browser(self, chromium, playwright_proxy, user_agent, headless=True):
+        if config.SAVE_LOGIN_STATE:
+            user_data_dir = "bili_user_data_dir"
+            browser_context = await chromium.launch_persistent_context(
+                user_data_dir=user_data_dir,
+                accept_downloads=True,
+                headless=headless,
+                proxy=playwright_proxy,  # type: ignore
+                viewport={
+                    "width": 1920,
+                    "height": 1080
+                },
+                user_agent=user_agent,
+                channel="chrome",  # Use system's stable Chrome version
+            )
+            return browser_context
 '''
 
 LOGIN_SOURCE = '''import asyncio
@@ -75,8 +110,12 @@ class BilibiliLoginResiliencePatchTests(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertTrue(result["existing_qr_detection"])
             self.assertTrue(result["session_probe_retry"])
+            self.assertTrue(result["standard_browser_mode"])
+            self.assertTrue(result["persistent_launch_retry"])
             self.assertIn("BILIBILI_LOGIN_REQUIRED", first_login)
             self.assertIn("candidate.click(timeout=8000)", first_login)
+            self.assertIn("CDP bootstrap skipped for Bilibili", first_core)
+            self.assertIn("for _bili_launch_attempt in range(2):", first_core)
 
 
 if __name__ == "__main__":
