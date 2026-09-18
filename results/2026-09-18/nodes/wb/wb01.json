@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T13:05:02+08:00",
+  "generated_at": "2026-09-18T13:10:29+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T13:05:02+08:00",
+    "generated_at": "2026-09-18T13:10:29+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T11:30:12+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -904,11 +904,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T13:04:14+08:00",
+        "cycle_finished_at": "2026-09-18T13:10:01+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 1,
-        "duration_seconds": 45.57,
+        "duration_seconds": 47.5,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -931,19 +931,19 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_130328",
+      "cycle": "20260918_130914",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
       "jsonl_files": [],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_130328/wb_20260918_130328/stderr.log",
+          "relative_path": "raw_runs/20260918_130914/wb_20260918_130914/stderr.log",
           "bytes": 5149,
-          "sha256": "7c8c7f5fab06ba03d763b62d4d19701c379ab2084c28c6b5230680eeff073e9d"
+          "sha256": "4ed150fe13b8b208bcb9343eff8046db2c1a17528db2ed136bec6fd71fd55096"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_130328/wb_20260918_130328/stdout.log",
+          "relative_path": "raw_runs/20260918_130914/wb_20260918_130914/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
