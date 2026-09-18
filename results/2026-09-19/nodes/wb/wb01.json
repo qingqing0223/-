@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-19T07:01:42+08:00",
+  "generated_at": "2026-09-19T07:07:05+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "f54529d47e77ab2271aa4971c004fbd9593a131f",
+    "repo_head": "d68e9130c0d83af6c9c82401706dac5ac97b7715",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T07:01:42+08:00",
+    "generated_at": "2026-09-19T07:07:05+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T04:12:10+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -1493,11 +1493,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-19T06:52:29+08:00",
+        "cycle_finished_at": "2026-09-19T07:03:02+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 103.33,
+        "duration_seconds": 136.39,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -3635,10 +3635,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-19.jsonl",
           "relative_path": "raw_runs/20260919_070045/wb_20260919_070045/weibo/jsonl/search_contents_2026-09-19.jsonl",
-          "bytes": 36750,
-          "rows": 45,
-          "sha256": "0ed44fa675ec5bc5df12d6954e67f27d2f14672b98e79861a4781997c441a2d8",
-          "modified_at": "2026-09-19T07:01:36+08:00",
+          "bytes": 48090,
+          "rows": 59,
+          "sha256": "2ab5231777b5b7a34cbdebf42a90335449ec681beec8ea1e84f3210c5fbbe745",
+          "modified_at": "2026-09-19T07:03:02+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -3872,14 +3872,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260919_070045/wb_20260919_070045/stderr.log",
-          "bytes": 19120,
-          "sha256": "0dd8a5850cbc0335b091bff8c5765efae73adb5954f341a3a69ed01be3ff9217"
+          "bytes": 34137,
+          "sha256": "17dfca01541cdfaab05b11643f01308cf0304ad224f975629e713f739e72b7dc"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260919_070045/wb_20260919_070045/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 389,
+          "sha256": "8597f52012153da504e4431a1412045d28d100a0d1d00eada3a8e5fbb95dfd4e"
         }
       ]
     }
