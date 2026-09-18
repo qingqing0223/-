@@ -31,6 +31,26 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python .\scripts\patch_mediacrawler_public_regions.py --root $MediaCrawlerRoot --check
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+if ($Platform -eq "wb") {
+    Write-Host "Applying/verifying Weibo bounded realtime resilience patch..." -ForegroundColor Cyan
+    python .\scripts\patch_weibo_realtime_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_weibo_realtime_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying/verifying Weibo comment hierarchy patch..." -ForegroundColor Cyan
+    python .\scripts\patch_weibo_comment_hierarchy.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_weibo_comment_hierarchy.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying/verifying Weibo strict public-region patch..." -ForegroundColor Cyan
+    python .\scripts\patch_weibo_public_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_weibo_public_regions.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+
 function Set-ConfigProperty($obj, [string]$name, $value) {
     if ($obj.PSObject.Properties.Name -contains $name) {
         $obj.$name = $value
@@ -42,7 +62,7 @@ function Set-ConfigProperty($obj, [string]$name, $value) {
 $policy = @{
     "xhs"   = @{ Budget = 70; Timeout = 100; CommentCap = 200 }
     "bili"  = @{ Budget = 70; Timeout = 100; CommentCap = 300 }
-    "wb"    = @{ Budget = 60; Timeout = 90;  CommentCap = 200 }
+    "wb"    = @{ Budget = 50; Timeout = 40;  CommentCap = 100 }
     "tieba" = @{ Budget = 60; Timeout = 90;  CommentCap = 300 }
     "zhihu" = @{ Budget = 60; Timeout = 90;  CommentCap = 200 }
 }
@@ -67,8 +87,15 @@ Set-ConfigProperty $cfg "interval_seconds" 300
 Set-ConfigProperty $cfg "overrun_cooldown_seconds" 60
 Set-ConfigProperty $cfg "soft_empty_cooldown_seconds" 1800
 Set-ConfigProperty $cfg "network_error_cooldown_seconds" 300
-Set-ConfigProperty $cfg "realtime_discovery_max_notes_count" 30
-Set-ConfigProperty $cfg "realtime_detail_max_items_per_cycle" 6
+if ($Platform -eq "wb") {
+    Set-ConfigProperty $cfg "realtime_discovery_max_notes_count" 20
+    Set-ConfigProperty $cfg "wb_realtime_discovery_max_notes_count" 20
+    Set-ConfigProperty $cfg "realtime_detail_max_items_per_cycle" 3
+    Set-ConfigProperty $cfg "wb_realtime_detail_max_items_per_cycle" 3
+} else {
+    Set-ConfigProperty $cfg "realtime_discovery_max_notes_count" 30
+    Set-ConfigProperty $cfg "realtime_detail_max_items_per_cycle" 6
+}
 Set-ConfigProperty $cfg "realtime_detail_batch_size" 1
 Set-ConfigProperty $cfg "realtime_comment_refresh_seconds" 300
 Set-ConfigProperty $cfg "realtime_detail_min_start_remaining_seconds" 30
@@ -88,7 +115,12 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 Write-Host "Realtime test config: $TestConfig" -ForegroundColor Cyan
 Write-Host "Realtime test data:   $platformTestRoot" -ForegroundColor Cyan
-Write-Host "Discovery cap:        30" -ForegroundColor Cyan
+if ($Platform -eq "wb") {
+    Write-Host "Discovery cap:        20" -ForegroundColor Cyan
+    Write-Host "Detail candidates:    3" -ForegroundColor Cyan
+} else {
+    Write-Host "Discovery cap:        30" -ForegroundColor Cyan
+}
 Write-Host "Detail budget:        $($p.Budget) seconds" -ForegroundColor Cyan
 Write-Host "Candidate timeout:    $($p.Timeout) seconds" -ForegroundColor Cyan
 Write-Host "Comment cap/item:     $($p.CommentCap)" -ForegroundColor Cyan
