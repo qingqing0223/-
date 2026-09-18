@@ -27,13 +27,23 @@ jobs:
         run: |
           python -m py_compile monitor/*.py pipeline/*.py dashboard_adapter/*.py scripts/*.py
 
+      - name: Smoke-test public-region patch against pinned MediaCrawler
+        run: |
+          git clone --quiet https://github.com/NanmiCoder/MediaCrawler.git /tmp/MediaCrawler
+          git -C /tmp/MediaCrawler checkout --quiet 60e66f2a925816960bbd44af5d6c9b8385d79335
+          python scripts/patch_mediacrawler_public_regions.py --root /tmp/MediaCrawler
+          python scripts/verify_mediacrawler_public_regions.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler --check
+
       - name: Validate Windows PowerShell acceptance scripts
         shell: pwsh
         run: |
           $paths = @(
             'scripts/test_kuaishou_realtime_5min_windows.ps1',
             'scripts/test_douyin_realtime_5min_windows.ps1',
-            'scripts/test_remaining_platform_realtime_5min_windows.ps1'
+            'scripts/test_remaining_platform_realtime_5min_windows.ps1',
+            'scripts/check_public_region_acceptance_windows.ps1'
           )
           foreach ($path in $paths) {
             $bytes = [System.IO.File]::ReadAllBytes($path)
