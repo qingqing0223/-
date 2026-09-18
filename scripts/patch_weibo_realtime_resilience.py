@@ -5,7 +5,7 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V2"
+MARKER = "PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V3"
 
 
 def read(path: Path) -> str:
@@ -28,7 +28,9 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 def patch_client(root: Path) -> None:
     path = root / "media_platform/weibo/client.py"
-    text = read(path).replace("PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V1", MARKER)
+    text = read(path)
+    text = text.replace("PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V1", MARKER)
+    text = text.replace("PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V2", MARKER)
     text = text.replace(
         "if response.status_code in {418, 429, 432}:",
         "if response.status_code in {403, 418, 429, 432}:",
@@ -135,12 +137,35 @@ def patch_client(root: Path) -> None:
     if old_ok0 in text:
         text = text.replace(old_ok0, new_ok0, 1)
 
+    old_pong_except = (
+        "        except Exception as e:\n"
+        "            utils.logger.error(f\"[WeiboClient.pong] Pong weibo failed: {e}, and try to login again...\")\n"
+        "            ping_flag = False\n"
+    )
+    new_pong_except = (
+        f"        except WeiboAccessGuardError:\n"
+        f"            # {MARKER}: verification/rate-limit is not a login failure; stop upstream.\n"
+        "            raise\n"
+        "        except Exception as e:\n"
+        "            utils.logger.error(f\"[WeiboClient.pong] Pong weibo failed: {e}, and try to login again...\")\n"
+        "            ping_flag = False\n"
+    )
+    if old_pong_except in text:
+        text = text.replace(old_pong_except, new_pong_except, 1)
+
     write_py(path, text)
 
 
 def patch_core(root: Path) -> None:
     path = root / "media_platform/weibo/core.py"
     text = read(path).replace("PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V1", MARKER)
+
+    if "from .client import WeiboClient, WeiboAccessGuardError" not in text:
+        text = text.replace(
+            "from .client import WeiboClient\n",
+            "from .client import WeiboClient, WeiboAccessGuardError\n",
+            1,
+        )
 
     old_goto = (
         "            self.context_page = await self.browser_context.new_page()\n"
@@ -165,6 +190,40 @@ def patch_core(root: Path) -> None:
     )
     if old_goto in text:
         text = text.replace(old_goto, new_goto, 1)
+
+    # Verification/rate-limit raised by the client must escape the per-note
+    # comment worker.  Swallowing it as a generic DataFetchError would cause the
+    # current batch to keep hitting Weibo after the platform explicitly asked us
+    # to stop.
+    old_comment_except = (
+        "            except DataFetchError as ex:\n"
+        "                utils.logger.error(f\"[WeiboCrawler.get_note_comments] get note_id: {note_id} comment error: {ex}\")\n"
+    )
+    new_comment_except = (
+        f"            except WeiboAccessGuardError as ex:\n"
+        f"                utils.logger.error(f\"[WeiboCrawler.get_note_comments] WB_DETAIL_VERIFY_STOP: {{ex}}\")\n"
+        "                raise\n"
+        "            except DataFetchError as ex:\n"
+        "                utils.logger.error(f\"[WeiboCrawler.get_note_comments] get note_id: {note_id} comment error: {ex}\")\n"
+    )
+    if old_comment_except in text:
+        text = text.replace(old_comment_except, new_comment_except, 1)
+
+    # Bound the post-login mobile navigation as well. This is normal navigation
+    # only; no verification/captcha bypass is attempted.
+    old_mobile_goto = (
+        "                await self.context_page.goto(self.mobile_index_url)\n"
+        "                await asyncio.sleep(3)\n"
+    )
+    new_mobile_goto = (
+        f"                # {MARKER}: bounded post-login mobile navigation.\n"
+        "                await self.context_page.goto(\n"
+        "                    self.mobile_index_url, wait_until=\"domcontentloaded\", timeout=20000\n"
+        "                )\n"
+        "                await asyncio.sleep(3)\n"
+    )
+    if old_mobile_goto in text:
+        text = text.replace(old_mobile_goto, new_mobile_goto, 1)
 
     full_text_anchor = (
         "    async def batch_get_notes_full_text(self, note_list: List[Dict]) -> List[Dict]:\n"
@@ -195,7 +254,7 @@ def check(root: Path) -> dict:
     client = root / "media_platform/weibo/client.py"
     core = root / "media_platform/weibo/core.py"
     result = {
-        "patch_version": 2,
+        "patch_version": 3,
         "client_exists": client.exists(),
         "core_exists": core.exists(),
         "bounded_http_timeout": False,
@@ -205,6 +264,9 @@ def check(root: Path) -> dict:
         "forbidden_guard": False,
         "bounded_navigation": False,
         "realtime_full_text_skip": False,
+        "pong_guard_propagation": False,
+        "comment_guard_propagation": False,
+        "post_login_navigation_bounded": False,
         "ok": False,
     }
     if not client.exists() or not core.exists():
@@ -221,6 +283,14 @@ def check(root: Path) -> dict:
         result["forbidden_guard"] = "response.status_code in {403, 418, 429, 432}" in client_text
         result["bounded_navigation"] = 'wait_until="domcontentloaded", timeout=20000' in core_text
         result["realtime_full_text_skip"] = 'os.environ.get("PROMOTION_WEEK_WB_REALTIME") == "1"' in core_text
+        result["pong_guard_propagation"] = "except WeiboAccessGuardError:" in client_text
+        result["comment_guard_propagation"] = (
+            "WB_DETAIL_VERIFY_STOP" in core_text
+            and "from .client import WeiboClient, WeiboAccessGuardError" in core_text
+        )
+        result["post_login_navigation_bounded"] = (
+            'self.mobile_index_url, wait_until="domcontentloaded", timeout=20000' in core_text
+        )
         result["ok"] = all((
             result["bounded_http_timeout"],
             result["bounded_retry"],
@@ -229,6 +299,9 @@ def check(root: Path) -> dict:
             result["forbidden_guard"],
             result["bounded_navigation"],
             result["realtime_full_text_skip"],
+            result["pong_guard_propagation"],
+            result["comment_guard_propagation"],
+            result["post_login_navigation_bounded"],
         ))
     except Exception:
         pass
