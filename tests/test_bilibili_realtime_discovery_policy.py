@@ -86,6 +86,17 @@ class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
             self.assertEqual(cmd[cmd.index("--crawler_max_notes_count") + 1], "40")
             self.assertEqual(cmd[cmd.index("--max_concurrency_num") + 1], "3")
 
+    def test_bilibili_realtime_limits_detail_candidates_to_one_by_default(self):
+        queue = {
+            "version": 1,
+            "items": {
+                "v1": {"visible_comment_count": 10, "last_deep_crawled_at": ""},
+                "v2": {"visible_comment_count": 9, "last_deep_crawled_at": ""},
+            },
+        }
+        selected = crawler_runner._select_queue_candidates(queue, max_items=1, refresh_seconds=900)
+        self.assertEqual(len(selected), 1)
+
     def test_non_realtime_keeps_shared_concurrency(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
