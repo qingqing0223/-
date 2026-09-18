@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "bili01",
   "platform": "bili",
-  "generated_at": "2026-09-18T21:24:55+08:00",
+  "generated_at": "2026-09-18T21:30:02+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "7a7a42a452357de36e9fc3f358835afb496b66bd",
+    "repo_head": "3ef70e97733cdce7f049090bc57c4be725e6f532",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T21:24:55+08:00",
+    "generated_at": "2026-09-18T21:30:02+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T21:21:22+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -463,23 +463,21 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
-        "cycle_finished_at": "2026-09-18T21:21:47+08:00",
-        "crawler_status": "failed",
-        "crawler_state": "NETWORK_ERROR",
-        "return_code": 1,
-        "duration_seconds": 66.62,
-        "new_records": 1,
+        "cycle_finished_at": "2026-09-18T21:27:00+08:00",
+        "crawler_status": "ok",
+        "crawler_state": "SUCCESS",
+        "return_code": 0,
+        "duration_seconds": 105.23,
+        "new_records": 0,
         "filtered_before_start": 0,
-        "classified_records": 1,
+        "classified_records": 0,
         "ingest_comments": true,
         "input_file_count": 3,
         "comment_input_file_count": 1,
-        "region_records": 1,
-        "region_rate": 1.0,
+        "region_records": 0,
+        "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {
-          "汉语": 1
-        },
+        "language_counts": {},
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -1664,17 +1662,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_212015",
+      "cycle": "20260918_212515",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
       "jsonl_files": [
         {
           "kind": "comment",
           "name": "detail_comments_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_212015/bili_20260918_212015/bili/jsonl/detail_comments_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_212515/bili_20260918_212515/bili/jsonl/detail_comments_2026-09-18.jsonl",
           "bytes": 7585,
           "rows": 22,
-          "sha256": "58f136cf0f5459f5affa9924e5bfb7470dacc8e52227d62c11b00cf14f82f930",
-          "modified_at": "2026-09-18T21:21:19+08:00",
+          "sha256": "17d5aa819029f52a161b42ee05fa5ec558d2ede1fa3a04a509ab80e3e9455cc4",
+          "modified_at": "2026-09-18T21:26:57+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1713,7 +1711,7 @@
                 "sub_comment_count": "0",
                 "like_count": 7,
                 "create_time": 1788682243,
-                "last_modify_ts": 1789737677095
+                "last_modify_ts": 1789738015705
               },
               "nested_fields": {}
             },
@@ -1754,7 +1752,7 @@
                 "sub_comment_count": "0",
                 "like_count": 0,
                 "create_time": 1788682387,
-                "last_modify_ts": 1789737677098
+                "last_modify_ts": 1789738015711
               },
               "nested_fields": {}
             },
@@ -1795,7 +1793,7 @@
                 "sub_comment_count": "0",
                 "like_count": 0,
                 "create_time": 1789737667,
-                "last_modify_ts": 1789737679118
+                "last_modify_ts": 1789738017720
               },
               "nested_fields": {}
             },
@@ -1836,7 +1834,7 @@
                 "sub_comment_count": "0",
                 "like_count": 0,
                 "create_time": 1789732660,
-                "last_modify_ts": 1789737679123
+                "last_modify_ts": 1789738017728
               },
               "nested_fields": {}
             },
@@ -1877,7 +1875,7 @@
                 "sub_comment_count": "0",
                 "like_count": 0,
                 "create_time": 1789731833,
-                "last_modify_ts": 1789737679124
+                "last_modify_ts": 1789738017729
               },
               "nested_fields": {}
             }
@@ -1886,11 +1884,11 @@
         {
           "kind": "content",
           "name": "detail_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_212015/bili_20260918_212015/bili/jsonl/detail_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_212515/bili_20260918_212515/bili/jsonl/detail_contents_2026-09-18.jsonl",
           "bytes": 1162,
           "rows": 1,
-          "sha256": "6b8b876ecb2cfb757b894328370f042555c1e199c88812291ae1639990fdc2f0",
-          "modified_at": "2026-09-18T21:21:11+08:00",
+          "sha256": "2ba07c1ae44caa7befe5485d947b0e53cb24001bf2f80ce9f8f442bd35a5f533",
+          "modified_at": "2026-09-18T21:26:50+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1944,7 +1942,7 @@
                 "video_comment": "13603",
                 "liked_count": "",
                 "create_time": 1624685098,
-                "last_modify_ts": 1789737671575
+                "last_modify_ts": 1789738010542
               },
               "nested_fields": {}
             }
@@ -1953,11 +1951,11 @@
         {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_212015/bili_20260918_212015/bili/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 15458,
-          "rows": 15,
-          "sha256": "cefb1bcade621614ac032249a35f43fa43c9a01839603e7cc942a8ca63570a59",
-          "modified_at": "2026-09-18T21:20:58+08:00",
+          "relative_path": "raw_runs/20260918_212515/bili_20260918_212515/bili/jsonl/search_contents_2026-09-18.jsonl",
+          "bytes": 32572,
+          "rows": 30,
+          "sha256": "c6109f687a21b3f191e9ab1c3c775a2a25c29c0ecc70b07ab623bfb8cb3dc7a7",
+          "modified_at": "2026-09-18T21:26:36+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -2011,7 +2009,7 @@
                 "video_comment": "4",
                 "liked_count": "46",
                 "create_time": 1768041945,
-                "last_modify_ts": 1789737633148,
+                "last_modify_ts": 1789737934038,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -2068,7 +2066,7 @@
                 "video_comment": "44",
                 "liked_count": "1296",
                 "create_time": 1703818658,
-                "last_modify_ts": 1789737633151,
+                "last_modify_ts": 1789737934043,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -2125,7 +2123,7 @@
                 "video_comment": "1",
                 "liked_count": "18",
                 "create_time": 1787462961,
-                "last_modify_ts": 1789737633152,
+                "last_modify_ts": 1789737934046,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -2182,7 +2180,7 @@
                 "video_comment": "0",
                 "liked_count": "12",
                 "create_time": 1789560000,
-                "last_modify_ts": 1789737633155,
+                "last_modify_ts": 1789737934048,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -2239,7 +2237,7 @@
                 "video_comment": "10",
                 "liked_count": "58",
                 "create_time": 1786108896,
-                "last_modify_ts": 1789737633157,
+                "last_modify_ts": 1789737934050,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -2250,13 +2248,13 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_212015/bili_20260918_212015/stderr.log",
-          "bytes": 20663,
-          "sha256": "9e504fb2f4dd09c4c3f7f72b623c849bb841e52ce057bbb4413e398994b50b64"
+          "relative_path": "raw_runs/20260918_212515/bili_20260918_212515/stderr.log",
+          "bytes": 26995,
+          "sha256": "f5f92c847aa0db73bbef98095cd4e379fb3293b9faa839053792df36088159e4"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_212015/bili_20260918_212015/stdout.log",
+          "relative_path": "raw_runs/20260918_212515/bili_20260918_212515/stdout.log",
           "bytes": 162,
           "sha256": "4d2614d7a4222299e49b63e1d767b6b7f78f5391733f6c08e8176cd1b387291c"
         }
