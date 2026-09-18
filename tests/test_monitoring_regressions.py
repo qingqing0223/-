@@ -66,6 +66,26 @@ class MonitoringRegressionTests(unittest.TestCase):
         finally:
             tmp.cleanup()
 
+    def test_recovered_douyin_cdp_502_with_clean_empty_search_is_soft_empty(self):
+        tmp, out, err = self._logs()
+        try:
+            err.write_text(
+                "[CDPBrowserManager] CDP connection failed: HTTP 502\n"
+                "[DouYinCrawler] CDP模式启动失败，回退到标准模式: HTTP 502\n"
+                "[DouYinCrawler.search] search douyin keyword: test, page: 1 is empty,[]\n"
+                "[DouYinCrawler.start] Douyin Crawler finished ...\n",
+                encoding="utf-8",
+            )
+            state = _classify_state(
+                0, out, err,
+                content_row_count=0,
+                comment_row_count=0,
+                comments_enabled=True,
+            )
+            self.assertEqual(state, "SOFT_EMPTY")
+        finally:
+            tmp.cleanup()
+
     def test_transport_error_still_detected_when_run_failed(self):
         tmp, out, err = self._logs()
         try:
