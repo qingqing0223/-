@@ -171,6 +171,18 @@ if ($Platform -eq "bili") {
         exit $LASTEXITCODE
     }
 
+    Write-Host "Applying Bilibili realtime newest-comment ordering patch..." -ForegroundColor Cyan
+    python .\scripts\patch_bilibili_realtime_comment_order.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili realtime newest-comment ordering patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_bilibili_realtime_comment_order.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili realtime newest-comment ordering verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
     Write-Host "Applying Bilibili realtime discovery fan-out patch..." -ForegroundColor Cyan
     python .\scripts\patch_bilibili_realtime_discovery_bound.py --root $MediaCrawlerRoot
     if ($LASTEXITCODE -ne 0) {
