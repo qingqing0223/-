@@ -104,6 +104,12 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "dy_realtime_detail_budget_seconds" 70
     Set-ConfigProperty $cfgObj "dy_realtime_candidate_timeout_seconds" 105
     Set-ConfigProperty $cfgObj "dy_realtime_max_comments_per_video" 200
+    # Bilibili search fetches one fixed page (up to 20 videos) per keyword and
+    # sleeps inside each video-detail task.  A single worker made six-keyword
+    # discovery exceed the five-minute SLA, so realtime search uses modest
+    # platform-local concurrency without changing other platforms or historical backfill.
+    Set-ConfigProperty $cfgObj "bili_realtime_discovery_max_notes_count" 20
+    Set-ConfigProperty $cfgObj "bili_realtime_search_concurrency" 4
     Set-ConfigProperty $cfgObj "bili_realtime_detail_budget_seconds" 70
     Set-ConfigProperty $cfgObj "bili_realtime_candidate_timeout_seconds" 100
     Set-ConfigProperty $cfgObj "bili_realtime_max_comments_per_video" 300
