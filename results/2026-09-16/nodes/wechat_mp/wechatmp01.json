@@ -6,10 +6,10 @@
   "results_date": "2026-09-16",
   "node_id": "wechatmp01",
   "platform": "wechat_mp",
-  "generated_at": "2026-09-18T22:38:00+08:00",
+  "generated_at": "2026-09-18T22:43:09+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "335d793d5fec3e6c66a35defcce544902367ef4d",
+    "repo_head": "e60bf8d18b5afc9368143c87f472e5ae014c9516",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T22:38:00+08:00",
+    "generated_at": "2026-09-18T22:43:09+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T22:34:51+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -208459,7 +208459,204 @@
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
       "cycle": "20260918_223533",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wechat_mp",
-      "jsonl_files": [],
+      "jsonl_files": [
+        {
+          "kind": "content",
+          "name": "search_contents.jsonl",
+          "relative_path": "raw_runs/20260918_223533/search_contents.jsonl",
+          "bytes": 756159,
+          "rows": 521,
+          "sha256": "4a804a451912cac4b7cd481daee24e6ada96931187e8db64dc229d857f085a73",
+          "modified_at": "2026-09-18T22:42:58+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "author",
+                "collected_at",
+                "content",
+                "content_id",
+                "platform",
+                "publish_time",
+                "raw_text",
+                "source_keyword",
+                "title",
+                "type",
+                "url"
+              ],
+              "field_types": {
+                "platform": "str",
+                "content_id": "str",
+                "title": "str",
+                "content": "str",
+                "author": "str",
+                "url": "str",
+                "publish_time": "str",
+                "source_keyword": "str",
+                "type": "str",
+                "raw_text": "str",
+                "collected_at": "str"
+              },
+              "stable_id_hashes": {
+                "content_id": "36a95942ce7a02c0e85a"
+              },
+              "safe_values": {
+                "publish_time": "2026-09-18T22:18:37+08:00",
+                "type": "post",
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "author",
+                "collected_at",
+                "content",
+                "content_id",
+                "platform",
+                "publish_time",
+                "raw_text",
+                "source_keyword",
+                "title",
+                "type",
+                "url"
+              ],
+              "field_types": {
+                "platform": "str",
+                "content_id": "str",
+                "title": "str",
+                "content": "str",
+                "author": "str",
+                "url": "str",
+                "publish_time": "str",
+                "source_keyword": "str",
+                "type": "str",
+                "raw_text": "str",
+                "collected_at": "str"
+              },
+              "stable_id_hashes": {
+                "content_id": "2fa8876a91f99d7c36a2"
+              },
+              "safe_values": {
+                "publish_time": "2026-09-18T21:50:37+08:00",
+                "type": "post",
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "author",
+                "collected_at",
+                "content",
+                "content_id",
+                "platform",
+                "publish_time",
+                "raw_text",
+                "source_keyword",
+                "title",
+                "type",
+                "url"
+              ],
+              "field_types": {
+                "platform": "str",
+                "content_id": "str",
+                "title": "str",
+                "content": "str",
+                "author": "str",
+                "url": "str",
+                "publish_time": "str",
+                "source_keyword": "str",
+                "type": "str",
+                "raw_text": "str",
+                "collected_at": "str"
+              },
+              "stable_id_hashes": {
+                "content_id": "c8e613a9e8a2633cd50e"
+              },
+              "safe_values": {
+                "publish_time": "2026-09-18T21:50:37+08:00",
+                "type": "post",
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "author",
+                "collected_at",
+                "content",
+                "content_id",
+                "platform",
+                "publish_time",
+                "raw_text",
+                "source_keyword",
+                "title",
+                "type",
+                "url"
+              ],
+              "field_types": {
+                "platform": "str",
+                "content_id": "str",
+                "title": "str",
+                "content": "str",
+                "author": "str",
+                "url": "str",
+                "publish_time": "str",
+                "source_keyword": "str",
+                "type": "str",
+                "raw_text": "str",
+                "collected_at": "str"
+              },
+              "stable_id_hashes": {
+                "content_id": "16a5be457d1e798972f0"
+              },
+              "safe_values": {
+                "publish_time": "2026-09-16T00:00:00+08:00",
+                "type": "post",
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "author",
+                "collected_at",
+                "content",
+                "content_id",
+                "platform",
+                "publish_time",
+                "raw_text",
+                "source_keyword",
+                "title",
+                "type",
+                "url"
+              ],
+              "field_types": {
+                "platform": "str",
+                "content_id": "str",
+                "title": "str",
+                "content": "str",
+                "author": "str",
+                "url": "str",
+                "publish_time": "str",
+                "source_keyword": "str",
+                "type": "str",
+                "raw_text": "str",
+                "collected_at": "str"
+              },
+              "stable_id_hashes": {
+                "content_id": "b4b894963cc006644002"
+              },
+              "safe_values": {
+                "publish_time": "2025-09-21T00:00:00+08:00",
+                "type": "post",
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            }
+          ]
+        }
+      ],
       "log_files": []
     }
   ]
