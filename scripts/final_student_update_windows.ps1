@@ -69,6 +69,19 @@ if ($Platform -eq "dy") {
         Write-Host "ERROR: Douyin startup resilience verification failed. Monitor will NOT start." -ForegroundColor Red
         exit $LASTEXITCODE
     }
+
+
+    Write-Host "Applying Douyin public comment request-profile patch..." -ForegroundColor Cyan
+    python .\scripts\patch_douyin_comment_request_profile.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Douyin comment request-profile patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_douyin_comment_request_profile.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Douyin comment request-profile verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 if ($Platform -eq "bili") {
