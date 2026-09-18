@@ -116,6 +116,10 @@ if ($Start) {
 
 Write-Host "Realtime start command:" -ForegroundColor Cyan
 Write-Host ".\scripts\start_student_platform_windows.ps1 -Platform $Platform -NodeId $NodeId -Config $Config -PushGithub" -ForegroundColor Green
+
+Write-Host ""
+Write-Host "After at least one fresh collection cycle, verify public-region persistence with:" -ForegroundColor Cyan
+Write-Host ".\scripts\check_public_region_acceptance_windows.ps1 -Platform $Platform -Config $Config" -ForegroundColor Green
 if ($ArchiveRaw) {
     Write-Host "Realtime + private raw archive start command:" -ForegroundColor Cyan
     Write-Host ".\scripts\start_student_platform_windows.ps1 -Platform $Platform -NodeId $NodeId -Config $Config -PushGithub -ArchiveRaw -RawArchiveRepo '$RawArchiveRepo' -PrivateRepoConfirmed" -ForegroundColor Green
