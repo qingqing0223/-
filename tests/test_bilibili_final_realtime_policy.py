@@ -58,6 +58,9 @@ class BilibiliFinalRealtimePolicyTests(unittest.TestCase):
             "get_sub_comment": "yes",
             "save_data_option": "jsonl",
             "media_crawler_root": str(root),
+            # Simulate a machine-local config generated before the realtime
+            # Bilibili cap was lowered. Code-level policy must still clamp it.
+            "bili_realtime_max_comments_per_video": 300,
         }
 
     def test_bilibili_realtime_uses_small_comment_cap_and_nested_bounds(self):
