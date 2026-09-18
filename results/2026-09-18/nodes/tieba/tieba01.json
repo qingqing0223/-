@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-18T22:38:09+08:00",
+  "generated_at": "2026-09-18T22:59:39+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "4c83a8ff8ca3acf9b1d626f6c61f31c85c2c36a8",
+    "repo_head": "298e4920dcd69915ec15adb6cba7e11ddda5cec6",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T22:38:08+08:00",
+    "generated_at": "2026-09-18T22:59:39+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T21:17:54+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -213,11 +213,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
-        "cycle_finished_at": "2026-09-18T22:37:29+08:00",
+        "cycle_finished_at": "2026-09-18T22:57:29+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 131.59,
+        "duration_seconds": 131.25,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -238,7 +238,7 @@
     "discussion_thread_stats": {
       "unique_threads": 502,
       "new_threads_on_result_date": 67,
-      "source_rows_scanned": 24506,
+      "source_rows_scanned": 24602,
       "record_type": "discussion_post",
       "count_basis": "unique_tieba_threads_discovered_during_monitoring_window",
       "publish_time_note": "thread original publish_time may predate monitoring_start_time; daily reporting treats these as discussion containers discovered/active during monitoring"
@@ -121550,17 +121550,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_223518",
+      "cycle": "20260918_225518",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
       "jsonl_files": [
         {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_223518/tieba_20260918_223518/tieba/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 63255,
+          "relative_path": "raw_runs/20260918_225518/tieba_20260918_225518/tieba/jsonl/search_contents_2026-09-18.jsonl",
+          "bytes": 52433,
           "rows": 24,
-          "sha256": "d1e7c621f3db2ca1a75c6a4e07e74898ce31d28c63d0806335bca186159cc6cb",
-          "modified_at": "2026-09-18T22:36:42+08:00",
+          "sha256": "e4afabea11963e0b6ee18b1596b404affe0d3f0bb10d500f3ef00d2596a6cd1c",
+          "modified_at": "2026-09-18T22:56:41+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -121602,7 +121602,7 @@
                 "ip_location": "浙江",
                 "total_replay_num": 9,
                 "publish_time": "2026-07-16 01:20:39",
-                "last_modify_ts": 1789742143039,
+                "last_modify_ts": 1789743342633,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -121647,7 +121647,7 @@
                 "ip_location": "吉林",
                 "total_replay_num": 3,
                 "publish_time": "2026-09-15 12:07:18",
-                "last_modify_ts": 1789742143043,
+                "last_modify_ts": 1789743342635,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -121692,7 +121692,7 @@
                 "ip_location": "海南",
                 "total_replay_num": 16,
                 "publish_time": "2026-02-18 20:56:39",
-                "last_modify_ts": 1789742143044,
+                "last_modify_ts": 1789743342635,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -121737,7 +121737,7 @@
                 "ip_location": "浙江",
                 "total_replay_num": 143,
                 "publish_time": "2026-03-14 06:14:35",
-                "last_modify_ts": 1789742143044,
+                "last_modify_ts": 1789743342636,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -121782,7 +121782,7 @@
                 "ip_location": "浙江",
                 "total_replay_num": 143,
                 "publish_time": "2026-03-14 06:14:35",
-                "last_modify_ts": 1789742155324,
+                "last_modify_ts": 1789743354659,
                 "source_keyword": "首个民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -121793,13 +121793,13 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_223518/tieba_20260918_223518/stderr.log",
-          "bytes": 184020,
-          "sha256": "926725bbfc56212c33c27e501411bc88569ff4f7fa6fca3c8740da5101109ebd"
+          "relative_path": "raw_runs/20260918_225518/tieba_20260918_225518/stderr.log",
+          "bytes": 173201,
+          "sha256": "b4a46e966fc8997f8f996b543ec49f19ea077eb776dd9f2699d663608870558b"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_223518/tieba_20260918_223518/stdout.log",
+          "relative_path": "raw_runs/20260918_225518/tieba_20260918_225518/stdout.log",
           "bytes": 397,
           "sha256": "69d5ad34f0092f8fe20a53b4bc13b6f515da1593795b3d0d5597fa85bc2ebebf"
         }
