@@ -20,6 +20,9 @@ class PublicRegionPatchContractTest(unittest.TestCase):
         self.assertEqual(module.coarse_public_region("1.2.3.4"), "")
         self.assertEqual(module.coarse_public_region("2001:db8::1"), "")
         self.assertEqual(module.coarse_public_region("未知"), "")
+        self.assertEqual(module.coarse_public_region("CN"), "")
+        self.assertEqual(module.coarse_public_region("China"), "")
+        self.assertEqual(module.first_coarse_public_region("CN", "IP属地：四川"), "四川")
 
     def test_patch_is_v4_and_covers_all_platforms(self):
         text = (ROOT / "scripts" / "patch_mediacrawler_public_regions.py").read_text(encoding="utf-8")
