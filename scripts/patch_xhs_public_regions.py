@@ -84,10 +84,7 @@ def _xhs_find_coarse_public_region(obj):
             stack.extend(value)
     return ""
 '''
-    anchor = "
-
-class XhsStoreFactory:
-"
+    anchor = "\n\nclass XhsStoreFactory:\n"
     if "def _xhs_find_coarse_public_region" not in text:
         return replace_once(text, anchor, helper + anchor, "xhs region helper")
 
