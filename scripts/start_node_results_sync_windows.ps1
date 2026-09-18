@@ -53,13 +53,29 @@ if ($Push) {
         Write-Host "ERROR: repository is not on a normal branch; cannot preflight GitHub push authentication." -ForegroundColor Red
         exit 12
     }
-    Write-Host "Checking GitHub push authentication once before the sync loop..." -ForegroundColor Cyan
-    git push --dry-run origin ("HEAD:" + $branch) | Out-Host
+    Write-Host "Synchronizing local branch with origin before GitHub push preflight..." -ForegroundColor Cyan
+    git pull --rebase --autostash origin $branch | Out-Host
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: GitHub push authentication preflight failed. Complete the browser sign-in once, then restart this sync." -ForegroundColor Red
+        git rebase --abort 2>$null
+        Write-Host "ERROR: GitHub sync preflight could not update the local branch from origin." -ForegroundColor Red
+        Write-Host "Resolve the Git pull/rebase issue, then restart this sync. This is not automatically treated as an authentication failure." -ForegroundColor Yellow
         exit 13
     }
-    Write-Host "GitHub push authentication preflight succeeded." -ForegroundColor Green
+
+    Write-Host "Checking GitHub push access once before the sync loop..." -ForegroundColor Cyan
+    $pushOutput = git push --dry-run origin ("HEAD:" + $branch) 2>&1
+    $pushOutput | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+        $pushText = ($pushOutput | Out-String).ToLowerInvariant()
+        if ($pushText -match "authentication failed|could not read username|permission denied|repository not found|403|401|credential") {
+            Write-Host "ERROR: GitHub push authentication/access preflight failed. Complete the browser sign-in once, then restart this sync." -ForegroundColor Red
+        } else {
+            Write-Host "ERROR: GitHub push preflight failed for a non-authentication reason." -ForegroundColor Red
+            Write-Host "The local branch was already synchronized once; inspect the Git message above, then restart this sync." -ForegroundColor Yellow
+        }
+        exit 13
+    }
+    Write-Host "GitHub push access preflight succeeded." -ForegroundColor Green
 
     $env:GCM_INTERACTIVE = "Never"
     $env:GIT_TERMINAL_PROMPT = "0"
