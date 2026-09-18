@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T21:21:58+08:00",
+  "generated_at": "2026-09-18T21:27:15+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "118f98d4efbacf40f3bec587cf9ff126dba9f53d",
+    "repo_head": "69abe4c18b91e2ea6d45074fc0a5fb0c190eb718",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T21:21:58+08:00",
+    "generated_at": "2026-09-18T21:27:15+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T21:12:29+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -1360,23 +1360,21 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T21:12:36+08:00",
+        "cycle_finished_at": "2026-09-18T21:23:00+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 105.83,
-        "new_records": 1,
+        "duration_seconds": 136.59,
+        "new_records": 0,
         "filtered_before_start": 0,
-        "classified_records": 1,
+        "classified_records": 0,
         "ingest_comments": true,
         "input_file_count": 1,
         "comment_input_file_count": 0,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {
-          "汉语": 1
-        },
+        "language_counts": {},
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -3296,10 +3294,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_212043/wb_20260918_212043/weibo/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 25145,
-          "rows": 31,
-          "sha256": "a2af4ee40c52ceef1d9215053d2e31962c78aaa5ea699cd7e775a18ddc96be3d",
-          "modified_at": "2026-09-18T21:21:49+08:00",
+          "bytes": 48038,
+          "rows": 59,
+          "sha256": "3e6b7ebf1803923b7afc9d987ecebb1dbd3d975192bf6ba5da600db92a102f39",
+          "modified_at": "2026-09-18T21:23:00+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -3533,14 +3531,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_212043/wb_20260918_212043/stderr.log",
-          "bytes": 14147,
-          "sha256": "7cc3ab0316a769070459b7b56ca265aac6c8f0f00c0ea114702e312b7a2990c3"
+          "bytes": 34127,
+          "sha256": "553b67ac5dfbb8d03c7b287f45927b11a2801b7cd3ed5e498dee7ff681b45fcc"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_212043/wb_20260918_212043/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 389,
+          "sha256": "8597f52012153da504e4431a1412045d28d100a0d1d00eada3a8e5fbb95dfd4e"
         }
       ]
     }
