@@ -21,16 +21,16 @@
       "unique_records": 460,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
-      "region_coverage_rate": 0.0,
+      "region_coverage_rate": 0,
       "minority_language_records": 0,
-      "minority_language_rate": 0.0,
+      "minority_language_rate": 0,
       "comment_records": 460,
       "root_comment_records": 14,
       "reply_comment_records": 446,
       "parent_linked_comment_records": 446,
-      "comment_parent_link_rate": 1.0,
+      "comment_parent_link_rate": 1,
       "comment_region_records": 0,
-      "comment_region_coverage_rate": 0.0,
+      "comment_region_coverage_rate": 0,
       "unique_comment_authors": 27,
       "public_publisher_accounts": 0,
       "likes": 0,
@@ -123,7 +123,7 @@
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,
-      "multimodal_completion_rate": 0.0
+      "multimodal_completion_rate": 0
     },
     "public_account_stats": [],
     "public_account_stats_total": 0,
@@ -143,7 +143,7 @@
         "input_file_count": 3,
         "comment_input_file_count": 1,
         "region_records": 0,
-        "region_rate": 0.0,
+        "region_rate": 0,
         "minority_language_records": 0,
         "language_counts": {
           "汉语": 460
@@ -154,7 +154,24 @@
         "dashboard_skipped": 0,
         "outbox_after": null
       }
-    ]
+    ],
+    "discussion_thread_stats": {
+      "unique_threads": 166,
+      "new_threads_on_result_date": 166,
+      "record_type": "discussion_post",
+      "count_basis": "unique_tieba_threads_in_2026-09-17_search_contents_raw_snapshot",
+      "publish_time_note": "thread original publish_time may predate monitoring_start_time; counted as discussion containers discovered/active during monitoring"
+    },
+    "reporting_record_types": {
+      "discussion_post": 166,
+      "comment": 460
+    },
+    "reporting_totals": {
+      "unique_records": 626,
+      "published_content_records": 166,
+      "comment_records": 460,
+      "new_discussion_posts_on_result_date": 166
+    }
   },
   "raw_diagnostics": [
     {
