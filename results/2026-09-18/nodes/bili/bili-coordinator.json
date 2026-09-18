@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "bili-coordinator",
   "platform": "bili",
-  "generated_at": "2026-09-18T18:55:36+08:00",
+  "generated_at": "2026-09-18T19:22:32+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "fd0d2054961c51776d7cc08129f8f747004e2c44",
+    "repo_head": "09d254b0549c19a42c414c4162bb54222add9169",
     "repo_branch": "main",
     "douyin_request_profile_v2": true,
     "douyin_startup_resilience": true,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T18:55:36+08:00",
+    "generated_at": "2026-09-18T19:22:32+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T17:21:48+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
