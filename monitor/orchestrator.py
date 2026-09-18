@@ -86,7 +86,7 @@ def run_one_cycle(cfg: dict) -> dict:
                 "raw_comment_rows": run.comment_row_count,
                 "partial_crawler_result": False,
                 "crawler_state": run.state,
-                "skipped_reason": "no_ingest_jsonl"
+                "skipped_reason": "soft_empty_no_jsonl" if run.state == "SOFT_EMPTY" else "no_ingest_jsonl"
             })
             continue
 
