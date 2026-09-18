@@ -51,6 +51,14 @@ class PublicRegionPatchContractTest(unittest.TestCase):
         self.assertIn('& .\\scripts\\start_student_platform_windows.ps1 @startArgs', text)
         self.assertNotIn('$args = @(', text)
 
+    def test_result_sync_rewinds_failed_local_result_commit(self):
+        text = (ROOT / "scripts" / "publish_node_result_to_github.py").read_text(encoding="utf-8")
+        self.assertIn('stage": "git_precommit_pull"', text)
+        self.assertIn("rollback_local_result_commit", text)
+        self.assertIn('git", "reset"', text.replace("_run_git([", "").replace("])", ""))
+        self.assertIn('stage": "git_push_auth"', text)
+        self.assertIn('stage": "git_postcommit_rebase"', text)
+
 
 if __name__ == "__main__":
     unittest.main()
