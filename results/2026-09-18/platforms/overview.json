@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T10:39:11+00:00",
+  "generated_at": "2026-09-18T10:40:46+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "single_node_passthrough",
@@ -81,7 +81,7 @@
       "comment_records": 4660,
       "root_comment_records": 34,
       "reply_comment_records": 4626,
-      "region_records": 0,
+      "region_records": 1,
       "comment_region_records": 0,
       "latest_seen_time": "2026-09-18T14:10:27+08:00",
       "node_count": 1,
