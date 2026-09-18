@@ -1,11 +1,11 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-18T17:58:17+00:00",
+  "generated_at": "2026-09-18T17:58:42+00:00",
   "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
-      "source_results_date": "2026-09-18",
-      "aggregation_mode": "single_node_passthrough",
+      "source_results_date": "2026-09-19",
+      "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "xhs01",
       "latest_node_id": "xhs01",
       "unique_records": 11,
@@ -16,7 +16,7 @@
       "comment_region_records": 0,
       "latest_seen_time": "2026-09-18T00:20:02+08:00",
       "node_count": 1,
-      "all_counting_nodes_have_fingerprints": false
+      "all_counting_nodes_have_fingerprints": true
     },
     "dy": {
       "source_results_date": "2026-09-19",
