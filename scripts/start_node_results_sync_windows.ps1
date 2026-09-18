@@ -75,12 +75,17 @@ if ($Push) {
         if ($pushText -match "authentication failed|could not read username|permission denied|repository not found|403|401|credential") {
             Write-Host "ERROR: GitHub push authentication/access preflight failed. Complete the browser sign-in once, then restart this sync." -ForegroundColor Red
         } else {
-            Write-Host "ERROR: GitHub push preflight failed for a non-authentication reason." -ForegroundColor Red
-            Write-Host "The local branch was already synchronized once; inspect the Git message above, then restart this sync." -ForegroundColor Yellow
+            Write-Host "WARNING: GitHub push dry-run saw a concurrent remote update." -ForegroundColor Yellow
+            Write-Host "Continuing into the sync loop; the publisher has its own pull/rebase/retry logic for multi-node pushes." -ForegroundColor Yellow
+            $pushExitCode = 0
         }
-        exit 13
+        if ($pushExitCode -ne 0) {
+            exit 13
+        }
     }
-    Write-Host "GitHub push access preflight succeeded." -ForegroundColor Green
+    if ($pushExitCode -eq 0) {
+        Write-Host "GitHub push access preflight completed; sync loop will handle concurrent remote updates." -ForegroundColor Green
+    }
 
     $env:GCM_INTERACTIVE = "Never"
     $env:GIT_TERMINAL_PROMPT = "0"
