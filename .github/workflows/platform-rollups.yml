@@ -1,0 +1,39 @@
+name: Build platform rollups
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "results/*/nodes/**/*.json"
+      - "scripts/build_platform_rollups.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rollup:
+    if: github.actor != 'github-actions[bot]' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build canonical per-platform rollups
+        run: python scripts/build_platform_rollups.py --all-dates
+      - name: Commit rollups
+        shell: bash
+        run: |
+          if git diff --quiet -- results/*/platforms; then
+            echo "No rollup changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/*/platforms
+          git commit -m "chore: refresh canonical platform rollups"
+          git pull --rebase origin main
+          git push origin HEAD:main
