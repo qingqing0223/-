@@ -73,7 +73,7 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "results_date_mode" "auto"
     Set-ConfigProperty $cfgObj "interval_seconds" 300
     Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 60
-    Set-ConfigProperty $cfgObj "soft_empty_cooldown_seconds" 1800
+    Set-ConfigProperty $cfgObj "soft_empty_cooldown_seconds" 300
     Set-ConfigProperty $cfgObj "network_error_cooldown_seconds" 300
     Set-ConfigProperty $cfgObj "realtime_mode" $true
     Set-ConfigProperty $cfgObj "realtime_discovery_max_notes_count" 30
