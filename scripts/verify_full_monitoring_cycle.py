@@ -10,6 +10,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from monitor.result_summary import build_summary
+from pipeline.normalizer import normalize_record
+from monitor.ingest import _before_monitoring_start
 
 PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
 
@@ -62,6 +64,30 @@ def latest_status(roots: list[Path]) -> tuple[dict, dict, dict]:
     run = (status.get("platform_runs") or [{}])[0]
     ingest = (status.get("ingest") or [{}])[0]
     return status, run, ingest
+
+
+def latest_raw_comment_scope(input_files: list[str], platform: str, monitoring_start_time: str) -> dict:
+    normalized = 0
+    before_start = 0
+    after_or_unknown = 0
+    for raw_path in input_files:
+        path = Path(raw_path)
+        if "comment" not in path.name.lower() or not path.exists():
+            continue
+        for raw in iter_jsonl(path) or []:
+            rec = normalize_record(raw, source_file=path.name, platform_hint=platform)
+            if not rec or rec.get("record_type") != "comment":
+                continue
+            normalized += 1
+            if _before_monitoring_start(rec, monitoring_start_time):
+                before_start += 1
+            else:
+                after_or_unknown += 1
+    return {
+        "normalized_comment_records": normalized,
+        "before_monitoring_start": before_start,
+        "after_or_unknown_time": after_or_unknown,
+    }
 
 
 def comment_integrity(roots: list[Path]) -> dict:
@@ -144,11 +170,18 @@ def main() -> int:
 
     input_files = [str(p) for p in (ingest.get("input_files") or [])]
     comment_files = [p for p in input_files if "comment" in Path(p).name.lower()]
+    raw_comment_scope = latest_raw_comment_scope(
+        input_files,
+        args.platform,
+        str(cfg.get("monitoring_start_time") or ""),
+    )
     raw_content_rows = int(run.get("content_row_count") or ingest.get("raw_content_rows") or 0)
     raw_comment_rows = int(run.get("comment_row_count") or ingest.get("raw_comment_rows") or 0)
     normalized_comment_records = int(ingest.get("normalized_comment_records") or 0)
     classified_comment_records = int(ingest.get("classified_comment_records") or 0)
     filtered_comment_records = int(ingest.get("filtered_before_start_comment_records") or 0)
+    if "filtered_before_start_comment_records" not in ingest:
+        filtered_comment_records = int(raw_comment_scope.get("before_monitoring_start") or 0)
     duplicate_comment_records = int(ingest.get("duplicate_comment_skipped") or 0)
     integrity = comment_integrity(roots)
 
@@ -239,6 +272,7 @@ def main() -> int:
                 "classified_comment_records": classified_comment_records,
                 "filtered_before_monitoring_start": filtered_comment_records,
                 "duplicate_comment_records": duplicate_comment_records,
+                "raw_time_scope_probe": raw_comment_scope,
             },
             "root_comment_records": totals.get("root_comment_records", 0),
             "reply_comment_records": totals.get("reply_comment_records", 0),
