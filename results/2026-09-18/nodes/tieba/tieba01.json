@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-18T10:56:41+08:00",
+  "generated_at": "2026-09-18T11:01:46+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T10:56:41+08:00",
+    "generated_at": "2026-09-18T11:01:46+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T08:50:29+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -197,10 +197,10 @@
           "kind": "comment",
           "name": "detail_comments_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_102659/tieba_20260918_102659/tieba/jsonl/detail_comments_2026-09-18.jsonl",
-          "bytes": 776189,
-          "rows": 1274,
-          "sha256": "166af4f2b5101d3ed1e12dd8d665d5d650ef86f4746db918934628e3b091df78",
-          "modified_at": "2026-09-18T10:56:40+08:00",
+          "bytes": 890966,
+          "rows": 1483,
+          "sha256": "f7f9a269b4a39fa99739573e1b10c1dbb59360b4ead965e5059e4400c9992c1d",
+          "modified_at": "2026-09-18T10:58:43+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -423,10 +423,10 @@
           "kind": "content",
           "name": "detail_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_102659/tieba_20260918_102659/tieba/jsonl/detail_contents_2026-09-18.jsonl",
-          "bytes": 4049,
-          "rows": 4,
-          "sha256": "ec05851d3901b445ac60135a23afefb5190653009ab1dc69f5eb9f447568085d",
-          "modified_at": "2026-09-18T10:42:10+08:00",
+          "bytes": 26530,
+          "rows": 12,
+          "sha256": "b63871f54a8b8f6bf035621cea5d66df0604047ec3197c9159f3d08fda771897",
+          "modified_at": "2026-09-18T10:59:46+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -589,6 +589,47 @@
                 "total_replay_num": 1,
                 "publish_time": "2017-11-03 09:16:01",
                 "last_modify_ts": 1789699330719
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "511738b4dacd3696422c"
+              },
+              "safe_values": {
+                "total_replay_num": 1,
+                "publish_time": "2017-11-16 13:16:52",
+                "last_modify_ts": 1789700353642
               },
               "nested_fields": {}
             }
@@ -820,14 +861,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_102659/tieba_20260918_102659/stderr.log",
-          "bytes": 2028721,
-          "sha256": "dbd531285bd0d053b0d4d1b4ec7dc309c3e516a54f182c343508abccc45ffb54"
+          "bytes": 2222890,
+          "sha256": "742e14f9ed6157d942aefc7ca433007607596178fa9e357f0c1b223a9b6cd677"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_102659/tieba_20260918_102659/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 159,
+          "sha256": "44707fb084a2b6f296aebff74a84f2bd002e9fd4900d2a757012fd79ff7ce811"
         }
       ]
     }
