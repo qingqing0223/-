@@ -165,8 +165,8 @@ HEARTBEAT_INTERVAL = int(os.getenv("LIVE_HEARTBEAT_INTERVAL", "15"))
 LIVE_PLATFORM_ENABLED = os.getenv("LIVE_PLATFORM_ENABLED", "0") == "1"
 LIVE_PLATFORM_POLL = int(os.getenv("LIVE_PLATFORM_POLL", "10"))
 
-# 历史基线只用于离线演示/回放。正式实时大屏默认不迁入 data.js 历史数据。
-LIVE_MIGRATE_HISTORY = os.getenv("LIVE_MIGRATE_HISTORY", "0") == "1"
+# 历史基线来自此前采集入库链路，用于累计量；正式大屏默认迁入数据库展示。
+LIVE_MIGRATE_HISTORY = os.getenv("LIVE_MIGRATE_HISTORY", "1") == "1"
 
 PLATFORM_GROUPS = [
     "微博/热榜",

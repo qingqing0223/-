@@ -6,7 +6,7 @@
 * ``stats_start``：只统计该时间点之后入库（collected_at）的记录；
   设为 off/空 表示不做时间过滤。
 * ``include_history``：=1 时恢复“第一阶段 data.js 基线 + 实时增量”的旧口径；
-  默认 0，即大屏只显示预热阶段真实入库的数据，历史数据与测试数据不参与展示。
+  默认 0，即大屏不叠加静态页面基线；历史采集数据仍以数据库记录方式参与累计统计。
 
 顶部 KPI、平台、地区、小时趋势、重点账号全部取自同一批入库记录，
 因此与采集端（--main）实际入库数量一致。
@@ -25,7 +25,7 @@ from config import BASE_DATA_JS, INCLUDE_HISTORY_BASELINE, PHASE_LABEL, STATS_ST
 HOUR_LOOKBACK_LIMIT = 24 * 15
 QUOTE_LIMIT = 1500
 KEY_ACCOUNT_LIMIT = 30
-EXCLUDED_LIVE_ORIGINS = ("history", "simulator", "demo")
+EXCLUDED_LIVE_ORIGINS = ("simulator", "demo")
 RISK_LIMIT = 80
 
 # 固定关注的 10 个重点地区：五个自治区 + 北京、上海、广州、武汉、哈尔滨
@@ -197,7 +197,7 @@ def compute_live_stats():
     sql = f"SELECT * FROM incidents WHERE status='accepted' AND COALESCE(origin,'') NOT IN ({placeholders})"
     params = list(EXCLUDED_LIVE_ORIGINS)
     if STATS_START:
-        sql += " AND collected_at>=?"
+        sql += " AND (collected_at>=? OR origin='history')"
         params.append(STATS_START)
     sql += " ORDER BY id DESC"
     rows = db.query_all(sql, params)
