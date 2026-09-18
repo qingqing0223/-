@@ -5,11 +5,12 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V4"
+MARKER = "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V5"
 LEGACY_MARKERS = (
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V1",
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V2",
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V3",
+    "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V4",
 )
 
 
@@ -231,6 +232,225 @@ async def _ks_h5_comment_regions(client, photo_id):
     return insert_before_client(text, helper, "kuaishou H5 comment-region helpers")
 
 
+
+def ensure_h5_comment_fetch_fallback(text: str) -> str:
+    if "async def _ks_h5_comment_fallback_response" in text:
+        return text
+    helper = r'''
+
+
+def _ks_h5_named_comment_lists(payload, names):
+    found = []
+    stack = [payload]
+    seen = set()
+    while stack:
+        obj = stack.pop()
+        oid = id(obj)
+        if oid in seen:
+            continue
+        seen.add(oid)
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if key in names and isinstance(value, list):
+                    found.extend(item for item in value if isinstance(item, dict))
+                if isinstance(value, (dict, list, tuple)):
+                    stack.append(value)
+        elif isinstance(obj, (list, tuple)):
+            stack.extend(item for item in obj if isinstance(item, (dict, list, tuple)))
+    deduped = []
+    known = set()
+    for item in found:
+        cid = _ks_comment_id(item)
+        key = cid or str(id(item))
+        if key in known:
+            continue
+        known.add(key)
+        deduped.append(item)
+    return deduped
+
+
+def _ks_normalize_h5_comment(item, root_comment_id=""):
+    if not isinstance(item, dict):
+        return {}
+    out = dict(item)
+    author = item.get("author") if isinstance(item.get("author"), dict) else {}
+    user = item.get("user") if isinstance(item.get("user"), dict) else {}
+    comment_id = (
+        item.get("comment_id") or item.get("commentId") or item.get("id") or ""
+    )
+    author_id = (
+        item.get("author_id") or item.get("authorId") or item.get("user_id")
+        or item.get("userId") or author.get("id") or user.get("id") or ""
+    )
+    author_name = (
+        item.get("author_name") or item.get("authorName") or item.get("user_name")
+        or item.get("userName") or author.get("name") or user.get("name") or ""
+    )
+    content = (
+        item.get("content") or item.get("comment") or item.get("commentContent")
+        or item.get("text") or ""
+    )
+    timestamp = (
+        item.get("timestamp") or item.get("create_time") or item.get("createTime")
+        or item.get("time") or 0
+    )
+    sub_count = (
+        item.get("commentCount") or item.get("subCommentCount")
+        or item.get("sub_comment_count") or 0
+    )
+    region = _ks_direct_public_region(item)
+    out["comment_id"] = comment_id
+    out["author_id"] = author_id
+    out["author_name"] = author_name
+    out["content"] = content
+    out["timestamp"] = timestamp
+    out["commentCount"] = sub_count
+    out["hasSubComments"] = bool(
+        item.get("hasSubComments")
+        or item.get("has_sub_comments")
+        or (str(sub_count).isdigit() and int(sub_count) > 0)
+    )
+    if region:
+        out["ip_location"] = region
+        out.setdefault("authorArea", region)
+    root_id = str(
+        root_comment_id
+        or item.get("root_comment_id")
+        or item.get("rootCommentId")
+        or item.get("parent_comment_id")
+        or item.get("parentCommentId")
+        or ""
+    ).strip()
+    if root_id:
+        out["parent_comment_id"] = root_id
+        out["root_comment_id"] = root_id
+    return out
+
+
+async def _ks_h5_comment_payload(client, photo_id):
+    cache = getattr(client, "_ks_h5_comment_payload_cache", None)
+    if not isinstance(cache, dict):
+        cache = {}
+        setattr(client, "_ks_h5_comment_payload_cache", cache)
+    cache_key = str(photo_id)
+    if cache_key in cache:
+        return cache[cache_key]
+
+    headers = {
+        "User-Agent": client.headers.get("User-Agent", ""),
+        "Accept": "application/json, text/plain, */*",
+        "Content-Type": "application/json;charset=UTF-8",
+        "Origin": "https://m.gifshow.com",
+        "Referer": f"https://m.gifshow.com/fw/photo/{photo_id}",
+    }
+    cookies = {}
+    if isinstance(getattr(client, "cookie_dict", None), dict):
+        for key in ("did", "didv", "kpf", "kpn"):
+            value = client.cookie_dict.get(key)
+            if value:
+                cookies[key] = value
+
+    async with make_async_client(proxy=client.proxy) as http_client:
+        response = await http_client.request(
+            method="POST",
+            url=_KS_H5_COMMENT_REGION_URL,
+            json={"photoId": str(photo_id), "count": 300},
+            headers=headers,
+            cookies=cookies or None,
+            timeout=max(float(getattr(client, "timeout", 10) or 10), 15.0),
+        )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict):
+        raise RuntimeError("Kuaishou H5 comment fallback response is not a JSON object")
+    cache[cache_key] = payload
+    return payload
+
+
+def _ks_h5_root_fallback(payload):
+    roots = _ks_h5_named_comment_lists(payload, {"rootComments", "rootCommentsV2"})
+    return [_ks_normalize_h5_comment(item) for item in roots if isinstance(item, dict)]
+
+
+def _ks_h5_sub_fallback(payload, root_comment_id):
+    root_text = str(root_comment_id)
+    matched = []
+
+    stack = [payload]
+    seen = set()
+    while stack:
+        obj = stack.pop()
+        oid = id(obj)
+        if oid in seen:
+            continue
+        seen.add(oid)
+        if isinstance(obj, dict):
+            sub_map = obj.get("subCommentsMap")
+            if isinstance(sub_map, dict):
+                direct = sub_map.get(root_text)
+                if isinstance(direct, dict):
+                    matched.extend(
+                        _ks_h5_named_comment_lists(
+                            direct, {"subComments", "subCommentsV2"}
+                        )
+                    )
+                elif isinstance(direct, list):
+                    matched.extend(item for item in direct if isinstance(item, dict))
+            for key, value in obj.items():
+                if key in {"subComments", "subCommentsV2"} and isinstance(value, list):
+                    for item in value:
+                        if not isinstance(item, dict):
+                            continue
+                        candidate_root = str(
+                            item.get("root_comment_id")
+                            or item.get("rootCommentId")
+                            or item.get("parent_comment_id")
+                            or item.get("parentCommentId")
+                            or ""
+                        )
+                        if candidate_root == root_text:
+                            matched.append(item)
+                if isinstance(value, (dict, list, tuple)):
+                    stack.append(value)
+        elif isinstance(obj, (list, tuple)):
+            stack.extend(item for item in obj if isinstance(item, (dict, list, tuple)))
+
+    deduped = []
+    known = set()
+    for item in matched:
+        cid = _ks_comment_id(item)
+        key = cid or str(id(item))
+        if key in known:
+            continue
+        known.add(key)
+        deduped.append(_ks_normalize_h5_comment(item, root_text))
+    return deduped
+
+
+async def _ks_h5_comment_fallback_response(client, photo_id, root_comment_id=""):
+    payload = await _ks_h5_comment_payload(client, photo_id)
+    if root_comment_id:
+        comments = _ks_h5_sub_fallback(payload, root_comment_id)
+        utils.logger.info(
+            f"[KS_COMMENT_H5_FETCH_FALLBACK] label=sub photo={photo_id} "
+            f"root={root_comment_id} comments={len(comments)}"
+        )
+        return {"result": 1, "pcursorV2": "no_more", "subCommentsV2": comments}
+
+    comments = _ks_h5_root_fallback(payload)
+    utils.logger.info(
+        f"[KS_COMMENT_H5_FETCH_FALLBACK] label=root photo={photo_id} "
+        f"comments={len(comments)}"
+    )
+    return {
+        "result": 1,
+        "pcursorV2": "no_more",
+        "commentCountV2": len(comments),
+        "rootCommentsV2": comments,
+    }
+'''
+    return insert_before_client(text, helper, "kuaishou H5 comment fetch fallback")
+
 def ensure_debug_helper(text: str) -> str:
     if "def _ks_comment_region_debug" in text:
         return text
@@ -289,7 +509,44 @@ def patch_client(root: Path) -> None:
 
     text = ensure_base_helpers(text)
     text = ensure_h5_helpers(text)
+    text = ensure_h5_comment_fetch_fallback(text)
     text = ensure_debug_helper(text)
+
+    # Upgrade an already V4-patched client in place so a REST V2 rejection
+    # can fall back to the public H5 comment representation instead of yielding
+    # zero comment files. This does not bypass login/captcha/security checks.
+    if "[KS_COMMENT_REST_BLOCKED] label=root" not in text:
+        text = text.replace(
+            '        result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n',
+            '        try:\n'
+            '            result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n'
+            '        except DataFetchError as _ks_rest_exc:\n'
+            '            utils.logger.warning(\n'
+            '                f"[KS_COMMENT_REST_BLOCKED] label=root photo={photo_id} " \
+'
+            '                f"type={type(_ks_rest_exc).__name__} detail={str(_ks_rest_exc)[:240]}; " \
+'
+            '                "trying public H5 comment representation"\n'
+            '            )\n'
+            '            result = await _ks_h5_comment_fallback_response(self, photo_id)\n',
+            1,
+        )  # kuaishou root REST-block fallback upgrade
+    if "[KS_COMMENT_REST_BLOCKED] label=sub" not in text:
+        text = text.replace(
+            '        result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n',
+            '        try:\n'
+            '            result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n'
+            '        except DataFetchError as _ks_rest_exc:\n'
+            '            utils.logger.warning(\n'
+            '                f"[KS_COMMENT_REST_BLOCKED] label=sub photo={photo_id} root={root_comment_id} " \
+'
+            '                f"type={type(_ks_rest_exc).__name__} detail={str(_ks_rest_exc)[:240]}; " \
+'
+            '                "trying public H5 comment representation"\n'
+            '            )\n'
+            '            result = await _ks_h5_comment_fallback_response(self, photo_id, root_comment_id)\n',
+            1,
+        )  # kuaishou sub REST-block fallback upgrade
 
     # Upgrade V3 in place: keep the already-stable REST V2 comment chain, but use
     # the public H5 comment representation only as a same-comment-id region source.
@@ -308,12 +565,16 @@ def patch_client(root: Path) -> None:
 
     root_old = '        return await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n'
     if "[KS_COMMENT_REGION_H5_MERGE] label=root" not in text:
-        root_new = f'''        result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n        _ks_root_comments = result.get("rootCommentsV2", [])\n        if _ks_root_comments and not any(_ks_direct_public_region(c) for c in _ks_root_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_h5_comment_regions(self, photo_id)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_root_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_MERGE] label=root merged={{_ks_merged}} comments={{len(_ks_root_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_FAILED] label=root type={{type(_ks_region_exc).__name__}} detail={{str(_ks_region_exc)[:240]}}")\n        return result\n'''
+        root_new = f'''        try:\n            result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n        except DataFetchError as _ks_rest_exc:\n            utils.logger.warning(\n                f"[KS_COMMENT_REST_BLOCKED] label=root photo={{photo_id}} " \
+                f"type={{type(_ks_rest_exc).__name__}} detail={{str(_ks_rest_exc)[:240]}}; " \
+                "trying public H5 comment representation"\n            )\n            result = await _ks_h5_comment_fallback_response(self, photo_id)\n        _ks_root_comments = result.get("rootCommentsV2", [])\n        if _ks_root_comments and not any(_ks_direct_public_region(c) for c in _ks_root_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_h5_comment_regions(self, photo_id)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_root_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_MERGE] label=root merged={{_ks_merged}} comments={{len(_ks_root_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_FAILED] label=root type={{type(_ks_region_exc).__name__}} detail={{str(_ks_region_exc)[:240]}}")\n        return result\n'''
         text = replace_once(text, root_old, root_new, "kuaishou root H5 region fallback")
 
     sub_old = '        return await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n'
     if "[KS_COMMENT_REGION_H5_MERGE] label=sub" not in text:
-        sub_new = f'''        result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n        _ks_sub_comments = result.get("subCommentsV2", [])\n        if _ks_sub_comments and not any(_ks_direct_public_region(c) for c in _ks_sub_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_h5_comment_regions(self, photo_id)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_sub_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_MERGE] label=sub merged={{_ks_merged}} comments={{len(_ks_sub_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_FAILED] label=sub type={{type(_ks_region_exc).__name__}} detail={{str(_ks_region_exc)[:240]}}")\n        return result\n'''
+        sub_new = f'''        try:\n            result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n        except DataFetchError as _ks_rest_exc:\n            utils.logger.warning(\n                f"[KS_COMMENT_REST_BLOCKED] label=sub photo={{photo_id}} root={{root_comment_id}} " \
+                f"type={{type(_ks_rest_exc).__name__}} detail={{str(_ks_rest_exc)[:240]}}; " \
+                "trying public H5 comment representation"\n            )\n            result = await _ks_h5_comment_fallback_response(self, photo_id, root_comment_id)\n        _ks_sub_comments = result.get("subCommentsV2", [])\n        if _ks_sub_comments and not any(_ks_direct_public_region(c) for c in _ks_sub_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_h5_comment_regions(self, photo_id)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_sub_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_MERGE] label=sub merged={{_ks_merged}} comments={{len(_ks_sub_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_FAILED] label=sub type={{type(_ks_region_exc).__name__}} detail={{str(_ks_region_exc)[:240]}}")\n        return result\n'''
         text = replace_once(text, sub_old, sub_new, "kuaishou sub H5 region fallback")
 
     root_anchor = '            comments = comments_res.get("rootCommentsV2", [])\n'
@@ -357,6 +618,7 @@ def check(root: Path) -> dict:
         "h5_fallback_present": False,
         "h5_helpers_defined": False,
         "legacy_graphql_calls_present": False,
+        "h5_comment_fetch_fallback_present": False,
         "ok": False,
     }
     if not path.exists():
@@ -382,11 +644,18 @@ def check(root: Path) -> dict:
             "await _ks_graphql_root_regions(" in text,
             "await _ks_graphql_sub_regions(" in text,
         ])
+        result["h5_comment_fetch_fallback_present"] = all([
+            "async def _ks_h5_comment_fallback_response" in text,
+            "[KS_COMMENT_REST_BLOCKED] label=root" in text,
+            "[KS_COMMENT_REST_BLOCKED] label=sub" in text,
+            "[KS_COMMENT_H5_FETCH_FALLBACK] label=root" in text,
+        ])
         result["ok"] = all([
             result["marker_present"], result["authorArea_supported"],
             result["root_enrichment"], result["sub_enrichment"],
             result["schema_debug_present"], result["h5_fallback_present"],
-            result["h5_helpers_defined"], not result["legacy_graphql_calls_present"],
+            result["h5_helpers_defined"], result["h5_comment_fetch_fallback_present"],
+            not result["legacy_graphql_calls_present"],
         ])
     except Exception:
         pass
