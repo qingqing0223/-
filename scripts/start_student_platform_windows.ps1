@@ -99,13 +99,22 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
         Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 120
         Set-ConfigProperty $cfgObj "classifier_concurrency" 12
     }
+    if ($Platform -eq "xhs") {
+        Set-ConfigProperty $cfgObj "network_error_cooldown_seconds" 600
+        Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 120
+        Set-ConfigProperty $cfgObj "classifier_concurrency" 12
+    }
 
     # Per-platform realtime budgets. These are soft phase budgets: a candidate
     # already in progress is allowed to finish up to its candidate timeout, while
     # new candidates are not started once the soft budget is nearly exhausted.
-    Set-ConfigProperty $cfgObj "xhs_realtime_detail_budget_seconds" 70
-    Set-ConfigProperty $cfgObj "xhs_realtime_candidate_timeout_seconds" 100
-    Set-ConfigProperty $cfgObj "xhs_realtime_max_comments_per_video" 200
+    Set-ConfigProperty $cfgObj "xhs_realtime_discovery_max_notes_count" 20
+    Set-ConfigProperty $cfgObj "xhs_realtime_items_per_keyword" 5
+    Set-ConfigProperty $cfgObj "xhs_realtime_search_timeout_seconds" 120
+    Set-ConfigProperty $cfgObj "xhs_realtime_detail_max_items_per_cycle" 2
+    Set-ConfigProperty $cfgObj "xhs_realtime_detail_budget_seconds" 55
+    Set-ConfigProperty $cfgObj "xhs_realtime_candidate_timeout_seconds" 45
+    Set-ConfigProperty $cfgObj "xhs_realtime_max_comments_per_video" 100
     Set-ConfigProperty $cfgObj "dy_realtime_detail_budget_seconds" 70
     Set-ConfigProperty $cfgObj "dy_realtime_candidate_timeout_seconds" 105
     Set-ConfigProperty $cfgObj "dy_realtime_max_comments_per_video" 200
