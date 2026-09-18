@@ -59,7 +59,7 @@ if ($Push) {
         git rebase --abort 2>$null
         Write-Host "ERROR: GitHub sync preflight could not update the local branch from origin." -ForegroundColor Red
         Write-Host "Resolve the Git pull/rebase issue, then restart this sync. This is not automatically treated as an authentication failure." -ForegroundColor Yellow
-        exit 13
+        exit 14
     }
 
     Write-Host "Checking GitHub push access once before the sync loop..." -ForegroundColor Cyan
