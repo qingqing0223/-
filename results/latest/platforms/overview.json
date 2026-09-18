@@ -1,9 +1,10 @@
 {
-  "schema_version": 1,
-  "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T09:05:34+00:00",
+  "schema_version": 2,
+  "generated_at": "2026-09-18T09:06:35+00:00",
+  "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
+      "source_results_date": "2026-09-18",
       "aggregation_mode": "single_node_passthrough",
       "authoritative_node_id": "xhs01",
       "latest_node_id": "xhs01",
@@ -18,6 +19,7 @@
       "all_counting_nodes_have_fingerprints": false
     },
     "dy": {
+      "source_results_date": "2026-09-18",
       "aggregation_mode": "single_node_passthrough",
       "authoritative_node_id": "dy01",
       "latest_node_id": "dy01",
@@ -32,6 +34,7 @@
       "all_counting_nodes_have_fingerprints": false
     },
     "ks": {
+      "source_results_date": "2026-09-18",
       "aggregation_mode": "conservative_authoritative_snapshot_pending_fingerprints",
       "authoritative_node_id": "ks01",
       "latest_node_id": "ks-main",
@@ -46,6 +49,7 @@
       "all_counting_nodes_have_fingerprints": false
     },
     "bili": {
+      "source_results_date": "2026-09-18",
       "aggregation_mode": "single_node_passthrough",
       "authoritative_node_id": "bili01",
       "latest_node_id": "bili01",
@@ -60,6 +64,7 @@
       "all_counting_nodes_have_fingerprints": false
     },
     "wb": {
+      "source_results_date": "2026-09-18",
       "aggregation_mode": "single_node_passthrough",
       "authoritative_node_id": "wb01",
       "latest_node_id": "wb01",
@@ -74,6 +79,7 @@
       "all_counting_nodes_have_fingerprints": false
     },
     "tieba": {
+      "source_results_date": "2026-09-18",
       "aggregation_mode": "single_node_passthrough",
       "authoritative_node_id": "tieba01",
       "latest_node_id": "tieba01",
@@ -88,6 +94,7 @@
       "all_counting_nodes_have_fingerprints": false
     },
     "zhihu": {
+      "source_results_date": "2026-09-18",
       "aggregation_mode": "single_node_passthrough",
       "authoritative_node_id": "zhihu01",
       "latest_node_id": "zhihu01",
@@ -98,6 +105,21 @@
       "region_records": 0,
       "comment_region_records": 0,
       "latest_seen_time": "2026-09-17T23:18:36+08:00",
+      "node_count": 1,
+      "all_counting_nodes_have_fingerprints": false
+    },
+    "wechat_mp": {
+      "source_results_date": "2026-09-16",
+      "aggregation_mode": "single_node_passthrough",
+      "authoritative_node_id": "wechatmp01",
+      "latest_node_id": "wechatmp01",
+      "unique_records": 4619,
+      "comment_records": 0,
+      "root_comment_records": 0,
+      "reply_comment_records": 0,
+      "region_records": 0,
+      "comment_region_records": 0,
+      "latest_seen_time": "2026-09-17T22:58:50+08:00",
       "node_count": 1,
       "all_counting_nodes_have_fingerprints": false
     }
