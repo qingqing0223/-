@@ -441,7 +441,11 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         queue = _load_queue(qpath)
         _update_queue_from_content(code, content_files, queue)
         refresh_seconds = max(300, int(cfg.get("realtime_comment_refresh_seconds", 900)))
-        max_items = max(1, int(cfg.get("realtime_detail_max_items_per_cycle", 12)))
+        realtime_detail_default = 1 if code == "bili" else int(cfg.get("realtime_detail_max_items_per_cycle", 12))
+        max_items = max(1, int(cfg.get(
+            f"{code}_realtime_detail_max_items_per_cycle",
+            realtime_detail_default,
+        )))
         recovery_candidates = _select_queue_candidates(queue, max_items, refresh_seconds)
         comments_expected_this_cycle = bool(recovery_candidates)
         if recovery_candidates:
