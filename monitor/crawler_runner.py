@@ -482,9 +482,9 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         comments_enabled=comments_expected_this_cycle,
     )
 
-    if state == "NATURAL_END":
+    if state in {"NATURAL_END", "SOFT_EMPTY"}:
         status = "ok"
-    elif state in {"SOFT_EMPTY", "VERIFY_REQUIRED", "LOGIN_REQUIRED", "NETWORK_ERROR", "CRAWLER_FAILED", "RUNNER_ERROR"}:
+    elif state in {"VERIFY_REQUIRED", "LOGIN_REQUIRED", "NETWORK_ERROR", "CRAWLER_FAILED", "RUNNER_ERROR"}:
         status = "failed"
     else:
         status = "ok"
