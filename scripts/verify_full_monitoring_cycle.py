@@ -148,6 +148,8 @@ def main() -> int:
     raw_comment_rows = int(run.get("comment_row_count") or ingest.get("raw_comment_rows") or 0)
     normalized_comment_records = int(ingest.get("normalized_comment_records") or 0)
     classified_comment_records = int(ingest.get("classified_comment_records") or 0)
+    filtered_comment_records = int(ingest.get("filtered_before_start_comment_records") or 0)
+    duplicate_comment_records = int(ingest.get("duplicate_comment_skipped") or 0)
     integrity = comment_integrity(roots)
 
     failures = []
@@ -182,8 +184,19 @@ def main() -> int:
             warnings.append("content_collected_but_no_comment_jsonl_generated")
     if comment_files and raw_comment_rows == 0:
         warnings.append("comment_jsonl_exists_but_contains_no_rows")
+    # Raw comments can be validly absent from the production classified output when
+    # every normalized comment is either outside monitoring_start_time or already
+    # seen. Treat those as scope/dedupe accounting, not as a broken comment chain.
+    accounted_comment_records = (
+        classified_comment_records
+        + filtered_comment_records
+        + duplicate_comment_records
+    )
     if raw_comment_rows > 0 and cumulative_comment_records == 0 and classified_comment_records == 0:
-        failures.append("comment_rows_exist_but_no_comment_record_in_classified_output")
+        if accounted_comment_records >= normalized_comment_records:
+            warnings.append("raw_comments_collected_but_all_excluded_by_scope_or_dedupe")
+        else:
+            failures.append("comment_rows_exist_but_no_comment_record_in_classified_output")
     if cumulative_comment_records > 0 and int(totals.get("comment_region_records") or 0) == 0:
         warnings.append("comments_collected_but_no_public_region_label_seen")
 
@@ -203,6 +216,10 @@ def main() -> int:
             "normalized_comment_records": normalized_comment_records,
             "duplicate_skipped": int(ingest.get("duplicate_skipped") or 0),
             "filtered_before_start": int(ingest.get("filtered_before_start") or 0),
+            "filtered_before_start_comment_records": filtered_comment_records,
+            "filtered_before_start_content_records": int(ingest.get("filtered_before_start_content_records") or 0),
+            "duplicate_comment_skipped": duplicate_comment_records,
+            "duplicate_content_skipped": int(ingest.get("duplicate_content_skipped") or 0),
             "classified_records": int(ingest.get("classified_records") or 0),
             "classified_comment_records": classified_comment_records,
             "normalization_dropped": int(ingest.get("normalization_dropped") or 0),
@@ -216,6 +233,13 @@ def main() -> int:
         },
         "comments": {
             "comment_records": cumulative_comment_records,
+            "latest_cycle_scope": {
+                "raw_comment_rows": raw_comment_rows,
+                "normalized_comment_records": normalized_comment_records,
+                "classified_comment_records": classified_comment_records,
+                "filtered_before_monitoring_start": filtered_comment_records,
+                "duplicate_comment_records": duplicate_comment_records,
+            },
             "root_comment_records": totals.get("root_comment_records", 0),
             "reply_comment_records": totals.get("reply_comment_records", 0),
             "parent_linked_comment_records": totals.get("parent_linked_comment_records", 0),
