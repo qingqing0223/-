@@ -5,7 +5,7 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_WB_COMMENT_HIERARCHY_V1"
+MARKER = "PROMOTION_WEEK_WB_COMMENT_HIERARCHY_V2"
 
 
 def read(path: Path) -> str:
@@ -29,6 +29,7 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 def patch_client(root: Path) -> None:
     path = root / "media_platform/weibo/client.py"
     text = read(path)
+    text = text.replace("PROMOTION_WEEK_WB_COMMENT_HIERARCHY_V1", MARKER)
 
     root_anchor = '            comment_list: List[Dict] = comments_res.get("data", [])\n'
     if "_promotion_week_wb_root_comment" not in text:
@@ -45,29 +46,181 @@ def patch_client(root: Path) -> None:
         )
         text = replace_once(text, root_anchor, root_block, "weibo root hierarchy tagging")
 
-    sub_anchor = (
-        '            sub_comments = comment.get("comments")\n'
-        '            if sub_comments and isinstance(sub_comments, list):\n'
+    # Add the public nested-reply endpoint used by m.weibo.cn.  The normal client
+    # request helper unwraps "data", which would discard top-level max_id fields,
+    # so this method requests the Response object and normalizes the pagination
+    # envelope itself while preserving all existing anti-abuse guards.
+    if "async def get_note_sub_comments_page(" not in text:
+        anchor = "    async def get_note_all_comments(\n"
+        method = f'''    async def get_note_sub_comments_page(
+        self,
+        comment_id: str,
+        max_id: int = 0,
+        max_id_type: int = 0,
+    ) -> Dict:
+        """Get one public nested-reply page for a first-level Weibo comment.  # {MARKER}"""
+        uri = "/comments/hotFlowChild"
+        params = {{
+            "cid": comment_id,
+            "max_id": max_id,
+            "max_id_type": max_id_type,
+        }}
+        headers = copy.copy(self.headers)
+        headers["Referer"] = f"https://m.weibo.cn/comments/hotFlowChild?cid={{comment_id}}"
+        headers["X-Requested-With"] = "XMLHttpRequest"
+        headers["MWeibo-Pwa"] = "1"
+        response = await self.get(uri, params, headers=headers, return_response=True)
+        try:
+            payload = response.json()
+        except Exception as exc:
+            raise DataFetchError(f"nested comment response is not JSON: {{exc}}")
+        ok_code = payload.get("ok")
+        if ok_code == 0:
+            msg = str(payload.get("msg") or "response error")
+            if msg in {{"暂无数据", "没有更多了"}}:
+                return {{"data": [], "max_id": 0, "max_id_type": 0}}
+            if any(token in msg for token in ("频繁", "验证", "异常", "安全", "访问受限")):
+                raise WeiboAccessGuardError(f"WEIBO_VERIFY_REQUIRED {{msg}}")
+            raise DataFetchError(msg)
+        if ok_code != 1:
+            raise DataFetchError(str(payload.get("msg") or "unknown response"))
+        rows = payload.get("data")
+        if not isinstance(rows, list):
+            rows = []
+        return {{
+            "data": rows,
+            "max_id": payload.get("max_id", 0),
+            "max_id_type": payload.get("max_id_type", 0),
+        }}
+
+'''
+        text = replace_once(text, anchor, method + anchor, "weibo child endpoint")
+
+    # Replace the upstream embedded-only sub-comment helper with a bounded,
+    # deduplicating paginator.  Historical backfill can naturally exhaust it;
+    # realtime is bounded externally by the monitor's per-candidate timeout and
+    # per-note comment cap.
+    start = text.find("    @staticmethod\n    async def get_comments_all_sub_comments(")
+    if start >= 0:
+        end = text.find("\n    async def get_note_info_by_id", start)
+        if end < 0:
+            raise RuntimeError("weibo sub-comment helper end anchor not found")
+        replacement = f'''    async def get_comments_all_sub_comments(
+        self,
+        note_id: str,
+        comment_list: List[Dict],
+        callback: Optional[Callable] = None,
+        max_count: int = 100,
+        crawl_interval: float = 1.0,
+    ) -> List[Dict]:
+        """Persist embedded replies and fetch remaining public child pages.  # {MARKER}"""
+        if not config.ENABLE_GET_SUB_COMMENTS:
+            utils.logger.info(
+                "[WeiboClient.get_comments_all_sub_comments] Crawling sub_comment mode is not enabled"
+            )
+            return []
+
+        result: List[Dict] = []
+        seen_ids = set()
+        limit = max(0, int(max_count or 0))
+        if limit <= 0:
+            return result
+
+        async def emit(root_id: str, rows: List[Dict]) -> None:
+            fresh: List[Dict] = []
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                child_id = str(row.get("id") or "").strip()
+                if not child_id or child_id in seen_ids:
+                    continue
+                parent_id = str(
+                    row.get("reply_id")
+                    or row.get("parent_comment_id")
+                    or root_id
+                    or ""
+                ).strip()
+                if not parent_id or parent_id == child_id:
+                    parent_id = root_id
+                row["parent_comment_id"] = parent_id
+                row["root_comment_id"] = root_id
+                seen_ids.add(child_id)
+                fresh.append(row)
+                result.append(row)
+                if len(result) >= limit:
+                    break
+            if fresh and callback:
+                await callback(note_id, fresh)
+
+        for comment in comment_list:
+            if len(result) >= limit:
+                break
+            if not isinstance(comment, dict):
+                continue
+            root_id = str(comment.get("id") or comment.get("root_comment_id") or "").strip()
+            if not root_id:
+                continue
+
+            embedded = comment.get("comments")
+            if isinstance(embedded, list) and embedded:
+                await emit(root_id, embedded)
+            if len(result) >= limit:
+                break
+
+            try:
+                expected = int(comment.get("total_number") or 0)
+            except Exception:
+                expected = 0
+            embedded_count = len(embedded) if isinstance(embedded, list) else 0
+            if expected <= embedded_count:
+                continue
+
+            max_id = 0
+            max_id_type = 0
+            page_guard = 0
+            while len(result) < limit:
+                page_guard += 1
+                if page_guard > 50:
+                    utils.logger.warning(
+                        f"[WeiboClient.get_comments_all_sub_comments] child pagination guard reached root={{root_id}}"
+                    )
+                    break
+                page = await self.get_note_sub_comments_page(root_id, max_id, max_id_type)
+                rows = page.get("data") or []
+                if rows:
+                    await emit(root_id, rows)
+                next_max_id = page.get("max_id", 0)
+                next_max_id_type = page.get("max_id_type", 0)
+                try:
+                    next_max_id_int = int(next_max_id or 0)
+                except Exception:
+                    next_max_id_int = 0
+                if next_max_id_int == 0 or not rows:
+                    break
+                if next_max_id_int == max_id and next_max_id_type == max_id_type:
+                    break
+                max_id = next_max_id_int
+                max_id_type = next_max_id_type
+                if crawl_interval > 0:
+                    await asyncio.sleep(crawl_interval)
+
+        return result
+'''
+        text = text[:start] + replacement + text[end:]
+
+    old_call = (
+        "            sub_comment_result = await self.get_comments_all_sub_comments(note_id, comment_list, callback)\n"
+        "            result.extend(sub_comment_result)\n"
     )
-    if "_promotion_week_wb_sub_comment" not in text:
-        sub_block = sub_anchor + (
-            f'                # {MARKER}: preserve nested reply parent/root links.\n'
-            '                _promotion_week_wb_parent_id = str(comment.get("id") or comment.get("root_comment_id") or "").strip()\n'
-            '                for _promotion_week_wb_sub_comment in sub_comments:\n'
-            '                    if not isinstance(_promotion_week_wb_sub_comment, dict):\n'
-            '                        continue\n'
-            '                    _promotion_week_wb_reply_parent = str(\n'
-            '                        _promotion_week_wb_sub_comment.get("reply_id")\n'
-            '                        or _promotion_week_wb_sub_comment.get("parent_comment_id")\n'
-            '                        or _promotion_week_wb_parent_id\n'
-            '                        or ""\n'
-            '                    ).strip()\n'
-            '                    if not _promotion_week_wb_reply_parent or _promotion_week_wb_reply_parent == str(_promotion_week_wb_sub_comment.get("id") or ""):\n'
-            '                        _promotion_week_wb_reply_parent = _promotion_week_wb_parent_id\n'
-            '                    _promotion_week_wb_sub_comment["parent_comment_id"] = _promotion_week_wb_reply_parent\n'
-            '                    _promotion_week_wb_sub_comment["root_comment_id"] = _promotion_week_wb_parent_id\n'
-        )
-        text = replace_once(text, sub_anchor, sub_block, "weibo sub hierarchy tagging")
+    new_call = (
+        "            remaining = max(0, max_count - len(result))\n"
+        "            sub_comment_result = await self.get_comments_all_sub_comments(\n"
+        "                note_id, comment_list, callback, max_count=remaining, crawl_interval=crawl_interval\n"
+        "            )\n"
+        "            result.extend(sub_comment_result)\n"
+    )
+    if old_call in text:
+        text = text.replace(old_call, new_call, 1)
 
     write_py(path, text)
 
@@ -75,6 +228,7 @@ def patch_client(root: Path) -> None:
 def patch_store(root: Path) -> None:
     path = root / "store/weibo/__init__.py"
     text = read(path)
+    text = text.replace("PROMOTION_WEEK_WB_COMMENT_HIERARCHY_V1", MARKER)
 
     old_parent = '        "parent_comment_id": comment_item.get("rootid", ""),\n'
     new_parent = (
@@ -94,11 +248,13 @@ def check(root: Path) -> dict:
     client = root / "media_platform/weibo/client.py"
     store = root / "store/weibo/__init__.py"
     result = {
-        "patch_version": 1,
+        "patch_version": 2,
         "client_exists": client.exists(),
         "store_exists": store.exists(),
         "root_tagging": False,
-        "sub_tagging": False,
+        "child_endpoint": False,
+        "child_pagination": False,
+        "child_dedupe": False,
         "root_persistence": False,
         "root_parent_empty": False,
         "ok": False,
@@ -111,12 +267,23 @@ def check(root: Path) -> dict:
         ast.parse(client_text, filename=str(client))
         ast.parse(store_text, filename=str(store))
         result["root_tagging"] = '_promotion_week_wb_root_comment["parent_comment_id"] = ""' in client_text
-        result["sub_tagging"] = '_promotion_week_wb_sub_comment["root_comment_id"] = _promotion_week_wb_parent_id' in client_text
+        result["child_endpoint"] = (
+            'async def get_note_sub_comments_page(' in client_text
+            and '"/comments/hotFlowChild"' in client_text
+        )
+        result["child_pagination"] = (
+            "child pagination guard reached" in client_text
+            and "max_id_type" in client_text
+            and "await self.get_note_sub_comments_page" in client_text
+        )
+        result["child_dedupe"] = "seen_ids = set()" in client_text
         result["root_persistence"] = '"root_comment_id": str(comment_item.get("root_comment_id") or comment_id)' in store_text
         result["root_parent_empty"] = '"parent_comment_id": str(comment_item.get("parent_comment_id") or "")' in store_text
         result["ok"] = all((
             result["root_tagging"],
-            result["sub_tagging"],
+            result["child_endpoint"],
+            result["child_pagination"],
+            result["child_dedupe"],
             result["root_persistence"],
             result["root_parent_empty"],
         ))
@@ -126,7 +293,7 @@ def check(root: Path) -> dict:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Persist Weibo first-level/nested parent-root comment hierarchy.")
+    ap = argparse.ArgumentParser(description="Persist Weibo first-level/nested parent-root hierarchy and public child pages.")
     ap.add_argument("--root", required=True)
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
