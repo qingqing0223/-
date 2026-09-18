@@ -408,49 +408,59 @@ def commit_and_push(path: Path, retries: int = 5) -> dict:
             "path": rel,
         }
 
+    # Synchronize before creating a local result commit.  This prevents a stale
+    # unpublished node-result commit from being replayed during a later rebase.
+    # The generated shard remains in the working tree via --autostash.
+    _abort_rebase_if_needed()
+    pre_pull = _run_git(["pull", "--rebase", "--autostash", "origin", branch])
+    if pre_pull.returncode != 0:
+        _abort_rebase_if_needed()
+        return {
+            "ok": False,
+            "stage": "git_precommit_pull",
+            "error": pre_pull.stderr.strip() or pre_pull.stdout.strip(),
+            "path": rel,
+        }
+
     add = _run_git(["add", "--", rel])
     if add.returncode != 0:
-        return {"ok": False, "stage": "git_add", "error": add.stderr.strip() or add.stdout.strip()}
+        return {"ok": False, "stage": "git_add", "error": add.stderr.strip() or add.stdout.strip(), "path": rel}
 
     diff = _run_git(["diff", "--cached", "--quiet", "--", rel])
     if diff.returncode == 0:
         return {"ok": True, "changed": False, "pushed": False, "path": rel}
     if diff.returncode != 1:
-        return {"ok": False, "stage": "git_diff", "error": diff.stderr.strip() or diff.stdout.strip()}
+        return {"ok": False, "stage": "git_diff", "error": diff.stderr.strip() or diff.stdout.strip(), "path": rel}
+
+    before_commit = _run_git(["rev-parse", "HEAD"])
+    if before_commit.returncode != 0:
+        return {
+            "ok": False,
+            "stage": "git_rev_parse",
+            "error": before_commit.stderr.strip() or before_commit.stdout.strip(),
+            "path": rel,
+        }
+    base_head = before_commit.stdout.strip()
 
     stamp = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")
     commit = _run_git(["commit", "-m", f"chore: update node monitoring result {stamp}", "--", rel])
     if commit.returncode != 0:
-        return {"ok": False, "stage": "git_commit", "error": commit.stderr.strip() or commit.stdout.strip()}
+        return {"ok": False, "stage": "git_commit", "error": commit.stderr.strip() or commit.stdout.strip(), "path": rel}
+
+    def rollback_local_result_commit() -> None:
+        # Rewind only the result commit created above while keeping the generated
+        # shard as an ordinary working-tree change.  This avoids poisoning the
+        # next sync cycle after a permission/authentication failure.
+        _abort_rebase_if_needed()
+        _run_git(["reset", "--mixed", base_head])
 
     for attempt in range(1, retries + 1):
-        _abort_rebase_if_needed()
-        pull = _run_git(["pull", "--rebase", "--autostash", "origin", branch])
-        if pull.returncode != 0:
-            _abort_rebase_if_needed()
-            if _looks_like_git_auth_error(pull):
-                return {
-                    "ok": False,
-                    "stage": "git_pull_auth",
-                    "attempt": attempt,
-                    "error": pull.stderr.strip() or pull.stdout.strip(),
-                    "path": rel,
-                }
-            if attempt < retries:
-                time.sleep(2 * attempt)
-                continue
-            return {
-                "ok": False,
-                "stage": "git_pull_rebase",
-                "attempt": attempt,
-                "error": pull.stderr.strip() or pull.stdout.strip(),
-                "path": rel,
-            }
-
         push = _run_git(["push", "origin", f"HEAD:{branch}"])
         if push.returncode == 0:
             return {"ok": True, "changed": True, "pushed": True, "path": rel, "attempt": attempt}
+
         if _looks_like_git_auth_error(push):
+            rollback_local_result_commit()
             return {
                 "ok": False,
                 "stage": "git_push_auth",
@@ -458,10 +468,32 @@ def commit_and_push(path: Path, retries: int = 5) -> dict:
                 "error": push.stderr.strip() or push.stdout.strip(),
                 "path": rel,
             }
+
+        # A different node may have advanced main after our pre-commit pull.
+        # Rebase once per retry; if the same node path conflicts, abort and
+        # rewind our local result commit so the next cycle can regenerate cleanly.
+        pull = _run_git(["pull", "--rebase", "--autostash", "origin", branch])
+        if pull.returncode != 0:
+            _abort_rebase_if_needed()
+            rollback_local_result_commit()
+            return {
+                "ok": False,
+                "stage": "git_postcommit_rebase",
+                "attempt": attempt,
+                "error": pull.stderr.strip() or pull.stdout.strip(),
+                "path": rel,
+            }
+
         if attempt < retries:
             time.sleep(2 * attempt)
 
-    return {"ok": False, "stage": "git_push", "error": push.stderr.strip() or push.stdout.strip(), "path": rel}
+    rollback_local_result_commit()
+    return {
+        "ok": False,
+        "stage": "git_push",
+        "error": push.stderr.strip() or push.stdout.strip(),
+        "path": rel,
+    }
 
 
 def main():
