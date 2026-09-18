@@ -9,7 +9,7 @@ import queue
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 import db
 import migrate_history
@@ -28,6 +28,8 @@ from config import (
 )
 from collectors import get_collectors
 from ingest import ingest_records
+from reporting import ReportService
+from reporting.service import ReportServiceError
 from stats import build_bootstrap, key_accounts_payload, now_iso, row_to_quote
 
 
@@ -39,6 +41,7 @@ class LiveServer(ThreadingHTTPServer):
         self.subscribers = set()
         self.sub_lock = threading.Lock()
         self.collectors = get_collectors()
+        self.reports = ReportService()
 
     def subscribe(self):
         q = queue.Queue()
@@ -125,6 +128,20 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             return None
 
+    def _send_file(self, path):
+        if not path.is_file():
+            self._send_json({"error": "report file not found"}, 404)
+            return
+        ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        body = path.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Disposition", f"attachment; filename*=UTF-8''{quote(path.name)}")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     # ---------- GET ----------
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -134,6 +151,28 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/health":
             self._send_json({"ok": True, "time": now_iso()})
+            return
+        if path == "/api/reports":
+            self._send_json(self.server.reports.list_reports())
+            return
+        if path == "/api/reports/status":
+            qs = parse_qs(parsed.query)
+            date_text = qs.get("date", [""])[0]
+            try:
+                self._send_json(self.server.reports.describe_date(date_text))
+            except ReportServiceError as exc:
+                self._send_json({"error": str(exc)}, 400)
+            return
+        if path == "/api/reports/download":
+            qs = parse_qs(parsed.query)
+            date_text = qs.get("date", [""])[0]
+            format_name = qs.get("format", [""])[0]
+            try:
+                report_path = self.server.reports.download_path(date_text, format_name)
+            except ReportServiceError as exc:
+                self._send_json({"error": str(exc)}, 409)
+                return
+            self._send_file(report_path)
             return
         if path == "/api/incidents":
             qs = parse_qs(parsed.query)
@@ -219,6 +258,16 @@ class Handler(BaseHTTPRequestHandler):
                     self.server.broadcast({"type": "incident", "incident": row_to_quote(row), "collector": "api"})
             self.server.broadcast({"type": "refresh", "reason": "api-ingest"})
             self._send_json({"inserted": len(inserted), "skipped": skipped, "ids": [r["id"] for r in inserted]})
+            return
+        if path == "/api/reports/generate":
+            data = self._read_json() or {}
+            try:
+                result = self.server.reports.start_generation(str(data.get("date") or ""))
+            except ReportServiceError as exc:
+                self._send_json({"error": str(exc)}, 400)
+                return
+            code = 202 if result.get("status") == "generating" else 200
+            self._send_json(result, code)
             return
         if path.startswith("/api/collectors/"):
             name = path.rsplit("/", 1)[-1]

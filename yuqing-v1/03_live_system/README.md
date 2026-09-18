@@ -25,6 +25,18 @@ cd yuqing-v1/03_live_system
 
 如果系统自带 Python 不可用（例如缺少 Xcode Command Line Tools），`start.sh` 会自动切换到 Codex 自带运行时。
 
+### 每日态势报告下载
+
+大屏右上角的“下载最新态势报告”支持按日期生成和下载 Word/PDF。该功能仅读取仓库根目录下的 `results/YYYY-MM-DD/nodes/`，与大屏 SQLite 数据解耦，不会触发采集或分析任务。
+
+```bash
+python -m pip install -r requirements-report.txt
+export DASHSCOPE_API_KEY="你的 DashScope API Key"
+./start.sh
+```
+
+报告默认按日期保存在 `data/generated_reports/YYYY-MM-DD/`。当源数据、Prompt、分类口径或模板未变化时，后续下载直接使用缓存；源文件变化后才会重新生成。当天默认显示“数据仍在统计和分析中”，历史日期可正常生成。详细说明见 `reporting/README.md`。
+
 ## 统一大屏：一套页面、两种模式
 
 大屏页面统一维护在 `web/` 目录，不再区分静态版/动态版两套页面：

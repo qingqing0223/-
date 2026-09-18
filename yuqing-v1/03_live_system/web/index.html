@@ -22,11 +22,23 @@
     .topbar::before{content:"";position:absolute;left:22%;right:22%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,232,.78),rgba(120,205,218,.48),transparent)}
     .title{text-align:center;grid-column:2;position:relative;padding:0 30px}.title::before,.title::after{content:"";position:absolute;top:50%;width:58px;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,232,.7))}.title::before{right:100%;transform:translateY(-50%)}.title::after{left:100%;transform:translateY(-50%) rotate(180deg)}
     .title h1{margin:0;font-size:23px;line-height:1.05;letter-spacing:1px;color:#f5fbff;text-shadow:0 0 14px rgba(56,189,232,.45)}
+    .top-actions{grid-column:3;display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
     .live-status{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:11px;color:var(--muted);white-space:nowrap;min-width:0;overflow:hidden}
     .live-status .dot{width:8px;height:8px;border-radius:50%;background:#9cc9df;box-shadow:0 0 8px rgba(156,201,223,.7);flex:0 0 auto}
     .live-status.on .dot{background:#3fe08a;box-shadow:0 0 10px rgba(63,224,138,.95)}
     .live-status.off .dot{background:#d96f6a;box-shadow:none}
     .live-status.pending .dot{background:#eecb72;box-shadow:0 0 8px rgba(238,203,114,.8)}
+    .report-open{border:1px solid rgba(56,189,232,.55);background:linear-gradient(180deg,rgba(25,84,117,.92),rgba(13,52,77,.92));color:#e9f8ff;border-radius:6px;padding:5px 10px;font:inherit;font-size:11px;line-height:1;white-space:nowrap;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 12px rgba(56,189,232,.12)}
+    .report-open:hover{border-color:rgba(238,203,114,.8);color:#fff4c5;background:linear-gradient(180deg,rgba(38,98,127,.96),rgba(17,61,88,.96))}
+    .report-modal-mask{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(1,10,18,.74);backdrop-filter:blur(4px)}
+    .report-modal-mask.open{display:flex}
+    .report-modal{width:min(460px,calc(100vw - 32px));border:1px solid rgba(97,196,235,.5);border-radius:12px;background:linear-gradient(180deg,#102b40,#091c2c);box-shadow:0 24px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);overflow:hidden}
+    .report-modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(119,190,226,.2)}
+    .report-modal-head h2{margin:0;font-size:16px}.report-close{border:0;background:transparent;color:#9cc9df;font-size:22px;line-height:1;cursor:pointer;padding:0 2px}.report-close:hover{color:#fff}
+    .report-modal-body{display:grid;gap:13px;padding:16px}.report-field{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;align-items:center}.report-field label{font-size:12px;color:var(--muted)}
+    .report-select{width:100%;border:1px solid rgba(119,190,226,.3);border-radius:6px;background:#0b2133;color:#eff9ff;padding:8px 10px;font:inherit;font-size:12px;outline:none}.report-select:focus{border-color:var(--cyan)}
+    .report-status{min-height:58px;border:1px solid rgba(119,190,226,.16);border-radius:7px;background:rgba(5,19,31,.54);padding:10px 12px;font-size:12px;line-height:1.6;color:#c9e6f4}.report-status strong{color:#fff}.report-status.warn{border-color:rgba(238,203,114,.38);color:#f4dfa4}.report-status.error{border-color:rgba(217,111,106,.5);color:#ffc0bc}
+    .report-storage{font-size:10px;color:#7faabf;overflow-wrap:anywhere}.report-modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 16px 16px}.report-action,.report-cancel{border-radius:6px;padding:8px 15px;font:inherit;font-size:12px;cursor:pointer}.report-cancel{border:1px solid rgba(119,190,226,.26);background:rgba(12,37,55,.8);color:#badbec}.report-action{border:1px solid rgba(56,189,232,.62);background:#17658b;color:#fff;font-weight:700}.report-action:disabled{cursor:not-allowed;opacity:.46}
     .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
     .kpi,.panel,.map-panel{border:1px solid var(--line);background:var(--panel);border-radius:8px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px rgba(0,0,0,.18);min-width:0;min-height:0}
@@ -110,7 +122,10 @@
     <header class="topbar">
       <div class="phase-tag" id="phaseTag"></div>
       <div class="title"><h1>民族团结进步宣传周舆情态势感知系统</h1></div>
-      <div class="live-status" id="liveStatus"><span class="dot"></span>连接中</div>
+      <div class="top-actions">
+        <button id="reportOpenBtn" class="report-open" type="button">下载最新态势报告</button>
+        <div class="live-status" id="liveStatus"><span class="dot"></span>连接中</div>
+      </div>
     </header>
     <section id="kpis" class="kpis"></section>
     <main class="main">
@@ -171,6 +186,18 @@
       </section>
     </section>
   </div>
+  <div id="reportModalMask" class="report-modal-mask" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+    <div class="report-modal">
+      <div class="report-modal-head"><h2 id="reportModalTitle">下载最新态势报告</h2><button id="reportCloseBtn" class="report-close" type="button" aria-label="关闭">×</button></div>
+      <div class="report-modal-body">
+        <div class="report-field"><label for="reportDate">报告日期</label><select id="reportDate" class="report-select"></select></div>
+        <div class="report-field"><label for="reportFormat">文件格式</label><select id="reportFormat" class="report-select"><option value="docx">Word（.docx）</option><option value="pdf">PDF（.pdf）</option></select></div>
+        <div id="reportStatus" class="report-status">正在读取可用日期……</div>
+        <div id="reportStorage" class="report-storage"></div>
+      </div>
+      <div class="report-modal-actions"><button id="reportCancelBtn" class="report-cancel" type="button">取消</button><button id="reportActionBtn" class="report-action" type="button" disabled>请稍候</button></div>
+    </div>
+  </div>
   <script src="assets/echarts.min.js"></script>
   <script src="assets/china.js"></script>
   <script src="assets/data.js"></script>
@@ -187,6 +214,92 @@
     ];
     const COLORS=["#38bde8","#78cdda","#9fb9c8","#eecb72","#5aa8c8","#8fc7bf","#6f97b1","#b7c9d5","#d96f6a","#7f9caf"];
     const MUTED_BAR_COLORS=["#78cdda","#67bdd2","#56adca","#469dbf","#3f8eae","#5aa8c8","#7fb9c5","#9fb9c8"];
+    let reportRows=[];
+    let reportPollTimer=null;
+    const reportStatusText={ready:"报告已生成，可直接下载",available:"数据已归档，首次下载前需要生成报告",collecting:"当天数据仍在统计和分析中",generating:"报告正在生成，请稍候",error:"报告生成失败",no_data:"该日期暂无爬取和分析结果"};
+    function selectedReport(){
+      const value=$("reportDate").value;
+      return reportRows.find(row=>row.date===value)||null;
+    }
+    function reportDownloadUrl(row,format){
+      return `/api/reports/download?date=${encodeURIComponent(row.date)}&format=${encodeURIComponent(format)}`;
+    }
+    function updateReportDialog(){
+      const row=selectedReport(),format=$("reportFormat").value,status=$("reportStatus"),action=$("reportActionBtn");
+      if(!row){status.className="report-status error";status.textContent="没有可用的报告日期";action.disabled=true;action.textContent="不可下载";return}
+      const message=row.message||reportStatusText[row.status]||"";
+      const cacheNote=row.cached&&row.generated_at?`<br>缓存生成时间：${escapeHtml(String(row.generated_at).replace("T"," "))}`:"";
+      status.className="report-status"+(row.status==="error"?" error":row.status==="collecting"?" warn":"");
+      status.innerHTML=`<strong>${escapeHtml(row.date)}</strong><br>${escapeHtml(message)}${cacheNote}`;
+      const canDownload=(row.formats||[]).includes(format);
+      if(canDownload){action.disabled=false;action.textContent=row.status==="collecting"?"下载缓存版本":"下载报告"}
+      else if(row.status==="available"||row.status==="error"){action.disabled=false;action.textContent="生成并下载"}
+      else if(row.status==="generating"){action.disabled=true;action.textContent="正在生成……"}
+      else{action.disabled=true;action.textContent="暂不可下载"}
+    }
+    function applyReportRows(payload){
+      reportRows=Array.isArray(payload.dates)?payload.dates:[];
+      const select=$("reportDate"),previous=select.value;
+      select.innerHTML=reportRows.map(row=>`<option value="${escapeHtml(row.date)}">${escapeHtml(row.date)}</option>`).join("");
+      if(previous&&reportRows.some(row=>row.date===previous))select.value=previous;
+      else if(payload.default_date)select.value=payload.default_date;
+      $("reportStorage").textContent=payload.storage_root?"报告按日期归档；源数据未变化时直接下载已生成的缓存版本。":"";
+      updateReportDialog();
+    }
+    function loadReportRows(){
+      return fetch("/api/reports",{cache:"no-store"}).then(async response=>{
+        const data=await response.json();
+        if(!response.ok)throw new Error(data.error||`API ${response.status}`);
+        applyReportRows(data);
+        return data;
+      });
+    }
+    function closeReportDialog(){
+      $("reportModalMask").classList.remove("open");
+      if(reportPollTimer){clearTimeout(reportPollTimer);reportPollTimer=null}
+    }
+    function openReportDialog(){
+      $("reportModalMask").classList.add("open");
+      $("reportStatus").className="report-status";$("reportStatus").textContent="正在读取可用日期……";
+      $("reportActionBtn").disabled=true;$("reportActionBtn").textContent="请稍候";
+      loadReportRows().catch(error=>{$("reportStatus").className="report-status error";$("reportStatus").textContent=`读取失败：${error.message}`});
+    }
+    function pollReport(dateText,format){
+      if(!$("reportModalMask").classList.contains("open"))return;
+      fetch(`/api/reports/status?date=${encodeURIComponent(dateText)}`,{cache:"no-store"}).then(async response=>{
+        const row=await response.json();
+        if(!response.ok)throw new Error(row.error||`API ${response.status}`);
+        const index=reportRows.findIndex(item=>item.date===row.date);
+        if(index>=0)reportRows[index]=row;else reportRows.push(row);
+        updateReportDialog();
+        if((row.formats||[]).includes(format)&&row.status!=="generating"){
+          window.location.href=reportDownloadUrl(row,format);
+          return;
+        }
+        if(row.status==="generating")reportPollTimer=setTimeout(()=>pollReport(dateText,format),2000);
+      }).catch(error=>{$("reportStatus").className="report-status error";$("reportStatus").textContent=`查询失败：${error.message}`;$("reportActionBtn").disabled=false;$("reportActionBtn").textContent="重试"});
+    }
+    function handleReportAction(){
+      const row=selectedReport(),format=$("reportFormat").value;
+      if(!row)return;
+      if((row.formats||[]).includes(format)){window.location.href=reportDownloadUrl(row,format);return}
+      $("reportActionBtn").disabled=true;$("reportActionBtn").textContent="正在启动……";
+      fetch("/api/reports/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date:row.date})}).then(async response=>{
+        const next=await response.json();
+        if(!response.ok)throw new Error(next.error||next.message||`API ${response.status}`);
+        const index=reportRows.findIndex(item=>item.date===next.date);if(index>=0)reportRows[index]=next;
+        updateReportDialog();
+        if(next.status==="generating")pollReport(next.date,format);
+      }).catch(error=>{$("reportStatus").className="report-status error";$("reportStatus").textContent=`生成失败：${error.message}`;$("reportActionBtn").disabled=false;$("reportActionBtn").textContent="重试"});
+    }
+    $("reportOpenBtn").addEventListener("click",openReportDialog);
+    $("reportCloseBtn").addEventListener("click",closeReportDialog);
+    $("reportCancelBtn").addEventListener("click",closeReportDialog);
+    $("reportModalMask").addEventListener("click",event=>{if(event.target===$("reportModalMask"))closeReportDialog()});
+    $("reportDate").addEventListener("change",updateReportDialog);
+    $("reportFormat").addEventListener("change",updateReportDialog);
+    $("reportActionBtn").addEventListener("click",handleReportAction);
+    document.addEventListener("keydown",event=>{if(event.key==="Escape")closeReportDialog()});
     // 固定关注的 10 个重点地区（五个自治区 + 北京、上海、广州、武汉、哈尔滨），固定展示、不轮播
     const FOCUS_REGIONS=[
       {name:"新疆",provinces:["新疆"],match:["新疆","乌鲁木齐"]},

@@ -1,0 +1,35 @@
+{
+  "version": "public-opinion-monitor-v2.1",
+  "status": {
+    "normal": {
+      "definition": "明确支持、认可或积极评价",
+      "allowed_types": ["support"],
+      "report_bucket": "认可支持"
+    },
+    "neutral": {
+      "definition": "中性陈述、单纯转述信息或观点不明，没有明确支持、疑问或问题判断",
+      "allowed_types": [null],
+      "report_bucket": "真中性"
+    },
+    "attention": {
+      "definition": "只是询问、求助、表示不了解或信息不足，尚未明确表达问题判断",
+      "allowed_types": ["information_gap", "consultation"],
+      "report_bucket": "真中性",
+      "mapping_note": "沿用大屏适配口径，将attention并入中性信息；原始status仍保留"
+    },
+    "problematic": {
+      "definition": "明确表达担忧、质疑、批评、实施问题、公平争议、投诉维权或歧视偏见",
+      "allowed_types": [
+        "concern",
+        "criticism",
+        "skepticism",
+        "implementation_issue",
+        "fairness_dispute",
+        "complaint_rights",
+        "discriminatory_expression"
+      ],
+      "report_bucket": "非支持"
+    }
+  },
+  "unclassified_policy": "unclassified或unknown单列为待分类，不并入认可支持、真中性或非支持"
+}

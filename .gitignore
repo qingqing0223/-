@@ -10,6 +10,7 @@ data/out/*
 data/state/*
 data/raw_runs/
 data/status/
+yuqing-v1/03_live_system/data/generated_reports/
 browser_data/
 cookies/
 *.log
