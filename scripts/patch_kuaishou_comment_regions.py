@@ -5,12 +5,13 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V5"
+MARKER = "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V6"
 LEGACY_MARKERS = (
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V1",
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V2",
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V3",
     "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V4",
+    "PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V5",
 )
 
 
@@ -512,7 +513,7 @@ def patch_client(root: Path) -> None:
     text = ensure_h5_comment_fetch_fallback(text)
     text = ensure_debug_helper(text)
 
-    # Upgrade an already V4-patched client in place so a REST V2 rejection
+    # Upgrade an already V5-patched client in place so a REST V2 rejection
     # can fall back to the public H5 comment representation instead of yielding
     # zero comment files. This does not bypass login/captcha/security checks.
     if "[KS_COMMENT_REST_BLOCKED] label=root" not in text:
@@ -520,11 +521,11 @@ def patch_client(root: Path) -> None:
             '        result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n',
             '        try:\n'
             '            result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n'
-            '        except DataFetchError as _ks_rest_exc:\n'
+            '        except (DataFetchError, httpx.TransportError) as _ks_rest_exc:\n'
             '            utils.logger.warning(\n'
             '                f"[KS_COMMENT_REST_BLOCKED] label=root photo={photo_id} " \
 '
-            '                f"type={type(_ks_rest_exc).__name__} detail={str(_ks_rest_exc)[:240]}; " \
+            '                f"type={type(_ks_rest_exc).__name__} detail={repr(_ks_rest_exc)[:240]}; " \
 '
             '                "trying public H5 comment representation"\n'
             '            )\n'
@@ -536,11 +537,11 @@ def patch_client(root: Path) -> None:
             '        result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n',
             '        try:\n'
             '            result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n'
-            '        except DataFetchError as _ks_rest_exc:\n'
+            '        except (DataFetchError, httpx.TransportError) as _ks_rest_exc:\n'
             '            utils.logger.warning(\n'
             '                f"[KS_COMMENT_REST_BLOCKED] label=sub photo={photo_id} root={root_comment_id} " \
 '
-            '                f"type={type(_ks_rest_exc).__name__} detail={str(_ks_rest_exc)[:240]}; " \
+            '                f"type={type(_ks_rest_exc).__name__} detail={repr(_ks_rest_exc)[:240]}; " \
 '
             '                "trying public H5 comment representation"\n'
             '            )\n'
@@ -565,15 +566,15 @@ def patch_client(root: Path) -> None:
 
     root_old = '        return await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n'
     if "[KS_COMMENT_REGION_H5_MERGE] label=root" not in text:
-        root_new = f'''        try:\n            result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n        except DataFetchError as _ks_rest_exc:\n            utils.logger.warning(\n                f"[KS_COMMENT_REST_BLOCKED] label=root photo={{photo_id}} " \
-                f"type={{type(_ks_rest_exc).__name__}} detail={{str(_ks_rest_exc)[:240]}}; " \
+        root_new = f'''        try:\n            result = await self.request_rest_v2("/rest/v/photo/comment/list", post_data)\n        except (DataFetchError, httpx.TransportError) as _ks_rest_exc:\n            utils.logger.warning(\n                f"[KS_COMMENT_REST_BLOCKED] label=root photo={{photo_id}} " \
+                f"type={{type(_ks_rest_exc).__name__}} detail={{repr(_ks_rest_exc)[:240]}}; " \
                 "trying public H5 comment representation"\n            )\n            result = await _ks_h5_comment_fallback_response(self, photo_id)\n        _ks_root_comments = result.get("rootCommentsV2", [])\n        if _ks_root_comments and not any(_ks_direct_public_region(c) for c in _ks_root_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_h5_comment_regions(self, photo_id)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_root_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_MERGE] label=root merged={{_ks_merged}} comments={{len(_ks_root_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_FAILED] label=root type={{type(_ks_region_exc).__name__}} detail={{str(_ks_region_exc)[:240]}}")\n        return result\n'''
         text = replace_once(text, root_old, root_new, "kuaishou root H5 region fallback")
 
     sub_old = '        return await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n'
     if "[KS_COMMENT_REGION_H5_MERGE] label=sub" not in text:
-        sub_new = f'''        try:\n            result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n        except DataFetchError as _ks_rest_exc:\n            utils.logger.warning(\n                f"[KS_COMMENT_REST_BLOCKED] label=sub photo={{photo_id}} root={{root_comment_id}} " \
-                f"type={{type(_ks_rest_exc).__name__}} detail={{str(_ks_rest_exc)[:240]}}; " \
+        sub_new = f'''        try:\n            result = await self.request_rest_v2("/rest/v/photo/comment/sublist", post_data)\n        except (DataFetchError, httpx.TransportError) as _ks_rest_exc:\n            utils.logger.warning(\n                f"[KS_COMMENT_REST_BLOCKED] label=sub photo={{photo_id}} root={{root_comment_id}} " \
+                f"type={{type(_ks_rest_exc).__name__}} detail={{repr(_ks_rest_exc)[:240]}}; " \
                 "trying public H5 comment representation"\n            )\n            result = await _ks_h5_comment_fallback_response(self, photo_id, root_comment_id)\n        _ks_sub_comments = result.get("subCommentsV2", [])\n        if _ks_sub_comments and not any(_ks_direct_public_region(c) for c in _ks_sub_comments):  # {MARKER}\n            try:\n                _ks_supplemental = await _ks_h5_comment_regions(self, photo_id)\n                _ks_merged = _ks_merge_region_by_comment_id(_ks_sub_comments, _ks_supplemental)\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_MERGE] label=sub merged={{_ks_merged}} comments={{len(_ks_sub_comments)}}")\n            except Exception as _ks_region_exc:\n                utils.logger.info(f"[KS_COMMENT_REGION_H5_FAILED] label=sub type={{type(_ks_region_exc).__name__}} detail={{str(_ks_region_exc)[:240]}}")\n        return result\n'''
         text = replace_once(text, sub_old, sub_new, "kuaishou sub H5 region fallback")
 
@@ -606,10 +607,37 @@ def patch_client(root: Path) -> None:
     write_py(path, text)
 
 
+def patch_core_diagnostics(root: Path) -> bool:
+    """Make Kuaishou comment failures diagnosable without changing platform verification behavior."""
+    path = root / "media_platform/kuaishou/core.py"
+    if not path.exists():
+        return False
+    text = read(path)
+    if "[KUAISHOU_COMMENT_EXCEPTION]" in text:
+        return True
+
+    old_variants = (
+        'f"[KuaishouCrawler.get_comments] may be been blocked, err:{e}"',
+        'f"[KuaishouCrawler.get_comments] may be been blocked, err: {e}"',
+    )
+    replacement = (
+        'f"[KUAISHOU_COMMENT_EXCEPTION] video_id={video_id} " '
+        'f"type={type(e).__name__} detail={repr(e)[:500]}"'
+    )
+    for old in old_variants:
+        if old in text:
+            text = text.replace(old, replacement, 1)
+            write_py(path, text)
+            return True
+    return False
+
+
 def check(root: Path) -> dict:
     path = root / "media_platform/kuaishou/client.py"
+    core_path = root / "media_platform/kuaishou/core.py"
     result = {
         "client_exists": path.exists(),
+        "core_exists": core_path.exists(),
         "marker_present": False,
         "authorArea_supported": False,
         "root_enrichment": False,
@@ -619,6 +647,8 @@ def check(root: Path) -> dict:
         "h5_helpers_defined": False,
         "legacy_graphql_calls_present": False,
         "h5_comment_fetch_fallback_present": False,
+        "transport_fallback_present": False,
+        "core_diagnostics_present": False,
         "ok": False,
     }
     if not path.exists():
@@ -650,11 +680,23 @@ def check(root: Path) -> dict:
             "[KS_COMMENT_REST_BLOCKED] label=sub" in text,
             "[KS_COMMENT_H5_FETCH_FALLBACK] label=root" in text,
         ])
+        result["transport_fallback_present"] = (
+            "except (DataFetchError, httpx.TransportError) as _ks_rest_exc:" in text
+            and "detail={repr(_ks_rest_exc)[:240]}" in text
+        )
+        if core_path.exists():
+            try:
+                core_text = read(core_path)
+                ast.parse(core_text, filename=str(core_path))
+                result["core_diagnostics_present"] = "[KUAISHOU_COMMENT_EXCEPTION]" in core_text
+            except Exception:
+                pass
         result["ok"] = all([
             result["marker_present"], result["authorArea_supported"],
             result["root_enrichment"], result["sub_enrichment"],
             result["schema_debug_present"], result["h5_fallback_present"],
             result["h5_helpers_defined"], result["h5_comment_fetch_fallback_present"],
+            result["transport_fallback_present"],
             not result["legacy_graphql_calls_present"],
         ])
     except Exception:
@@ -669,7 +711,12 @@ def main() -> int:
     args = ap.parse_args()
     root = Path(args.root).resolve()
     try:
-        result = check(root) if args.check else (patch_client(root) or check(root))
+        if args.check:
+            result = check(root)
+        else:
+            patch_client(root)
+            patch_core_diagnostics(root)
+            result = check(root)
     except Exception as exc:
         print(json.dumps({"ok": False, "error": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False, indent=2))
         return 2
