@@ -354,6 +354,39 @@ def _build_raw_diagnostics(cfg: dict, roots: list[Path], platform: str) -> list[
     limit = max(1, min(20, int(cfg.get("github_diagnostic_sample_rows_per_type", 5))))
     return [_latest_raw_diagnostics(root, platform, limit) for root in roots]
 
+def _node_build_metadata(cfg: dict) -> dict:
+    head = _run_git(["rev-parse", "HEAD"])
+    branch = _run_git(["rev-parse", "--abbrev-ref", "HEAD"])
+    media_root = Path(str(cfg.get("media_crawler_root") or "E:\\MediaCrawler_clean"))
+    dy_client = media_root / "media_platform" / "douyin" / "client.py"
+    dy_core = media_root / "media_platform" / "douyin" / "core.py"
+    dy_store = media_root / "store" / "douyin" / "__init__.py"
+
+    def contains(path: Path, marker: str) -> bool:
+        try:
+            return marker in path.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            return False
+
+    return {
+        "repo_head": head.stdout.strip() if head.returncode == 0 else "",
+        "repo_branch": branch.stdout.strip() if branch.returncode == 0 else "",
+        "douyin_request_profile_v2": contains(
+            dy_client, "PROMOTION_WEEK_DY_COMMENT_REQUEST_PROFILE_V2"
+        ),
+        "douyin_startup_resilience": contains(
+            dy_core, "PROMOTION_WEEK_DY_STARTUP_RESILIENCE"
+        ),
+        "douyin_parent_root_patch": (
+            contains(dy_client, "PROMOTION_WEEK_DY_COMMENT_HIERARCHY")
+            or contains(dy_store, "PROMOTION_WEEK_DY_COMMENT_HIERARCHY")
+        ),
+        "public_region_patch_v4": contains(
+            dy_store, "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V4"
+        ),
+    }
+
+
 def _parse_cycle_time(name: str):
     try:
         return datetime.strptime(name, "%Y%m%d_%H%M%S").astimezone()
@@ -495,6 +528,7 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
         "platform": platform,
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "sync_target_seconds": 300,
+        "node_build": _node_build_metadata(cfg),
         "data_roots": [str(p) for p in roots],
         "summary": summary,
         "record_fingerprints": _classified_record_fingerprints(
