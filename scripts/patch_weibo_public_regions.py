@@ -58,16 +58,69 @@ def ensure_imports(text: str) -> str:
 
 
 def ensure_helper(text: str) -> str:
-    if "def _wb_find_coarse_public_region" in text:
-        return text
+    helper = f"""\n\n_WB_PROVINCES = {PROVINCES!r}\n_WB_PUBLIC_REGION_KEYS = {{
+    "ip_location", "ip_region", "ip_label", "region_name", "province_name",
+}}
+_WB_PUBLIC_SOURCE_KEYS = {{"source"}}\n\n\ndef _wb_region_from_value(key, value):
+    if isinstance(value, (dict, list, tuple)):
+        return ""
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    if key in _WB_PUBLIC_SOURCE_KEYS:
+        # Weibo public comments commonly expose coarse IP attribution as
+        # source="来自上海". Device/client labels are ignored unless the value
+        # actually starts with the public location prefix.
+        if not text.startswith("来自"):
+            return ""
+        text = text[2:].strip()
+    region = coarse_public_region(text)
+    for province in _WB_PROVINCES:
+        if province in region:
+            return province
+    return ""\n\n\ndef _wb_find_coarse_public_region(*objects):
+    """Find only a province-level platform-displayed region label.
+
+    User profile location fields, network addresses and coordinates are ignored.
+    Only explicitly region-like response fields are inspected.  # {MARKER}
+    """
+    stack = list(objects)
+    seen = set()
+    while stack:
+        obj = stack.pop()
+        oid = id(obj)
+        if oid in seen:
+            continue
+        seen.add(oid)
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                key_text = str(key).lower()
+                if key_text in _WB_PUBLIC_REGION_KEYS or key_text in _WB_PUBLIC_SOURCE_KEYS:
+                    region = _wb_region_from_value(key_text, value)
+                    if region:
+                        return region
+                if isinstance(value, (dict, list, tuple)):
+                    stack.append(value)
+        elif isinstance(obj, (list, tuple)):
+            stack.extend(obj)
+    return ""
+"""
     anchor = "\n\nclass WeibostoreFactory:\n"
-    helper = f"""\n\n_WB_PROVINCES = {PROVINCES!r}\n_WB_PUBLIC_REGION_KEYS = {{\n    "ip_location", "ip_region", "ip_label", "region_name", "province_name",\n}}\n\n\ndef _wb_find_coarse_public_region(*objects):\n    \"\"\"Find only a province-level platform-displayed region label.\n\n    User profile location fields, network addresses and coordinates are ignored.\n    Only explicitly region-like response fields are inspected.  # {MARKER}\n    \"\"\"\n    stack = list(objects)\n    seen = set()\n    while stack:\n        obj = stack.pop()\n        oid = id(obj)\n        if oid in seen:\n            continue\n        seen.add(oid)\n        if isinstance(obj, dict):\n            for key, value in obj.items():\n                key_text = str(key).lower()\n                if key_text in _WB_PUBLIC_REGION_KEYS and not isinstance(value, (dict, list, tuple)):\n                    region = coarse_public_region(value)\n                    for province in _WB_PROVINCES:\n                        if province in region:\n                            return province\n                if isinstance(value, (dict, list, tuple)):\n                    stack.append(value)\n        elif isinstance(obj, (list, tuple)):\n            stack.extend(obj)\n    return ""\n"""
-    return replace_once(text, anchor, helper + anchor, "weibo region helper")
+    if "def _wb_find_coarse_public_region" not in text:
+        return replace_once(text, anchor, helper + anchor, "weibo region helper")
+
+    # Upgrade previously patched student trees in place (V1 -> V2).
+    helper_start = text.find("_WB_PROVINCES =")
+    helper_end = text.find(anchor, helper_start)
+    if helper_start < 0 or helper_end < 0:
+        raise RuntimeError("weibo existing region helper boundaries not found")
+    return text[:helper_start] + helper.lstrip("\n") + text[helper_end:]
 
 
 def patch_store(root: Path) -> None:
     path = root / "store/weibo/__init__.py"
-    text = ensure_helper(ensure_imports(read(path)))
+    text = read(path).replace("PROMOTION_WEEK_WB_PUBLIC_REGION_V1", MARKER)
+    text = ensure_helper(ensure_imports(text))
 
     content_logger = '    utils.logger.info(f"[store.weibo.update_weibo_note] weibo note id:{note_id}, title:{save_content_item.get(\'content\')[:24]} ...")\n'
     content_block = (
