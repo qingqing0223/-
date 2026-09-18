@@ -112,7 +112,9 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "bili_realtime_search_concurrency" 4
     Set-ConfigProperty $cfgObj "bili_realtime_detail_budget_seconds" 70
     Set-ConfigProperty $cfgObj "bili_realtime_candidate_timeout_seconds" 100
-    Set-ConfigProperty $cfgObj "bili_realtime_max_comments_per_video" 300
+    Set-ConfigProperty $cfgObj "bili_realtime_max_comments_per_video" 20
+    Set-ConfigProperty $cfgObj "bili_realtime_subcomment_root_cap" 2
+    Set-ConfigProperty $cfgObj "bili_realtime_subcomment_page_cap" 1
     Set-ConfigProperty $cfgObj "wb_realtime_detail_budget_seconds" 60
     Set-ConfigProperty $cfgObj "wb_realtime_candidate_timeout_seconds" 90
     Set-ConfigProperty $cfgObj "wb_realtime_max_comments_per_video" 200
