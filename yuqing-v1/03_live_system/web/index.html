@@ -800,8 +800,8 @@
           formatter:ps=>{const i=ps&&ps[0]?ps[0].dataIndex:0;const r=rows[i]||{};return `${axisLabelFmt(xData[i]||"")}<br>每小时新增 ${fmt(r.value)} 条<br>传播热度 ${fmt(r.heat)}`}},
         xAxis:{type:"category",data:xData,axisLabel:{color:"#9bd8f5",fontSize:9,formatter:axisLabelFmt},axisLine:{lineStyle:{color:"rgba(127,197,236,.34)"}}},
         yAxis:[
-          {type:"value",name:"新增",nameTextStyle:{color:"#9bd8f5",fontSize:9},axisLabel:{color:"#9bd8f5",fontSize:9},splitLine:{lineStyle:{color:"rgba(127,197,236,.1)"}}},
-          {type:"value",name:"热度",nameTextStyle:{color:"#eecb72",fontSize:9},axisLabel:{color:"#eecb72",fontSize:9},splitLine:{show:false}}
+          {type:"value",axisLabel:{color:"#9bd8f5",fontSize:9},splitLine:{lineStyle:{color:"rgba(127,197,236,.1)"}}},
+          {type:"value",axisLabel:{color:"#eecb72",fontSize:9},splitLine:{show:false}}
         ],
         series:[
           {name:"每小时新增",type:"bar",barWidth:9,data:rows.map((x,i)=>({value:x.value||0,itemStyle:{color:i===state.timelineIndex?"#eecb72":"#38bde8"}}))},
