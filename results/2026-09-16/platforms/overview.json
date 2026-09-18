@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-16",
-  "generated_at": "2026-09-18T11:58:07+00:00",
+  "generated_at": "2026-09-18T11:58:36+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "single_node_passthrough",
@@ -105,13 +105,13 @@
       "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "wechatmp01",
       "latest_node_id": "wechatmp01",
-      "unique_records": 5509,
+      "unique_records": 5623,
       "comment_records": 0,
       "root_comment_records": 0,
       "reply_comment_records": 0,
       "region_records": 0,
       "comment_region_records": 0,
-      "latest_seen_time": "2026-09-18T19:41:37+08:00",
+      "latest_seen_time": "2026-09-18T19:51:05+08:00",
       "node_count": 1,
       "all_counting_nodes_have_fingerprints": true
     }
