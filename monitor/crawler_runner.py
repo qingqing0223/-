@@ -276,6 +276,7 @@ def _classify_state(
     )
     login_markers = (
         "login required", "qrcode not found", "scan code", "扫码登录", "登录失效", "需要登录",
+        "账号未登录", "bilibili_login_required",
     )
     network_markers = (
         "connecttimeout", "readtimeout", "timed out", "timeout", "err_timed_out",
