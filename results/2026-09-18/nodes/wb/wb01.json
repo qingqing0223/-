@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T21:53:48+08:00",
+  "generated_at": "2026-09-18T21:59:05+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "eea531803131101e6ca260656a3a239581f195c5",
+    "repo_head": "a08ed0e05230e4382cd9488cc929c79d9c18bba6",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T21:53:48+08:00",
+    "generated_at": "2026-09-18T21:59:05+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T21:12:29+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
