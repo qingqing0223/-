@@ -38,9 +38,9 @@
     .bottom{display:grid;grid-template-columns:1.08fr .92fr 1fr 1fr 1.08fr;gap:6px;min-height:0}
     .panel{display:flex;flex-direction:column;overflow:hidden;background:rgba(12,32,49,.72)}
     .panel-title{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px 0;min-width:0}
-    .timeline-title{display:grid;grid-template-columns:minmax(0,1fr) 126px minmax(0,1fr);align-items:center;gap:8px}
-    .timeline-title h2{min-width:0}
-    .timeline-title #timelineTag{text-align:right}
+    .timeline-title{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;gap:3px 6px}
+    .timeline-title h2{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .timeline-title #timelineTag{grid-column:1/-1;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis}
     .panel-title h2{font-size:13px;line-height:1.1;margin:0;white-space:nowrap}
     .panel-title h2 a{color:inherit;text-decoration:none;cursor:pointer}
     .panel-title h2 a:hover{color:var(--hot)}
@@ -119,7 +119,7 @@
           <div class="panel-title"><h2><a href="region-detail.html" title="查看地区详情">重点地区舆情量</a></h2><button id="pauseBtn" class="toggle">暂停轮播</button></div>
           <div class="split">
             <div><div id="regionChart" class="chart"></div></div>
-            <div id="regionMeta" class="mini-meta"></div>
+            <div id="regionMeta" class="mini-meta cols2"></div>
           </div>
         </section>
         <section class="panel">
@@ -526,7 +526,6 @@
       const q=quotesByRegion(r.name);
       const hourNew=rows.reduce((s,x)=>s+Number(x.hour||0),0);
       $("regionMeta").innerHTML=[
-        ["重点地区",rows.length+" 个"],
         ["累计舆情量",fmt(focusRegionTotal())],
         ["每日新增舆情量",fmt(hourNew)]
       ].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("");
