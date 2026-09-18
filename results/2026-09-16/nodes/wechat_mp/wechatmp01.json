@@ -6,10 +6,10 @@
   "results_date": "2026-09-16",
   "node_id": "wechatmp01",
   "platform": "wechat_mp",
-  "generated_at": "2026-09-18T18:36:11+08:00",
+  "generated_at": "2026-09-18T18:41:18+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "7e7b37bd7858f40e14fa97d2f785a07673f2d8f3",
+    "repo_head": "bae1e91d193319a428d5866113c07b067870c143",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T18:36:11+08:00",
+    "generated_at": "2026-09-18T18:41:18+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T18:33:22+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
