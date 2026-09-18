@@ -104,6 +104,17 @@ Set-ConfigProperty $cfg "get_sub_comment" "yes"
 Set-ConfigProperty $cfg "ingest_comments" $true
 Set-ConfigProperty $cfg "detail_comment_recovery" $true
 Set-ConfigProperty $cfg "max_concurrency_num" 1
+if ($Platform -eq "wb") {
+    Set-ConfigProperty $cfg "wb_realtime_discovery_max_notes_count" 10
+    Set-ConfigProperty $cfg "wb_realtime_search_timeout_seconds" 100
+    Set-ConfigProperty $cfg "wb_realtime_detail_max_items_per_cycle" 2
+    Set-ConfigProperty $cfg "wb_realtime_detail_budget_seconds" 55
+    Set-ConfigProperty $cfg "wb_realtime_candidate_timeout_seconds" 35
+    Set-ConfigProperty $cfg "wb_realtime_max_comments_per_video" 100
+    Set-ConfigProperty $cfg "classifier_concurrency" 12
+    Set-ConfigProperty $cfg "network_error_cooldown_seconds" 600
+    Set-ConfigProperty $cfg "overrun_cooldown_seconds" 120
+}
 Set-ConfigProperty $cfg ("{0}_realtime_detail_budget_seconds" -f $Platform) ([int]$p.Budget)
 Set-ConfigProperty $cfg ("{0}_realtime_candidate_timeout_seconds" -f $Platform) ([int]$p.Timeout)
 Set-ConfigProperty $cfg ("{0}_realtime_max_comments_per_video" -f $Platform) ([int]$p.CommentCap)
@@ -119,7 +130,11 @@ if ($Platform -eq "wb") {
     Write-Host "Discovery cap:        20" -ForegroundColor Cyan
     Write-Host "Detail candidates:    3" -ForegroundColor Cyan
 } else {
+    if ($Platform -eq "wb") {
+    Write-Host "Discovery cap:        10 (Weibo anti-abuse bounded)" -ForegroundColor Cyan
+} else {
     Write-Host "Discovery cap:        30" -ForegroundColor Cyan
+}
 }
 Write-Host "Detail budget:        $($p.Budget) seconds" -ForegroundColor Cyan
 Write-Host "Candidate timeout:    $($p.Timeout) seconds" -ForegroundColor Cyan
