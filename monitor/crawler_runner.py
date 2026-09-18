@@ -331,6 +331,9 @@ def _classify_state(
     ):
         return "SOFT_EMPTY"
 
+    if "xhs_realtime_search_timeout" in text and content_row_count > 0:
+        return "PARTIAL_SUCCESS"
+
     if any(marker in text for marker in network_markers):
         return "NETWORK_ERROR"
 
@@ -423,7 +426,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     deep_queue_pending = 0
     try:
         search_env = None
-        if realtime_mode and code in {"bili", "wb"}:
+        if realtime_mode and code in {"bili", "wb", "xhs"}:
             search_env = os.environ.copy()
             if code == "bili":
                 try:
@@ -444,6 +447,18 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 # Realtime Weibo search uses snippets only; full-text enrichment
                 # remains in the historical/backfill path.
                 search_env["PROMOTION_WEEK_WB_REALTIME"] = "1"
+            elif code == "xhs":
+                search_env["PROMOTION_WEEK_XHS_REALTIME_DISCOVERY"] = "1"
+                try:
+                    xhs_items_per_keyword = max(
+                        1,
+                        min(int(cfg.get("xhs_realtime_items_per_keyword", 5)), 10),
+                    )
+                except Exception:
+                    xhs_items_per_keyword = 5
+                search_env["PROMOTION_WEEK_XHS_REALTIME_ITEMS_PER_KEYWORD"] = str(
+                    xhs_items_per_keyword
+                )
 
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             search_timeout = None
@@ -455,6 +470,14 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                     ))
                 except Exception:
                     search_timeout = 150
+            elif realtime_mode and code == "xhs":
+                try:
+                    search_timeout = max(60, min(
+                        int(cfg.get("xhs_realtime_search_timeout_seconds", 120)),
+                        150,
+                    ))
+                except Exception:
+                    search_timeout = 120
             try:
                 proc = subprocess.run(
                     cmd,
@@ -473,8 +496,13 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 # remain usable and are ingested below.
                 rc = 124
                 status = "failed"
+                timeout_marker = (
+                    "WB_REALTIME_SEARCH_TIMEOUT"
+                    if code == "wb"
+                    else "XHS_REALTIME_SEARCH_TIMEOUT"
+                )
                 err.write(
-                    f"\n[monitor] WB_REALTIME_SEARCH_TIMEOUT timeout={search_timeout}s; "
+                    f"\n[monitor] {timeout_marker} timeout={search_timeout}s; "
                     "partial_jsonl_preserved=yes\n"
                 )
     except Exception as exc:
