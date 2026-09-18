@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import json
+import os
 import subprocess
 import time
 
@@ -421,8 +422,33 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     recovery_batches = 0
     deep_queue_pending = 0
     try:
+        search_env = None
+        if realtime_mode and code == "bili":
+            search_env = os.environ.copy()
+            try:
+                realtime_items_per_keyword = max(
+                    1,
+                    min(
+                        int(cfg.get("bili_realtime_items_per_keyword", 5)),
+                        20,
+                    ),
+                )
+            except Exception:
+                realtime_items_per_keyword = 5
+            search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
+            search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
+                realtime_items_per_keyword
+            )
+
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
-            proc = subprocess.run(cmd, cwd=cfg["media_crawler_root"], stdout=out, stderr=err, text=True)
+            proc = subprocess.run(
+                cmd,
+                cwd=cfg["media_crawler_root"],
+                stdout=out,
+                stderr=err,
+                text=True,
+                env=search_env,
+            )
         rc = proc.returncode
         status = "ok" if rc == 0 else "failed"
     except Exception as exc:
