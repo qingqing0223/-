@@ -137,6 +137,17 @@ def _attitude_bucket(status: object, type_: object) -> str:
     return "unknown"
 
 
+def _tri_class_bucket(status: object) -> str:
+    status = str(status or "").strip()
+    if status == "normal":
+        return "support"
+    if status in {"attention", "neutral"}:
+        return "neutral"
+    if status == "problematic":
+        return "non_support"
+    return "unknown"
+
+
 def _classified_record_fingerprints(
     roots: list[Path],
     platform: str,
@@ -190,6 +201,7 @@ def _classified_record_fingerprints(
                         "status": status,
                         "type": type_,
                         "attitude": _attitude_bucket(status, type_),
+                        "tri_class": _tri_class_bucket(status),
                         "source_type": str(row.get("source_type") or "未分类"),
                         "keyword": str(row.get("source_keyword") or "").strip(),
                         "comment_level": int(row.get("comment_level") or 0),
@@ -708,7 +720,9 @@ def main():
                 "comment_region_records": totals.get("comment_region_records", 0),
                 "public_publisher_accounts": totals.get("public_publisher_accounts", 0),
                 "attitude": summary.get("attitude") or {},
+                "tri_class": summary.get("tri_class") or {},
                 "comment_attitude": summary.get("comment_attitude") or {},
+                "comment_tri_class": summary.get("comment_tri_class") or {},
                 "video_analysis": summary.get("video_analysis") or {},
                 "raw_diagnostic_file_count": diagnostic_files,
                 "last_cycle": {
