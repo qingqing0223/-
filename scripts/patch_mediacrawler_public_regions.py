@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 PINNED_MEDIACRAWLER_COMMIT = "60e66f2a925816960bbd44af5d6c9b8385d79335"
-PATCH_VERSION = "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V3"
+PATCH_VERSION = "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V4"
 MARKER = PATCH_VERSION
 TEMPLATE = Path(__file__).with_name("public_region_helper_template.py")
 
@@ -55,9 +55,9 @@ def patch_douyin(root: Path) -> None:
         "from tools.user_hash import anonymize_user_id, mask_nickname\n",
         f"from tools.public_region import coarse_public_region  # {MARKER}\n",
         '    utils.logger.info(f"[store.douyin.update_douyin_aweme] douyin aweme id:{aweme_id}, title:{save_content_item.get(\'title\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(aweme_item.get("ip_label") or aweme_item.get("ip_location") or aweme_item.get("ip_region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(aweme_item.get("ip_label") or aweme_item.get("ip_location") or aweme_item.get("ip_region") or aweme_item.get("ipRegion") or aweme_item.get("region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region") or user_info.get("ipRegion") or user_info.get("region"))\n',
         '    utils.logger.info(f"[store.douyin.update_dy_aweme_comment] douyin aweme comment: {comment_id}, content: {save_comment_item.get(\'content\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_label") or comment_item.get("ip_location") or comment_item.get("ip_region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_label") or comment_item.get("ip_location") or comment_item.get("ip_region") or comment_item.get("ipRegion") or comment_item.get("region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region") or user_info.get("ipRegion") or user_info.get("region"))\n',
     )
 
 
@@ -68,9 +68,9 @@ def patch_xhs(root: Path) -> None:
         "from tools.user_hash import anonymize_user_id, mask_nickname\n",
         f"from tools.public_region import coarse_public_region  # {MARKER}\n",
         '    utils.logger.info(f"[store.xhs.update_xhs_note] xhs note: {local_db_item}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        local_db_item["ip_location"] = coarse_public_region(note_item.get("ip_location") or note_item.get("ip_label") or note_item.get("ip_region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        local_db_item["ip_location"] = coarse_public_region(note_item.get("ip_location") or note_item.get("ipLocation") or note_item.get("ip_label") or note_item.get("ip_region") or note_item.get("ipRegion") or note_item.get("region") or note_item.get("region_name") or user_info.get("ip_location") or user_info.get("ipLocation") or user_info.get("ip_label") or user_info.get("ip_region") or user_info.get("ipRegion") or user_info.get("region") or user_info.get("region_name"))\n',
         '    utils.logger.info(f"[store.xhs.update_xhs_note_comment] xhs note comment:{local_db_item}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        local_db_item["ip_location"] = coarse_public_region(comment_item.get("ip_location") or comment_item.get("ip_label") or comment_item.get("ip_region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region"))\n',
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        local_db_item["ip_location"] = coarse_public_region(comment_item.get("ip_location") or comment_item.get("ipLocation") or comment_item.get("ip_label") or comment_item.get("ip_region") or comment_item.get("ipRegion") or comment_item.get("region") or comment_item.get("region_name") or user_info.get("ip_location") or user_info.get("ipLocation") or user_info.get("ip_label") or user_info.get("ip_region") or user_info.get("ipRegion") or user_info.get("region") or user_info.get("region_name"))\n',
     )
 
 
@@ -129,10 +129,10 @@ def patch_tieba(root: Path) -> None:
     text = ensure_import(text, "from tools.user_hash import anonymize_user_id, mask_nickname\n", f"from tools.public_region import coarse_public_region  # {MARKER}\n", "tieba import")
     text = once(text,
         '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            tieba_name=tieba_name,\n',
-        '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            ip_location=coarse_public_region(author.get("ip_address") or author.get("ip_location") or author.get("ip_region")),\n            tieba_name=tieba_name,\n', "tieba api note")
+        '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            ip_location=coarse_public_region(first_floor.get("ip_address") or first_floor.get("ip_location") or first_floor.get("ip_region") or thread.get("ip_address") or thread.get("ip_location") or thread.get("ip_region") or author.get("ip_address") or author.get("ip_location") or author.get("ip_region")),\n            tieba_name=tieba_name,\n', "tieba api note")
     text = once(text,
         '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                tieba_id=tieba_id,\n',
-        '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                ip_location=coarse_public_region(user.get("ip_address") or user.get("ip_location") or user.get("ip_region")),\n                tieba_id=tieba_id,\n', "tieba api comment")
+        '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                ip_location=coarse_public_region(item.get("ip_address") or item.get("ip_location") or item.get("ip_region") or user.get("ip_address") or user.get("ip_location") or user.get("ip_region")),\n                tieba_id=tieba_id,\n', "tieba api comment")
     text = once(text, '            publish_time=publish_time,\n            total_replay_num=(\n', '            publish_time=publish_time,\n            ip_location=coarse_public_region(ip_location),\n            total_replay_num=(\n', "tieba html note")
     text = once(text, '                publish_time=publish_time,\n                note_id=note_id,\n', '                publish_time=publish_time,\n                ip_location=coarse_public_region(ip_location),\n                note_id=note_id,\n', "tieba html comment")
     write_py(helper, text)
