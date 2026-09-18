@@ -58,6 +58,18 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 if ($Platform -eq "ks") {
+    Write-Host "Applying Kuaishou public comment-region recovery patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou public comment-region patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou public comment-region verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
     Write-Host "Applying Kuaishou comment-count + nested parent/root patch..." -ForegroundColor Cyan
     python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot
     if ($LASTEXITCODE -ne 0) {
