@@ -96,6 +96,18 @@ if ($Platform -eq "bili") {
         Write-Host "ERROR: Bilibili session/login resilience verification failed. Monitor will NOT start." -ForegroundColor Red
         exit $LASTEXITCODE
     }
+
+    Write-Host "Applying Bilibili AV/AID detail comment recovery patch..." -ForegroundColor Cyan
+    python .\scripts\patch_bilibili_comment_detail.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili AV/AID detail comment recovery patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_bilibili_comment_detail.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili AV/AID detail comment recovery verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 if ($Platform -eq "ks") {
