@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T10:30:25+00:00",
+  "generated_at": "2026-09-18T10:30:55+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "single_node_passthrough",
@@ -47,15 +47,15 @@
     },
     "bili": {
       "aggregation_mode": "exact_cross_node_dedupe",
-      "authoritative_node_id": "bili-coordinator",
+      "authoritative_node_id": "bili01",
       "latest_node_id": "bili01",
-      "unique_records": 37,
-      "comment_records": 22,
-      "root_comment_records": 22,
+      "unique_records": 57,
+      "comment_records": 42,
+      "root_comment_records": 42,
       "reply_comment_records": 0,
-      "region_records": 22,
-      "comment_region_records": 22,
-      "latest_seen_time": "2026-09-18T18:23:02+08:00",
+      "region_records": 42,
+      "comment_region_records": 42,
+      "latest_seen_time": "2026-09-18T18:26:52+08:00",
       "node_count": 2,
       "all_counting_nodes_have_fingerprints": true
     },
