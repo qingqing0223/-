@@ -53,6 +53,21 @@ def _run_git(args: list[str]) -> subprocess.CompletedProcess:
     )
 
 
+def _looks_like_git_auth_error(result: subprocess.CompletedProcess) -> bool:
+    text = f"{result.stderr}\n{result.stdout}".lower()
+    markers = (
+        "authentication failed",
+        "could not read username",
+        "terminal prompts disabled",
+        "credential",
+        "repository not found",
+        "permission denied",
+        "403",
+        "401",
+    )
+    return any(marker in text for marker in markers)
+
+
 def _load_config(config_path: Path) -> dict:
     return json.loads(config_path.read_text(encoding="utf-8-sig"))
 
@@ -413,6 +428,14 @@ def commit_and_push(path: Path, retries: int = 5) -> dict:
         pull = _run_git(["pull", "--rebase", "--autostash", "origin", branch])
         if pull.returncode != 0:
             _abort_rebase_if_needed()
+            if _looks_like_git_auth_error(pull):
+                return {
+                    "ok": False,
+                    "stage": "git_pull_auth",
+                    "attempt": attempt,
+                    "error": pull.stderr.strip() or pull.stdout.strip(),
+                    "path": rel,
+                }
             if attempt < retries:
                 time.sleep(2 * attempt)
                 continue
@@ -427,6 +450,14 @@ def commit_and_push(path: Path, retries: int = 5) -> dict:
         push = _run_git(["push", "origin", f"HEAD:{branch}"])
         if push.returncode == 0:
             return {"ok": True, "changed": True, "pushed": True, "path": rel, "attempt": attempt}
+        if _looks_like_git_auth_error(push):
+            return {
+                "ok": False,
+                "stage": "git_push_auth",
+                "attempt": attempt,
+                "error": push.stderr.strip() or push.stdout.strip(),
+                "path": rel,
+            }
         if attempt < retries:
             time.sleep(2 * attempt)
 
