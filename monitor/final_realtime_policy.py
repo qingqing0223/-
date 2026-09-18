@@ -162,6 +162,13 @@ def install_final_realtime_policy(platform: str) -> None:
             _policy_value(cfg, platform, "max_comments_per_video", defaults["comment_cap"]),
             2000,
         ))
+        # Bilibili student configs created before the realtime fix may still
+        # contain bili_realtime_max_comments_per_video=300. Direct --once runs do
+        # not pass through the config-upgrade PowerShell wrapper, so clamp Bilibili
+        # realtime detail here as a code-level invariant rather than trusting a
+        # potentially stale local value.
+        if platform == "bili":
+            comment_cap = min(comment_cap, 20)
         min_start_remaining = max(10, min(int(cfg.get("realtime_detail_min_start_remaining_seconds", 30)), 60))
 
         started = time.monotonic()
