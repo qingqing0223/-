@@ -55,7 +55,7 @@ class PublicRegionPatchContractTest(unittest.TestCase):
         text = (ROOT / "scripts" / "publish_node_result_to_github.py").read_text(encoding="utf-8")
         self.assertIn('stage": "git_precommit_pull"', text)
         self.assertIn("rollback_local_result_commit", text)
-        self.assertIn('git", "reset"', text.replace("_run_git([", "").replace("])", ""))
+        self.assertIn('_run_git(["reset", "--mixed", base_head])', text)
         self.assertIn('stage": "git_push_auth"', text)
         self.assertIn('stage": "git_postcommit_rebase"', text)
 
