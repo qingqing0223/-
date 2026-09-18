@@ -1,12 +1,15 @@
 from __future__ import annotations
 from datetime import datetime
 import json
+import re
 from pathlib import Path
 from pipeline.io_utils import read_jsonl, append_jsonl, read_json, write_json
 from pipeline.normalizer import normalize_record
 from pipeline.classifier import classify_records
 from pipeline.language_detector import is_minority_language
 
+
+COUNTRY_ONLY_REGION_LABELS = {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC", "CN"}
 
 PROVINCE_ALIASES = [
     ("内蒙古", "内蒙古"), ("广西", "广西"), ("西藏", "西藏"), ("宁夏", "宁夏"), ("新疆", "新疆"),
@@ -29,6 +32,8 @@ def _canonical_public_region(value) -> str:
     for prefix in ("IP属地：", "IP属地:", "IP属地", "来自：", "来自:", "来自"):
         if text.startswith(prefix):
             text = text[len(prefix):].strip()
+    if text in COUNTRY_ONLY_REGION_LABELS or re.fullmatch(r"[A-Za-z]{2,3}", text):
+        return ""
     for needle, province in PROVINCE_ALIASES:
         if needle in text:
             return province
