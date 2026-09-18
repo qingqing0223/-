@@ -6,7 +6,7 @@ import json
 import subprocess
 from pathlib import Path
 
-PATCH_VERSION = "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V3"
+PATCH_VERSION = "PROMOTION_WEEK_PUBLIC_REGION_PATCH_V4"
 MARKER = PATCH_VERSION
 PINNED_MEDIACRAWLER_COMMIT = "60e66f2a925816960bbd44af5d6c9b8385d79335"
 
@@ -92,7 +92,8 @@ def main() -> int:
         "dy_comment_region": (root / "store/douyin/__init__.py", 'save_comment_item["ip_location"] = coarse_public_region('),
         "dy_comment_user_fallback": (root / "store/douyin/__init__.py", 'user_info.get("ip_region")'),
         "xhs_content_region": (root / "store/xhs/__init__.py", 'local_db_item["ip_location"] = coarse_public_region('),
-        "xhs_comment_user_fallback": (root / "store/xhs/__init__.py", 'user_info.get("ip_region")'),
+        "xhs_content_region_variants": (root / "store/xhs/__init__.py", 'note_item.get("ipLocation")'),
+        "xhs_comment_user_fallback": (root / "store/xhs/__init__.py", 'user_info.get("ipRegion")'),
         "wb_content_region": (root / "store/weibo/__init__.py", 'save_content_item["ip_location"] = coarse_public_region('),
         "wb_comment_region": (root / "store/weibo/__init__.py", 'save_comment_item["ip_location"] = coarse_public_region('),
         "ks_content_region": (root / "store/kuaishou/__init__.py", 'save_content_item["ip_location"] = coarse_public_region('),
@@ -100,6 +101,8 @@ def main() -> int:
         "bili_comment_region": (root / "store/bilibili/__init__.py", 'reply_control'),
         "bili_member_region_fallback": (root / "store/bilibili/__init__.py", '(comment_item.get("member") or {}).get("ip_region")'),
         "tieba_region_field": (root / "model/m_baidu_tieba.py", "ip_location: str"),
+        "tieba_api_search_region": (root / "media_platform/tieba/help.py", "ip_location=coarse_public_region(item.get(\"ip_address\")"),
+        "tieba_api_comment_region": (root / "media_platform/tieba/help.py", "first_floor.get(\"ip_address\")"),
         "tieba_html_region": (root / "media_platform/tieba/help.py", "ip_location=coarse_public_region(ip_location)"),
         "zhihu_region_field": (root / "model/m_zhihu.py", "ip_location: str"),
         "zhihu_comment_region": (root / "media_platform/zhihu/help.py", "_extract_comment_ip_location"),
