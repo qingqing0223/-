@@ -26,9 +26,13 @@ try {
     $platformArgPattern = "--platform\s+" + $escapedPlatform + "(?:\s|$)"
     $running = Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {
         $cmd = [string]$_.CommandLine
+        $scriptPlatformPattern = "(?:--platform|-Platform)\\s+" + $escapedPlatform + "(?:\\s|$)"
         $cmd -and (
-            (($cmd -match "run_single_platform\.py") -and ($cmd -match $platformArgPattern)) -or
-            (($cmd -match "publish_node_result_to_github\.py") -and ($cmd -match $platformArgPattern))
+            (($cmd -match "run_single_platform\\.py") -and ($cmd -match $platformArgPattern)) -or
+            (($cmd -match "run_student_platform_final\\.py") -and ($cmd -match $platformArgPattern)) -or
+            (($cmd -match "publish_node_result_to_github\\.py") -and ($cmd -match $platformArgPattern)) -or
+            (($cmd -match "watch_student_platform_final_windows\\.ps1") -and ($cmd -match $scriptPlatformPattern)) -or
+            (($cmd -match "start_node_results_sync_windows\\.ps1") -and ($cmd -match $scriptPlatformPattern))
         )
     }
     if ($running) {
