@@ -50,16 +50,47 @@ def patch_direct_store(path: Path, import_anchor: str, import_line: str,
 
 def patch_douyin(root: Path) -> None:
     p = root / "store/douyin/__init__.py"
+    text = read(p)
+
+    old_import = f"from tools.public_region import coarse_public_region  # {MARKER}\n"
+    new_import = f"from tools.public_region import coarse_public_region, first_coarse_public_region  # {MARKER}\n"
+    if old_import in text:
+        text = text.replace(old_import, new_import, 1)
+
+    old_content = (
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n'
+        '        save_content_item["ip_location"] = coarse_public_region(aweme_item.get("ip_label") or aweme_item.get("ip_location") or aweme_item.get("ip_region") or aweme_item.get("ipRegion") or aweme_item.get("region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region") or user_info.get("ipRegion") or user_info.get("region"))\n'
+    )
+    old_comment = (
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n'
+        '        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_label") or comment_item.get("ip_location") or comment_item.get("ip_region") or comment_item.get("ipRegion") or comment_item.get("region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region") or user_info.get("ipRegion") or user_info.get("region"))\n'
+    )
+    new_content = (
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n'
+        '        save_content_item["ip_location"] = first_coarse_public_region('
+        'aweme_item.get("ip_label"), aweme_item.get("ip_location"), aweme_item.get("ip_region"), '
+        'aweme_item.get("ipRegion"), aweme_item.get("region"), user_info.get("ip_location"), '
+        'user_info.get("ip_label"), user_info.get("ip_region"), user_info.get("ipRegion"), user_info.get("region"))\n'
+    )
+    new_comment = (
+        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n'
+        '        save_comment_item["ip_location"] = first_coarse_public_region('
+        'comment_item.get("ip_label"), comment_item.get("ip_location"), comment_item.get("ip_region"), '
+        'comment_item.get("ipRegion"), comment_item.get("region"), user_info.get("ip_location"), '
+        'user_info.get("ip_label"), user_info.get("ip_region"), user_info.get("ipRegion"), user_info.get("region"))\n'
+    )
+    text = text.replace(old_content, new_content).replace(old_comment, new_comment)
+    write_py(p, text)
+
     patch_direct_store(
         p,
         "from tools.user_hash import anonymize_user_id, mask_nickname\n",
-        f"from tools.public_region import coarse_public_region  # {MARKER}\n",
+        new_import,
         '    utils.logger.info(f"[store.douyin.update_douyin_aweme] douyin aweme id:{aweme_id}, title:{save_content_item.get(\'title\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_content_item["ip_location"] = coarse_public_region(aweme_item.get("ip_label") or aweme_item.get("ip_location") or aweme_item.get("ip_region") or aweme_item.get("ipRegion") or aweme_item.get("region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region") or user_info.get("ipRegion") or user_info.get("region"))\n',
+        new_content,
         '    utils.logger.info(f"[store.douyin.update_dy_aweme_comment] douyin aweme comment: {comment_id}, content: {save_comment_item.get(\'content\')}")\n',
-        f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n        save_comment_item["ip_location"] = coarse_public_region(comment_item.get("ip_label") or comment_item.get("ip_location") or comment_item.get("ip_region") or comment_item.get("ipRegion") or comment_item.get("region") or user_info.get("ip_location") or user_info.get("ip_label") or user_info.get("ip_region") or user_info.get("ipRegion") or user_info.get("region"))\n',
+        new_comment,
     )
-
 
 def patch_xhs(root: Path) -> None:
     p = root / "store/xhs/__init__.py"
