@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-18T15:40:07+08:00",
+  "generated_at": "2026-09-18T15:45:13+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T15:40:07+08:00",
+    "generated_at": "2026-09-18T15:45:13+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T07:10:52+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -821,11 +821,11 @@
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-18T15:09:02+08:00",
+        "cycle_finished_at": "2026-09-18T15:40:28+08:00",
         "crawler_status": "ok",
         "crawler_state": "SOFT_EMPTY",
         "return_code": 0,
-        "duration_seconds": 82.8,
+        "duration_seconds": 85.42,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -855,8 +855,8 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_153902/dy_20260918_153902/stderr.log",
-          "bytes": 1619,
-          "sha256": "20ceeb68471dc16ca08f21505a531277a0d4c0e93af19a1405f701b8f9775072"
+          "bytes": 6002,
+          "sha256": "52ddcc4473797263a9e833b84f01bc2f2e28e979421d2b0d8043b60e5e22a25a"
         },
         {
           "name": "stdout.log",
