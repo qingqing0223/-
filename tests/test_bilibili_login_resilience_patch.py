@@ -31,6 +31,10 @@ async def start(self):
                 # stealth.min.js is a js script to prevent the website from detecting the crawler.
                 await self.browser_context.add_init_script(path="libs/stealth.min.js")
 
+            self.context_page = await self.browser_context.new_page()
+            await self.context_page.goto(self.index_url)
+
+            # Create a client to interact with the xiaohongshu website.
             if not await self.bili_client.pong():
                 login_obj = BilibiliLogin(
                     login_type=config.LOGIN_TYPE,
@@ -112,10 +116,13 @@ class BilibiliLoginResiliencePatchTests(unittest.TestCase):
             self.assertTrue(result["session_probe_retry"])
             self.assertTrue(result["standard_browser_mode"])
             self.assertTrue(result["persistent_launch_retry"])
+            self.assertTrue(result["bounded_home_navigation"])
             self.assertIn("BILIBILI_LOGIN_REQUIRED", first_login)
             self.assertIn("candidate.click(timeout=8000)", first_login)
             self.assertIn("CDP bootstrap skipped for Bilibili", first_core)
             self.assertIn("for _bili_launch_attempt in range(2):", first_core)
+            self.assertIn('wait_until="domcontentloaded"', first_core)
+            self.assertIn("[BILIBILI_HOME_NAVIGATION_DEGRADED]", first_core)
 
 
 if __name__ == "__main__":
