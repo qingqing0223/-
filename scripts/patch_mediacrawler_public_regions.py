@@ -53,9 +53,12 @@ def patch_douyin(root: Path) -> None:
     text = read(p)
 
     old_import = f"from tools.public_region import coarse_public_region  # {MARKER}\n"
-    new_import = f"from tools.public_region import coarse_public_region, first_coarse_public_region  # {MARKER}\n"
+    old_import_v2 = f"from tools.public_region import coarse_public_region, first_coarse_public_region  # {MARKER}\n"
+    new_import = f"from tools.public_region import coarse_public_region, first_coarse_public_region, public_region_probe  # {MARKER}\n"
     if old_import in text:
         text = text.replace(old_import, new_import, 1)
+    if old_import_v2 in text:
+        text = text.replace(old_import_v2, new_import, 1)
 
     old_content = (
         f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n'
@@ -71,6 +74,7 @@ def patch_douyin(root: Path) -> None:
         'aweme_item.get("ip_label"), aweme_item.get("ip_location"), aweme_item.get("ip_region"), '
         'aweme_item.get("ipRegion"), aweme_item.get("region"), user_info.get("ip_location"), '
         'user_info.get("ip_label"), user_info.get("ip_region"), user_info.get("ipRegion"), user_info.get("region"))\n'
+        '        save_content_item["_public_region_probe"] = public_region_probe(aweme_item)\n'
     )
     new_comment = (
         f'    if config.SAVE_DATA_OPTION == "jsonl":  # {MARKER}\n'
@@ -78,6 +82,7 @@ def patch_douyin(root: Path) -> None:
         'comment_item.get("ip_label"), comment_item.get("ip_location"), comment_item.get("ip_region"), '
         'comment_item.get("ipRegion"), comment_item.get("region"), user_info.get("ip_location"), '
         'user_info.get("ip_label"), user_info.get("ip_region"), user_info.get("ipRegion"), user_info.get("region"))\n'
+        '        save_comment_item["_public_region_probe"] = public_region_probe(comment_item)\n'
     )
     text = text.replace(old_content, new_content).replace(old_comment, new_comment)
     write_py(p, text)
