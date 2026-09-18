@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-18T21:25:28+08:00",
+  "generated_at": "2026-09-18T21:30:35+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "7609f222f33016f4d48806f6f2954a3bb07a7590",
+    "repo_head": "008b2613e8ae9b16dbb7b1d06f18ae16e3a94d04",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T21:25:27+08:00",
+    "generated_at": "2026-09-18T21:30:34+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T21:17:54+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -213,11 +213,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
-        "cycle_finished_at": "2026-09-18T21:22:30+08:00",
+        "cycle_finished_at": "2026-09-18T21:27:31+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 132.13,
+        "duration_seconds": 133.1,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -238,7 +238,7 @@
     "discussion_thread_stats": {
       "unique_threads": 502,
       "new_threads_on_result_date": 67,
-      "source_rows_scanned": 24146,
+      "source_rows_scanned": 24170,
       "record_type": "discussion_post",
       "count_basis": "unique_tieba_threads_discovered_during_monitoring_window",
       "publish_time_note": "thread original publish_time may predate monitoring_start_time; daily reporting treats these as discussion containers discovered/active during monitoring"
@@ -121550,19 +121550,19 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_212518",
+      "cycle": "20260918_213018",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
       "jsonl_files": [],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_212518/tieba_20260918_212518/stderr.log",
-          "bytes": 3012,
-          "sha256": "776d73e36948f5b03497d87109a3fd61f3c9f41e04ffc6a05f6da32e799d6919"
+          "relative_path": "raw_runs/20260918_213018/tieba_20260918_213018/stderr.log",
+          "bytes": 6130,
+          "sha256": "f19bc9dbbe423b01225578e7bbc3d38eaf3e7c4c286cd10941d5b07269a34104"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_212518/tieba_20260918_212518/stdout.log",
+          "relative_path": "raw_runs/20260918_213018/tieba_20260918_213018/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
