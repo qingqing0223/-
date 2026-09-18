@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
+import signal
 import subprocess
 import time
 
@@ -13,7 +15,7 @@ import time
 DEFAULT_POLICIES = {
     "xhs": {"budget": 70, "candidate_timeout": 100, "comment_cap": 200},
     "dy": {"budget": 70, "candidate_timeout": 105, "comment_cap": 200},
-    "bili": {"budget": 70, "candidate_timeout": 100, "comment_cap": 300},
+    "bili": {"budget": 70, "candidate_timeout": 100, "comment_cap": 20},
     "wb": {"budget": 60, "candidate_timeout": 90, "comment_cap": 200},
     "tieba": {"budget": 60, "candidate_timeout": 90, "comment_cap": 300},
     "zhihu": {"budget": 60, "candidate_timeout": 90, "comment_cap": 200},
@@ -64,6 +66,39 @@ def _policy_value(cfg: dict, platform: str, suffix: str, default: int) -> int:
         return int(value)
     except Exception:
         return int(default)
+
+
+def _terminate_process_tree(proc: subprocess.Popen) -> None:
+    """Terminate a timed-out crawler and its descendants.
+
+    subprocess.run(timeout=...) can kill only the immediate launcher process on
+    Windows. MediaCrawler is started through `uv run`, so the Python crawler can
+    otherwise survive as an orphan and continue writing JSONL after rollback.
+    """
+    if proc.poll() is not None:
+        return
+
+    try:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+                timeout=10,
+            )
+        else:
+            os.killpg(proc.pid, signal.SIGKILL)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+
+    try:
+        proc.wait(timeout=10)
+    except Exception:
+        pass
 
 
 def install_final_realtime_policy(platform: str) -> None:
@@ -169,23 +204,42 @@ def install_final_realtime_policy(platform: str) -> None:
                     f"candidate={len(attempted)}/{len(candidates)} soft_budget_remaining={int(max(0, remaining))}s "
                     f"candidate_timeout={candidate_timeout}s comment_cap={comment_cap}\n"
                 )
-                try:
-                    proc = subprocess.run(
-                        cmd,
-                        cwd=cfg["media_crawler_root"],
-                        stdout=out,
-                        stderr=err,
-                        text=True,
-                        timeout=candidate_timeout,
+                child_env = None
+                if platform == "bili":
+                    child_env = os.environ.copy()
+                    child_env["PROMOTION_WEEK_BILI_REALTIME_DETAIL"] = "1"
+                    child_env["PROMOTION_WEEK_BILI_SUBCOMMENT_ROOT_CAP"] = str(
+                        max(0, min(_policy_value(cfg, platform, "subcomment_root_cap", 2), 10))
                     )
+                    child_env["PROMOTION_WEEK_BILI_SUBCOMMENT_PAGE_CAP"] = str(
+                        max(0, min(_policy_value(cfg, platform, "subcomment_page_cap", 1), 5))
+                    )
+
+                popen_kwargs = {
+                    "cwd": cfg["media_crawler_root"],
+                    "stdout": out,
+                    "stderr": err,
+                    "text": True,
+                    "env": child_env,
+                }
+                if os.name == "nt":
+                    popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                else:
+                    popen_kwargs["start_new_session"] = True
+
+                proc = subprocess.Popen(cmd, **popen_kwargs)
+                try:
+                    proc.wait(timeout=candidate_timeout)
                 except subprocess.TimeoutExpired:
+                    _terminate_process_tree(proc)
                     _rollback_jsonl(output_dir, snapshot)
                     failed.append(identifier)
                     if first_failure_rc is None:
                         first_failure_rc = 124
                     out.write(
                         f"[monitor] {platform.upper()}_REALTIME_DETAIL_CANDIDATE_TIMEOUT "
-                        "partial_jsonl_rolled_back=yes; candidate_remains_retryable=yes\n"
+                        "process_tree_terminated=yes; partial_jsonl_rolled_back=yes; "
+                        "candidate_remains_retryable=yes\n"
                     )
                     continue
 
