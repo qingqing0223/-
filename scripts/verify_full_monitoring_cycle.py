@@ -180,9 +180,9 @@ def main() -> int:
     normalized_comment_records = int(ingest.get("normalized_comment_records") or 0)
     classified_comment_records = int(ingest.get("classified_comment_records") or 0)
     filtered_comment_records = int(ingest.get("filtered_before_start_comment_records") or 0)
-    if "filtered_before_start_comment_records" not in ingest:
-        filtered_comment_records = int(raw_comment_scope.get("before_monitoring_start") or 0)
+    filtered_comment_records_reported = "filtered_before_start_comment_records" in ingest
     duplicate_comment_records = int(ingest.get("duplicate_comment_skipped") or 0)
+    duplicate_comment_records_reported = "duplicate_comment_skipped" in ingest
     integrity = comment_integrity(roots)
 
     failures = []
@@ -226,7 +226,15 @@ def main() -> int:
         + duplicate_comment_records
     )
     if raw_comment_rows > 0 and cumulative_comment_records == 0 and classified_comment_records == 0:
-        if accounted_comment_records >= normalized_comment_records:
+        snapshot_accounts_for_comments = (
+            (filtered_comment_records_reported or duplicate_comment_records_reported)
+            and accounted_comment_records >= normalized_comment_records
+        )
+        live_probe_accounts_for_comments = (
+            int(raw_comment_scope.get("normalized_comment_records") or 0) >= normalized_comment_records
+            and int(raw_comment_scope.get("before_monitoring_start") or 0) >= normalized_comment_records
+        )
+        if snapshot_accounts_for_comments or live_probe_accounts_for_comments:
             warnings.append("raw_comments_collected_but_all_excluded_by_scope_or_dedupe")
         else:
             failures.append("comment_rows_exist_but_no_comment_record_in_classified_output")
@@ -249,10 +257,10 @@ def main() -> int:
             "normalized_comment_records": normalized_comment_records,
             "duplicate_skipped": int(ingest.get("duplicate_skipped") or 0),
             "filtered_before_start": int(ingest.get("filtered_before_start") or 0),
-            "filtered_before_start_comment_records": filtered_comment_records,
-            "filtered_before_start_content_records": int(ingest.get("filtered_before_start_content_records") or 0),
-            "duplicate_comment_skipped": duplicate_comment_records,
-            "duplicate_content_skipped": int(ingest.get("duplicate_content_skipped") or 0),
+            "filtered_before_start_comment_records": filtered_comment_records if filtered_comment_records_reported else None,
+            "filtered_before_start_content_records": int(ingest.get("filtered_before_start_content_records") or 0) if "filtered_before_start_content_records" in ingest else None,
+            "duplicate_comment_skipped": duplicate_comment_records if duplicate_comment_records_reported else None,
+            "duplicate_content_skipped": int(ingest.get("duplicate_content_skipped") or 0) if "duplicate_content_skipped" in ingest else None,
             "classified_records": int(ingest.get("classified_records") or 0),
             "classified_comment_records": classified_comment_records,
             "normalization_dropped": int(ingest.get("normalization_dropped") or 0),
@@ -270,9 +278,14 @@ def main() -> int:
                 "raw_comment_rows": raw_comment_rows,
                 "normalized_comment_records": normalized_comment_records,
                 "classified_comment_records": classified_comment_records,
-                "filtered_before_monitoring_start": filtered_comment_records,
-                "duplicate_comment_records": duplicate_comment_records,
+                "filtered_before_monitoring_start": filtered_comment_records if filtered_comment_records_reported else None,
+                "duplicate_comment_records": duplicate_comment_records if duplicate_comment_records_reported else None,
                 "raw_time_scope_probe": raw_comment_scope,
+                "scope_note": (
+                    "Pipeline counters come from the completed latest_status snapshot. "
+                    "raw_time_scope_probe re-reads the current raw JSONL and is diagnostic only; "
+                    "the counts can differ if a partial raw file changed after the status snapshot."
+                ),
             },
             "root_comment_records": totals.get("root_comment_records", 0),
             "reply_comment_records": totals.get("reply_comment_records", 0),
