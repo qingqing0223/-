@@ -128,6 +128,9 @@ def patch_tieba(root: Path) -> None:
     text = read(helper)
     text = ensure_import(text, "from tools.user_hash import anonymize_user_id, mask_nickname\n", f"from tools.public_region import coarse_public_region  # {MARKER}\n", "tieba import")
     text = once(text,
+        '                user_nickname=mask_nickname(user.get("show_nickname") or user.get("user_name") or ""),\n                tieba_name=tieba_name,\n',
+        '                user_nickname=mask_nickname(user.get("show_nickname") or user.get("user_name") or ""),\n                ip_location=coarse_public_region(item.get("ip_address") or item.get("ip_location") or item.get("ip_region") or user.get("ip_address") or user.get("ip_location") or user.get("ip_region")),\n                tieba_name=tieba_name,\n', "tieba api search note")
+    text = once(text,
         '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            tieba_name=tieba_name,\n',
         '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            ip_location=coarse_public_region(first_floor.get("ip_address") or first_floor.get("ip_location") or first_floor.get("ip_region") or thread.get("ip_address") or thread.get("ip_location") or thread.get("ip_region") or author.get("ip_address") or author.get("ip_location") or author.get("ip_region")),\n            tieba_name=tieba_name,\n', "tieba api note")
     text = once(text,
@@ -135,6 +138,9 @@ def patch_tieba(root: Path) -> None:
         '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                ip_location=coarse_public_region(item.get("ip_address") or item.get("ip_location") or item.get("ip_region") or user.get("ip_address") or user.get("ip_location") or user.get("ip_region")),\n                tieba_id=tieba_id,\n', "tieba api comment")
     text = once(text, '            publish_time=publish_time,\n            total_replay_num=(\n', '            publish_time=publish_time,\n            ip_location=coarse_public_region(ip_location),\n            total_replay_num=(\n', "tieba html note")
     text = once(text, '                publish_time=publish_time,\n                note_id=note_id,\n', '                publish_time=publish_time,\n                ip_location=coarse_public_region(ip_location),\n                note_id=note_id,\n', "tieba html comment")
+    text = once(text,
+        '                user_nickname=mask_nickname(str(comment_value.get("showname") or "")),\n                publish_time=self._selector_text(comment_ele, f".//span[{self._class_contains(\'lzl_time\')}]"),\n',
+        '                user_nickname=mask_nickname(str(comment_value.get("showname") or "")),\n                ip_location=coarse_public_region(comment_value.get("ip_address") or comment_value.get("ip_location") or comment_value.get("ip_region") or comment_value.get("region")),\n                publish_time=self._selector_text(comment_ele, f".//span[{self._class_contains(\'lzl_time\')}]"),\n', "tieba html sub-comment region")
     write_py(helper, text)
 
     store = root / "store/tieba/__init__.py"
