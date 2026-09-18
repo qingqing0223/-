@@ -166,7 +166,7 @@ def patch_core(root: Path) -> None:
         "    async def batch_get_notes_full_text(self, note_list: List[Dict]) -> List[Dict]:\n"
         "        \"\"\"\n"
     )
-    if "PROMOTION_WEEK_WB_REALTIME" not in text:
+    if 'os.environ.get("PROMOTION_WEEK_WB_REALTIME")' not in text:
         # Insert after the docstring block using a stable functional anchor.
         old_check = (
             "        if not config.ENABLE_WEIBO_FULL_TEXT:\n"
