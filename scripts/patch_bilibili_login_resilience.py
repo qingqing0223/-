@@ -7,6 +7,7 @@ from pathlib import Path
 
 MARKER = "PROMOTION_WEEK_BILI_LOGIN_RESILIENCE_V1"
 STARTUP_MARKER = "PROMOTION_WEEK_BILI_BROWSER_STARTUP_V2"
+NAVIGATION_MARKER = "PROMOTION_WEEK_BILI_HOME_NAVIGATION_V3"
 
 
 def read(path: Path) -> str:
@@ -127,6 +128,52 @@ def patch_core(root: Path) -> None:
             await self.browser_context.add_init_script(path="libs/stealth.min.js")
 '''
         text = replace_once(text, old, new, "Bilibili browser startup mode")
+
+    # A fully loaded Bilibili homepage is not required when the persistent
+    # profile already contains a valid session. Detail subprocesses were failing
+    # before API-client creation because page.goto(..., wait_until="load") timed
+    # out on slow third-party resources. Use a short DOMContentLoaded probe and
+    # tolerate only navigation timeouts; the following pong() still determines
+    # whether the cached session is actually usable.
+    if f"# {NAVIGATION_MARKER}: bounded homepage navigation" not in text:
+        old = '''            self.context_page = await self.browser_context.new_page()
+            await self.context_page.goto(self.index_url)
+
+            # Create a client to interact with the xiaohongshu website.
+'''
+        new = f'''            self.context_page = await self.browser_context.new_page()
+
+            # {NAVIGATION_MARKER}: bounded homepage navigation.
+            _bili_home_ready = False
+            for _bili_home_attempt in range(2):
+                try:
+                    await self.context_page.goto(
+                        self.index_url,
+                        wait_until="domcontentloaded",
+                        timeout=15000,
+                    )
+                    _bili_home_ready = True
+                    break
+                except Exception as _bili_home_exc:
+                    if type(_bili_home_exc).__name__ != "TimeoutError":
+                        raise
+                    utils.logger.warning(
+                        f"[BILIBILI_HOME_NAVIGATION] attempt={{_bili_home_attempt + 1}} "
+                        f"timed out; cached session/API probe will continue"
+                    )
+                    if _bili_home_attempt < 1:
+                        await asyncio.sleep(1)
+
+            if not _bili_home_ready:
+                utils.logger.warning(
+                    "[BILIBILI_HOME_NAVIGATION_DEGRADED] homepage did not reach "
+                    "DOMContentLoaded within bounded retries; continuing to cached "
+                    "session/API probe"
+                )
+
+            # Create a client to interact with the xiaohongshu website.
+'''
+        text = replace_once(text, old, new, "Bilibili bounded homepage navigation")
 
     # One bounded retry handles transient Chrome 0xC0000142 / TargetClosedError
     # without changing the persistent profile that stores the official login.
@@ -282,7 +329,7 @@ def check(root: Path) -> dict:
     core = root / "media_platform/bilibili/core.py"
     login = root / "media_platform/bilibili/login.py"
     result = {
-        "patch_version": 2,
+        "patch_version": 3,
         "core_exists": core.exists(),
         "login_exists": login.exists(),
         "session_probe_retry": False,
@@ -292,6 +339,7 @@ def check(root: Path) -> dict:
         "manual_login_marker": False,
         "standard_browser_mode": False,
         "persistent_launch_retry": False,
+        "bounded_home_navigation": False,
         "ok": False,
     }
     if not core.exists() or not login.exists():
@@ -329,6 +377,12 @@ def check(root: Path) -> dict:
             f"# {STARTUP_MARKER}: bounded persistent-context retry" in core_text
             and "for _bili_launch_attempt in range(2):" in core_text
         )
+        result["bounded_home_navigation"] = (
+            f"# {NAVIGATION_MARKER}: bounded homepage navigation" in core_text
+            and 'wait_until="domcontentloaded"' in core_text
+            and "timeout=15000" in core_text
+            and "[BILIBILI_HOME_NAVIGATION_DEGRADED]" in core_text
+        )
         result["ok"] = all([
             result["session_probe_retry"],
             result["existing_qr_detection"],
@@ -337,6 +391,7 @@ def check(root: Path) -> dict:
             result["manual_login_marker"],
             result["standard_browser_mode"],
             result["persistent_launch_retry"],
+            result["bounded_home_navigation"],
         ])
     except Exception:
         pass
