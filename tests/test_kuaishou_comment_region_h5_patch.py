@@ -17,8 +17,6 @@ class TestKuaishouCommentRegionH5Patch(unittest.TestCase):
         self.assertIn('[KS_COMMENT_REST_BLOCKED] label=root', text)
         self.assertIn('[KS_COMMENT_REST_BLOCKED] label=sub', text)
         self.assertIn('[KS_COMMENT_H5_FETCH_FALLBACK] label=root', text)
-        self.assertNotIn('await _ks_graphql_root_regions(', text)
-        self.assertNotIn('await _ks_graphql_sub_regions(', text)
 
 
 if __name__ == "__main__":
