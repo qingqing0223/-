@@ -261,20 +261,23 @@ def install_final_realtime_policy(platform: str) -> None:
                     first_failure_rc = proc.returncode
 
                 access_guard = False
-                if platform == "wb":
+                if platform in {"wb", "xhs"}:
                     tail = crawler_runner._tail_text(stdout_log, stderr_log)
-                    access_guard = any(token in tail for token in (
+                    tokens = (
                         "weibo_verify_required",
+                        "xhs_verify_required",
                         "captcha",
                         "security verification",
                         "验证码",
                         "安全验证",
-                    ))
+                    )
+                    access_guard = any(token in tail for token in tokens)
 
                 with stdout_log.open("a", encoding="utf-8") as out:
                     if access_guard:
+                        guard_name = "WB" if platform == "wb" else "XHS"
                         out.write(
-                            "[monitor] WB_REALTIME_ACCESS_GUARD_STOP "
+                            f"[monitor] {guard_name}_REALTIME_ACCESS_GUARD_STOP "
                             f"rc={proc.returncode}; no_more_detail_requests_this_cycle=yes; "
                             "candidate_remains_retryable=yes\n"
                         )
