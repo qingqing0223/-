@@ -134,6 +134,7 @@ def main() -> int:
         "config": str(config_path),
         "data_root": str(root),
         "source_cycle": cycle.name,
+        "structural_scope": "latest_raw_cycle_without_monitoring_start_filter",
         "input_files": [str(p) for p in files],
         "acceptance_output": str(output_path),
         "acceptance_summary": str(summary_path),
