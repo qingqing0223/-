@@ -13,12 +13,14 @@ from typing import Dict, List
 
 async def search_by_keywords(self):
     keyword = "k"
-    video_list: List[Dict] = []
-    if not video_list:
-        utils.logger.info(f"[BilibiliCrawler.search_by_keywords] No more videos for '{keyword}', moving to next keyword.")
-        break
+    while True:
+        video_list: List[Dict] = []
+        if not video_list:
+            utils.logger.info(f"[BilibiliCrawler.search_by_keywords] No more videos for '{keyword}', moving to next keyword.")
+            break
 
-    semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)
+        semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)
+        break
 '''
 
 
