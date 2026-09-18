@@ -4,6 +4,7 @@ import argparse
 from collections import Counter
 from datetime import datetime
 import json
+import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -375,9 +376,25 @@ def main() -> int:
         roots = [ROOT / "results" / date_key]
 
     written = []
+    built_roots = []
     for root in roots:
         if root.exists():
             written.extend(build_day(root))
+            built_roots.append(root)
+
+    # Stable latest path for dashboards, GPT checks and "current latest" tables.
+    if built_roots:
+        latest_day = max(built_roots, key=lambda p: p.name)
+        source = latest_day / "platforms"
+        target = ROOT / "results" / "latest" / "platforms"
+        target.mkdir(parents=True, exist_ok=True)
+        for old_file in target.glob("*.json"):
+            old_file.unlink()
+        for src in source.glob("*.json"):
+            dst = target / src.name
+            shutil.copyfile(src, dst)
+            written.append(dst)
+
     print(json.dumps({"ok": True, "written": [p.relative_to(ROOT).as_posix() for p in written]}, ensure_ascii=False, indent=2))
     return 0
 
