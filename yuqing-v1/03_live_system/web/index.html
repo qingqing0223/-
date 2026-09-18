@@ -212,7 +212,7 @@
     const PROVINCE_ALIASES={"内蒙古自治区":"内蒙古","广西壮族自治区":"广西","西藏自治区":"西藏","宁夏回族自治区":"宁夏","新疆维吾尔自治区":"新疆","香港特别行政区":"香港","澳门特别行政区":"澳门","台湾省":"台湾"};
     const KEY_ACCOUNT_COLUMNS=["账号","平台","发帖","点赞","评论","转发"];
     // 面积很小或形状特殊的省级行政区：地图内置标签会互相压住，改用覆盖层精确定位
-    const OVERLAY_LABEL_OFFSETS={"北京":[-46,-34],"天津":[54,8],"河北":[-4,28],"上海":[48,14],"香港":[38,20],"澳门":[-26,12]};
+    const OVERLAY_LABEL_OFFSETS={"北京":[0,0],"天津":[0,0],"河北":[-4,28],"上海":[0,0],"香港":[0,0],"澳门":[-26,12]};
     let D=null;
     const state={regionIndex:0,platformIndex:0,languageIndex:0,timelineIndex:0,timelineMode:"hour",paused:false};
     let charts={};
