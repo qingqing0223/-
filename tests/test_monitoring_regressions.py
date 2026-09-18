@@ -23,6 +23,12 @@ class MonitoringRegressionTests(unittest.TestCase):
         err.write_text("", encoding="utf-8")
         return tmp, out, err
 
+    def test_soft_empty_state_is_healthy_status_contract(self):
+        text = (Path(__file__).resolve().parents[1] / "monitor" / "crawler_runner.py").read_text(encoding="utf-8")
+        self.assertIn('if state in {"NATURAL_END", "SOFT_EMPTY"}:', text)
+        orchestrator = (Path(__file__).resolve().parents[1] / "monitor" / "orchestrator.py").read_text(encoding="utf-8")
+        self.assertIn('"soft_empty_no_jsonl" if run.state == "SOFT_EMPTY"', orchestrator)
+
     def test_zero_exit_without_jsonl_is_soft_empty(self):
         tmp, out, err = self._logs()
         try:
