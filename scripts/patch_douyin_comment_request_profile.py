@@ -5,7 +5,8 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_DY_COMMENT_REQUEST_PROFILE_V1"
+MARKER = "PROMOTION_WEEK_DY_COMMENT_REQUEST_PROFILE_V2"
+LEGACY_MARKER = "PROMOTION_WEEK_DY_COMMENT_REQUEST_PROFILE_V1"
 
 
 def read(path: Path) -> str:
@@ -20,8 +21,7 @@ def write_py(path: Path, text: str) -> None:
 def patch_client(root: Path) -> None:
     path = root / "media_platform/douyin/client.py"
     text = read(path)
-    if MARKER in text:
-        return
+    already_profile_patched = MARKER in text or LEGACY_MARKER in text
 
     old = """        params.update(common_params)
         query_string = urllib.parse.urlencode(params)
@@ -96,10 +96,28 @@ def patch_client(root: Path) -> None:
 
         query_string = urllib.parse.urlencode(params)
 """
-    count = text.count(old)
-    if count != 1:
-        raise RuntimeError(f"Douyin request-profile anchor expected once, found {count}")
-    text = text.replace(old, new, 1)
+    if not already_profile_patched:
+        count = text.count(old)
+        if count != 1:
+            raise RuntimeError(f"Douyin request-profile anchor expected once, found {count}")
+        text = text.replace(old, new, 1)
+    else:
+        text = text.replace(LEGACY_MARKER, MARKER)
+
+    # The upstream client constructs a comment-specific Referer header but did
+    # not actually pass that header into self.get() for root/sub comments.
+    # Preserve the ordinary public web request context by forwarding it.
+    referer_call = """        headers["Referer"] = urllib.parse.quote(referer_url, safe=':/')
+        return await self.get(uri, params)
+"""
+    referer_call_fixed = """        headers["Referer"] = urllib.parse.quote(referer_url, safe=':/')
+        return await self.get(uri, params, headers=headers)
+"""
+    if referer_call in text:
+        occurrences = text.count(referer_call)
+        if occurrences != 2:
+            raise RuntimeError(f"Douyin comment Referer forwarding expected twice, found {occurrences}")
+        text = text.replace(referer_call, referer_call_fixed)
 
     # Fetch a larger page from the same official public endpoint to reduce
     # pagination overhead inside the five-minute realtime cycle.
@@ -114,13 +132,14 @@ def patch_client(root: Path) -> None:
 def check(root: Path) -> dict:
     path = root / "media_platform/douyin/client.py"
     result = {
-        "patch_version": 1,
+        "patch_version": 2,
         "client_exists": path.exists(),
         "marker_present": False,
         "windows_comment_profile": False,
         "comment_optional_params": False,
         "session_token_reuse": False,
         "comment_page_size_50": False,
+        "comment_referer_forwarded": False,
         "ok": False,
     }
     if not path.exists():
@@ -151,6 +170,9 @@ def check(root: Path) -> dict:
             needle in text for needle in ('self.cookie_dict.get("msToken")', 'params["verifyFp"]')
         )
         result["comment_page_size_50"] = '"count": 50' in text
+        result["comment_referer_forwarded"] = text.count(
+            "return await self.get(uri, params, headers=headers)"
+        ) >= 2
         result["ok"] = all(
             result[key]
             for key in (
@@ -159,6 +181,7 @@ def check(root: Path) -> dict:
                 "comment_optional_params",
                 "session_token_reuse",
                 "comment_page_size_50",
+                "comment_referer_forwarded",
             )
         )
     except Exception:
