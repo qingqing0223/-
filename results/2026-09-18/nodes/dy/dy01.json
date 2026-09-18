@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-18T21:11:57+08:00",
+  "generated_at": "2026-09-18T21:17:06+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "ebed211b22ebe84e5194ef456fe58d8a2d49c0f1",
+    "repo_head": "c7f8692e1c0ab7324c50053bb6f1f88e44b36c2a",
     "repo_branch": "main",
     "douyin_request_profile_v2": true,
     "douyin_startup_resilience": true,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T21:11:57+08:00",
+    "generated_at": "2026-09-18T21:17:06+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T07:10:52+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -897,17 +897,17 @@
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-18T21:08:09+08:00",
+        "cycle_finished_at": "2026-09-18T21:14:12+08:00",
         "crawler_status": "ok",
-        "crawler_state": "SOFT_EMPTY",
+        "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 29.48,
+        "duration_seconds": 91.73,
         "new_records": 0,
-        "filtered_before_start": 0,
+        "filtered_before_start": 201,
         "classified_records": 0,
         "ingest_comments": true,
-        "input_file_count": 0,
-        "comment_input_file_count": 0,
+        "input_file_count": 2,
+        "comment_input_file_count": 1,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
@@ -12496,21 +12496,554 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_210740",
+      "cycle": "20260918_211240",
       "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-      "jsonl_files": [],
+      "jsonl_files": [
+        {
+          "kind": "comment",
+          "name": "detail_comments_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_211240/dy_20260918_211240/douyin/jsonl/detail_comments_2026-09-18.jsonl",
+          "bytes": 85375,
+          "rows": 200,
+          "sha256": "22cdae9dac173ab6c3637686d7b411b007b6bf3524c10a2c7065a1def38e9b73",
+          "modified_at": "2026-09-18T21:14:06+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "like_count",
+                "nickname",
+                "parent_comment_id",
+                "pictures",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "aweme_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "like_count": "int",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "pictures": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "comment_id": "1b094794d6deffeee9a1",
+                "parent_comment_id": "b29370f343baf246d271",
+                "aweme_id": "03b5c203c87efcaf838e"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "like_count": 1,
+                "create_time": 1784315459,
+                "last_modify_ts": 1789737218652
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "like_count",
+                "nickname",
+                "parent_comment_id",
+                "pictures",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "aweme_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "like_count": "int",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "pictures": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "comment_id": "cf4f1ac65bb0dcad6502",
+                "parent_comment_id": "b29370f343baf246d271",
+                "aweme_id": "03b5c203c87efcaf838e"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "like_count": 1,
+                "create_time": 1784097361,
+                "last_modify_ts": 1789737218655
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "like_count",
+                "nickname",
+                "parent_comment_id",
+                "pictures",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "aweme_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "like_count": "int",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "pictures": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "comment_id": "46b98dc01ada87f64914",
+                "parent_comment_id": "b29370f343baf246d271",
+                "aweme_id": "03b5c203c87efcaf838e"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "like_count": 0,
+                "create_time": 1782224033,
+                "last_modify_ts": 1789737218658
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "like_count",
+                "nickname",
+                "parent_comment_id",
+                "pictures",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "aweme_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "like_count": "int",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "pictures": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "comment_id": "27bd77d88a9d1f34d985",
+                "parent_comment_id": "b29370f343baf246d271",
+                "aweme_id": "03b5c203c87efcaf838e"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "like_count": 5,
+                "create_time": 1781842567,
+                "last_modify_ts": 1789737218661
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "like_count",
+                "nickname",
+                "parent_comment_id",
+                "pictures",
+                "sub_comment_count"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "aweme_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "like_count": "int",
+                "last_modify_ts": "int",
+                "parent_comment_id": "str",
+                "pictures": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "comment_id": "8fbe2dcd616906175f07",
+                "parent_comment_id": "b29370f343baf246d271",
+                "aweme_id": "03b5c203c87efcaf838e"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "like_count": 0,
+                "create_time": 1787316208,
+                "last_modify_ts": 1789737218664
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
+          "name": "search_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_211240/dy_20260918_211240/douyin/jsonl/search_contents_2026-09-18.jsonl",
+          "bytes": 22145,
+          "rows": 14,
+          "sha256": "879520094f31fdbb35db117d349203ca2923db8c82de1c54faf9560d97ea1207",
+          "modified_at": "2026-09-18T21:12:59+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "aweme_type",
+                "aweme_url",
+                "collected_count",
+                "comment_count",
+                "cover_url",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "music_download_url",
+                "nickname",
+                "note_download_url",
+                "share_count",
+                "source_keyword",
+                "title",
+                "video_download_url"
+              ],
+              "field_types": {
+                "aweme_id": "str",
+                "aweme_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "collected_count": "str",
+                "comment_count": "str",
+                "share_count": "str",
+                "last_modify_ts": "int",
+                "aweme_url": "str",
+                "cover_url": "str",
+                "video_download_url": "str",
+                "music_download_url": "str",
+                "note_download_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "aweme_id": "ef820a03e641f1b29700"
+              },
+              "safe_values": {
+                "comment_count": "184",
+                "liked_count": "",
+                "share_count": "48084",
+                "create_time": 1786939445,
+                "last_modify_ts": 1789737179726,
+                "source_keyword": "促进民族团结进步，奋进伟大复兴征程"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "aweme_type",
+                "aweme_url",
+                "collected_count",
+                "comment_count",
+                "cover_url",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "music_download_url",
+                "nickname",
+                "note_download_url",
+                "share_count",
+                "source_keyword",
+                "title",
+                "video_download_url"
+              ],
+              "field_types": {
+                "aweme_id": "str",
+                "aweme_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "collected_count": "str",
+                "comment_count": "str",
+                "share_count": "str",
+                "last_modify_ts": "int",
+                "aweme_url": "str",
+                "cover_url": "str",
+                "video_download_url": "str",
+                "music_download_url": "str",
+                "note_download_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "aweme_id": "8ef1138b83ed08408ead"
+              },
+              "safe_values": {
+                "comment_count": "3892",
+                "liked_count": "68899",
+                "share_count": "2701",
+                "create_time": 1773125914,
+                "last_modify_ts": 1789737179729,
+                "source_keyword": "促进民族团结进步，奋进伟大复兴征程"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "aweme_type",
+                "aweme_url",
+                "collected_count",
+                "comment_count",
+                "cover_url",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "music_download_url",
+                "nickname",
+                "note_download_url",
+                "share_count",
+                "source_keyword",
+                "title",
+                "video_download_url"
+              ],
+              "field_types": {
+                "aweme_id": "str",
+                "aweme_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "collected_count": "str",
+                "comment_count": "str",
+                "share_count": "str",
+                "last_modify_ts": "int",
+                "aweme_url": "str",
+                "cover_url": "str",
+                "video_download_url": "str",
+                "music_download_url": "str",
+                "note_download_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "aweme_id": "eb25cb54c9a7f3ad6f18"
+              },
+              "safe_values": {
+                "comment_count": "50",
+                "liked_count": "10927",
+                "share_count": "2612",
+                "create_time": 1759315208,
+                "last_modify_ts": 1789737179731,
+                "source_keyword": "促进民族团结进步，奋进伟大复兴征程"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "aweme_type",
+                "aweme_url",
+                "collected_count",
+                "comment_count",
+                "cover_url",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "music_download_url",
+                "nickname",
+                "note_download_url",
+                "share_count",
+                "source_keyword",
+                "title",
+                "video_download_url"
+              ],
+              "field_types": {
+                "aweme_id": "str",
+                "aweme_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "collected_count": "str",
+                "comment_count": "str",
+                "share_count": "str",
+                "last_modify_ts": "int",
+                "aweme_url": "str",
+                "cover_url": "str",
+                "video_download_url": "str",
+                "music_download_url": "str",
+                "note_download_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "aweme_id": "bf60f34ac3a70ad59c96"
+              },
+              "safe_values": {
+                "comment_count": "134",
+                "liked_count": "48941",
+                "share_count": "3614",
+                "create_time": 1739673097,
+                "last_modify_ts": 1789737179734,
+                "source_keyword": "促进民族团结进步，奋进伟大复兴征程"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "aweme_id",
+                "aweme_type",
+                "aweme_url",
+                "collected_count",
+                "comment_count",
+                "cover_url",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "music_download_url",
+                "nickname",
+                "note_download_url",
+                "share_count",
+                "source_keyword",
+                "title",
+                "video_download_url"
+              ],
+              "field_types": {
+                "aweme_id": "str",
+                "aweme_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "collected_count": "str",
+                "comment_count": "str",
+                "share_count": "str",
+                "last_modify_ts": "int",
+                "aweme_url": "str",
+                "cover_url": "str",
+                "video_download_url": "str",
+                "music_download_url": "str",
+                "note_download_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "aweme_id": "d1ceda48a6bd292898de"
+              },
+              "safe_values": {
+                "comment_count": "4725",
+                "liked_count": "86463",
+                "share_count": "2037",
+                "create_time": 1734664288,
+                "last_modify_ts": 1789737179736,
+                "source_keyword": "促进民族团结进步，奋进伟大复兴征程"
+              },
+              "nested_fields": {}
+            }
+          ]
+        }
+      ],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_210740/dy_20260918_210740/stderr.log",
-          "bytes": 4352,
-          "sha256": "6ae6a79ef7e85840c892e9c516f6afd916c299608578fc83ac0273eaa6610ace"
+          "relative_path": "raw_runs/20260918_211240/dy_20260918_211240/stderr.log",
+          "bytes": 55750,
+          "sha256": "14756883f0615ddb98fdd16d6ef3d4968d7177299115ff83836e879207a25a23"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_210740/dy_20260918_210740/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "relative_path": "raw_runs/20260918_211240/dy_20260918_211240/stdout.log",
+          "bytes": 298,
+          "sha256": "f9c9db7d858e942a4f4d3f9785ba7fe3375949090e8f2e105f1c6b293468772b"
         }
       ]
     }
