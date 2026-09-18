@@ -17,7 +17,7 @@ DEFAULT_POLICIES = {
     "dy": {"budget": 70, "candidate_timeout": 105, "comment_cap": 200},
     "bili": {"budget": 70, "candidate_timeout": 100, "comment_cap": 20},
     "wb": {"budget": 50, "candidate_timeout": 40, "comment_cap": 100},
-    "tieba": {"budget": 60, "candidate_timeout": 90, "comment_cap": 300},
+    "tieba": {"budget": 55, "candidate_timeout": 45, "comment_cap": 100},
     "zhihu": {"budget": 60, "candidate_timeout": 90, "comment_cap": 200},
 }
 
@@ -219,6 +219,15 @@ def install_final_realtime_policy(platform: str) -> None:
                         max(0, min(_policy_value(cfg, platform, "subcomment_root_cap", 2), 10))
                     )
                     child_env["PROMOTION_WEEK_BILI_SUBCOMMENT_PAGE_CAP"] = str(
+                        max(0, min(_policy_value(cfg, platform, "subcomment_page_cap", 1), 5))
+                    )
+                elif platform == "tieba":
+                    child_env = os.environ.copy()
+                    child_env["PROMOTION_WEEK_TIEBA_REALTIME_DETAIL"] = "1"
+                    child_env["PROMOTION_WEEK_TIEBA_SUBCOMMENT_ROOT_CAP"] = str(
+                        max(0, min(_policy_value(cfg, platform, "subcomment_root_cap", 3), 10))
+                    )
+                    child_env["PROMOTION_WEEK_TIEBA_SUBCOMMENT_PAGE_CAP"] = str(
                         max(0, min(_policy_value(cfg, platform, "subcomment_page_cap", 1), 5))
                     )
 
