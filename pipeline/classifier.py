@@ -10,6 +10,25 @@ def _safe_error_text(exc: Exception, limit: int = 600) -> str:
     return text[:limit]
 
 
+def _tri_class_from_decision(decision: dict) -> str:
+    """Map the fixed v2.2 L1 taxonomy to the three review classes.
+
+    normal -> support
+    attention -> neutral
+    problematic -> non_support
+
+    The original status/type pair is always retained for subtype analysis.
+    """
+    status = str(decision.get("status") or "").strip()
+    if status == "normal":
+        return "support"
+    if status in {"attention", "neutral"}:  # neutral is legacy v2.1 compatibility
+        return "neutral"
+    if status == "problematic":
+        return "non_support"
+    return "unknown"
+
+
 def _attach_attitude_fields(row: dict, decision: dict) -> None:
     if row.get("record_type") == "video":
         row["video_attitude_status"] = decision.get("status")
@@ -39,6 +58,7 @@ def _degraded_rows(records: list[dict], exc: Exception) -> list[dict]:
         row = dict(rec)
         decision = {"status": "unclassified", "type": None}
         row.update(decision)
+        row["tri_class"] = _tri_class_from_decision(decision)
         row["classification_ok"] = False
         row["classification_state"] = "degraded"
         row["classification_error"] = error
@@ -74,6 +94,7 @@ def classify_records(records: list[dict], concurrency: int = 4) -> list[dict]:
             row = dict(rec)
             decision = result.to_dict()
             row.update(decision)
+            row["tri_class"] = _tri_class_from_decision(decision)
             row["classification_ok"] = True
             row["classification_state"] = "ok"
             row["classification_error"] = ""
