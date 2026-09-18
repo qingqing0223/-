@@ -45,6 +45,12 @@ class PublicRegionPatchContractTest(unittest.TestCase):
         self.assertTrue((ROOT / "scripts" / "inspect_public_region_acceptance.py").exists())
         self.assertTrue((ROOT / "scripts" / "check_public_region_acceptance_windows.ps1").exists())
 
+    def test_final_student_start_uses_named_splatting(self):
+        text = (ROOT / "scripts" / "final_student_update_windows.ps1").read_text(encoding="utf-8")
+        self.assertIn('$startArgs = @{', text)
+        self.assertIn('& .\\scripts\\start_student_platform_windows.ps1 @startArgs', text)
+        self.assertNotIn('$args = @(', text)
+
 
 if __name__ == "__main__":
     unittest.main()
