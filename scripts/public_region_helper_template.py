@@ -45,3 +45,46 @@ def first_coarse_public_region(*values) -> str:
         if region:
             return region
     return ""
+
+
+_REGION_PROBE_KEYS = {
+    "ip_label", "ip_location", "ip_region", "ipregion",
+    "region", "region_name", "province", "province_name",
+}
+
+
+def _safe_probe_value(value) -> str:
+    if value is None or isinstance(value, (dict, list, tuple, set)):
+        return ""
+    text = str(value).strip()
+    if not text or _IP_LIKE.fullmatch(text):
+        return ""
+    if len(text) > 24 or any(ch.isdigit() for ch in text):
+        return ""
+    return text
+
+
+def public_region_probe(obj, *, max_depth: int = 4, max_items: int = 30) -> dict[str, str]:
+    """Collect only short, non-IP public region-like source fields for local diagnostics."""
+    found: dict[str, str] = {}
+
+    def walk(value, path: str, depth: int) -> None:
+        if depth > max_depth or len(found) >= max_items:
+            return
+        if isinstance(value, dict):
+            for key, child in value.items():
+                key_text = str(key)
+                next_path = f"{path}.{key_text}" if path else key_text
+                if key_text.lower() in _REGION_PROBE_KEYS:
+                    probe = _safe_probe_value(child)
+                    if probe:
+                        found[next_path] = probe
+                if isinstance(child, (dict, list)):
+                    walk(child, next_path, depth + 1)
+        elif isinstance(value, list):
+            for index, child in enumerate(value[:10]):
+                if isinstance(child, (dict, list)):
+                    walk(child, f"{path}[{index}]", depth + 1)
+
+    walk(obj, "", 0)
+    return found
