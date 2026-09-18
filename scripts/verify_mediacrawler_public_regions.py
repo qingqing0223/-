@@ -71,9 +71,11 @@ def main() -> int:
             cases = {
                 "IP属地：山东": "山东",
                 "来自: 北京": "北京",
-                "内蒙古自治区": "内蒙古",
+                "发布于 上海": "上海",
+                "所在地：内蒙古自治区": "内蒙古",
                 "1.2.3.4": "",
                 "2001:db8::1": "",
+                "未知": "",
             }
             got = {k: module.coarse_public_region(k) for k in cases}
             helper_ok = got == cases
@@ -104,6 +106,7 @@ def main() -> int:
         "tieba_api_search_region": (root / "media_platform/tieba/help.py", "ip_location=coarse_public_region(item.get(\"ip_address\")"),
         "tieba_api_comment_region": (root / "media_platform/tieba/help.py", "first_floor.get(\"ip_address\")"),
         "tieba_html_region": (root / "media_platform/tieba/help.py", "ip_location=coarse_public_region(ip_location)"),
+        "tieba_sub_comment_region": (root / "media_platform/tieba/help.py", "comment_value.get(\"ip_address\")"),
         "zhihu_region_field": (root / "model/m_zhihu.py", "ip_location: str"),
         "zhihu_comment_region": (root / "media_platform/zhihu/help.py", "_extract_comment_ip_location"),
     }
