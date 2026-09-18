@@ -374,22 +374,24 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     realtime_mode = bool(cfg.get("realtime_mode", False))
     search_get_comment = "no" if realtime_mode else str(cfg.get("get_comment", "no"))
     search_get_sub_comment = "no" if realtime_mode else str(cfg.get("get_sub_comment", "no"))
+    realtime_notes_default = 20 if code == "bili" else int(cfg.get("realtime_discovery_max_notes_count", 60))
     notes_limit = (
         max(1, int(cfg.get(
             f"{code}_realtime_discovery_max_notes_count",
-            cfg.get("realtime_discovery_max_notes_count", 60),
+            realtime_notes_default,
         )))
         if realtime_mode else _effective_notes_limit(cfg)
     )
     search_concurrency = max(1, int(cfg.get("max_concurrency_num", 1)))
     if realtime_mode:
+        platform_search_default = 4 if code == "bili" else search_concurrency
         try:
             search_concurrency = max(1, min(
-                int(cfg.get(f"{code}_realtime_search_concurrency", search_concurrency)),
+                int(cfg.get(f"{code}_realtime_search_concurrency", platform_search_default)),
                 6,
             ))
         except Exception:
-            search_concurrency = max(1, int(cfg.get("max_concurrency_num", 1)))
+            search_concurrency = platform_search_default
 
     cmd = [
         "uv", "run", "main.py",
