@@ -354,6 +354,33 @@ def main():
             configured_classifier = 4
         cfg["classifier_concurrency"] = max(configured_classifier, 12)
 
+    if args.platform == "wb" and bool(cfg.get("realtime_mode", False)):
+        # Weibo is more sensitive to repeated requests. Keep discovery bounded,
+        # probe only a few comment candidates per cycle, and stop before the next
+        # five-minute discovery window rather than retrying aggressively.
+        try:
+            configured_discovery = int(cfg.get("realtime_discovery_max_notes_count", 20))
+        except Exception:
+            configured_discovery = 20
+        cfg["realtime_discovery_max_notes_count"] = max(10, min(configured_discovery, 20))
+        cfg["wb_realtime_detail_max_items_per_cycle"] = min(
+            3, max(1, int(cfg.get("wb_realtime_detail_max_items_per_cycle", 3)))
+        )
+        cfg["wb_realtime_detail_budget_seconds"] = min(
+            60, max(30, int(cfg.get("wb_realtime_detail_budget_seconds", 50)))
+        )
+        cfg["wb_realtime_candidate_timeout_seconds"] = min(
+            50, max(20, int(cfg.get("wb_realtime_candidate_timeout_seconds", 40)))
+        )
+        cfg["wb_realtime_max_comments_per_video"] = min(
+            100, max(20, int(cfg.get("wb_realtime_max_comments_per_video", 100)))
+        )
+        try:
+            configured_classifier = int(cfg.get("classifier_concurrency", 4))
+        except Exception:
+            configured_classifier = 4
+        cfg["classifier_concurrency"] = max(configured_classifier, 12)
+
     configured_codes = {str(p.get("code") or "") for p in cfg.get("platforms", [])}
     if args.platform not in configured_codes:
         raise SystemExit(
