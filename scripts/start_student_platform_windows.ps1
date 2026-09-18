@@ -104,6 +104,10 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
         Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 120
         Set-ConfigProperty $cfgObj "classifier_concurrency" 12
     }
+    if ($Platform -eq "tieba") {
+        Set-ConfigProperty $cfgObj "classifier_concurrency" 12
+        Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 120
+    }
 
     # Per-platform realtime budgets. These are soft phase budgets: a candidate
     # already in progress is allowed to finish up to its candidate timeout, while
@@ -136,9 +140,15 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "wb_realtime_detail_budget_seconds" 55
     Set-ConfigProperty $cfgObj "wb_realtime_candidate_timeout_seconds" 35
     Set-ConfigProperty $cfgObj "wb_realtime_max_comments_per_video" 100
-    Set-ConfigProperty $cfgObj "tieba_realtime_detail_budget_seconds" 60
-    Set-ConfigProperty $cfgObj "tieba_realtime_candidate_timeout_seconds" 90
-    Set-ConfigProperty $cfgObj "tieba_realtime_max_comments_per_video" 300
+    Set-ConfigProperty $cfgObj "tieba_realtime_discovery_max_notes_count" 10
+    Set-ConfigProperty $cfgObj "tieba_realtime_items_per_keyword" 4
+    Set-ConfigProperty $cfgObj "tieba_realtime_search_timeout_seconds" 120
+    Set-ConfigProperty $cfgObj "tieba_realtime_detail_max_items_per_cycle" 2
+    Set-ConfigProperty $cfgObj "tieba_realtime_detail_budget_seconds" 55
+    Set-ConfigProperty $cfgObj "tieba_realtime_candidate_timeout_seconds" 45
+    Set-ConfigProperty $cfgObj "tieba_realtime_max_comments_per_video" 100
+    Set-ConfigProperty $cfgObj "tieba_realtime_subcomment_root_cap" 3
+    Set-ConfigProperty $cfgObj "tieba_realtime_subcomment_page_cap" 1
     Set-ConfigProperty $cfgObj "zhihu_realtime_detail_budget_seconds" 60
     Set-ConfigProperty $cfgObj "zhihu_realtime_candidate_timeout_seconds" 90
     Set-ConfigProperty $cfgObj "zhihu_realtime_max_comments_per_video" 200
