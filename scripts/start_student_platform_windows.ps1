@@ -9,6 +9,9 @@ param(
     [switch]$ArchiveRaw,
     [string]$RawArchiveRepo = $env:PROMOTION_RAW_ARCHIVE_REPO,
     [switch]$PrivateRepoConfirmed,
+    [switch]$ReviewSync,
+    [string]$ReviewRepo = $env:PROMOTION_REVIEW_REPO,
+    [switch]$PrivateReviewRepoConfirmed,
     [switch]$NoWatchdog
 )
 
@@ -197,6 +200,22 @@ if ($ArchiveRaw) {
     }
 }
 
+if ($ReviewSync) {
+    if (-not $ReviewRepo) {
+        Write-Host "ERROR: -ReviewSync requires -ReviewRepo or environment variable PROMOTION_REVIEW_REPO." -ForegroundColor Red
+        exit 33
+    }
+    if (-not $PrivateReviewRepoConfirmed) {
+        Write-Host "ERROR: non-support review text/URLs must only be pushed to an access-controlled PRIVATE Git repository." -ForegroundColor Red
+        Write-Host "After confirming privacy, rerun with -PrivateReviewRepoConfirmed." -ForegroundColor Yellow
+        exit 34
+    }
+    if (-not (Test-Path (Join-Path $ReviewRepo ".git"))) {
+        Write-Host "ERROR: private review repository is not cloned at: $ReviewRepo" -ForegroundColor Red
+        exit 35
+    }
+}
+
 Write-Host "=== FINAL student distributed platform monitor ===" -ForegroundColor Cyan
 Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
@@ -216,12 +235,23 @@ if ($PushGithub) {
     Write-Host "Public GitHub result push is OFF. Add -PushGithub after this machine has Git write access." -ForegroundColor Yellow
 }
 
+if ($ReviewSync) {
+    $reviewCmd = "Set-Location '$RepoRoot'; .\scripts\start_private_non_support_review_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config' -ReviewRepo '$ReviewRepo' -PrivateRepoConfirmed"
+    Start-Process powershell -ArgumentList "-NoExit", "-Command", $reviewCmd
+    Write-Host "PRIVATE non-support review sync started in a separate window (immediate + every 300s)." -ForegroundColor Green
+    Write-Host "Students review non_support_manual_review.csv; confirmed rows flow into confirmed_non_support.json." -ForegroundColor Green
+}
+
 if ($ArchiveRaw) {
     $rawCmd = "Set-Location '$RepoRoot'; .\scripts\start_private_raw_archive_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config' -ArchiveRepo '$RawArchiveRepo' -Push -PrivateRepoConfirmed"
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $rawCmd
     Write-Host "PRIVATE full raw JSONL archive sync started in a separate window (300s)." -ForegroundColor Green
 } else {
     Write-Host "Full raw JSONL remains local under the configured MediaCrawlerData directory." -ForegroundColor Yellow
+}
+
+if (-not $ReviewSync) {
+    Write-Host "Private non-support review sync is OFF. Public GitHub still receives tri-class aggregates/fingerprints, but no review text." -ForegroundColor Yellow
 }
 
 if ($NoWatchdog) {
