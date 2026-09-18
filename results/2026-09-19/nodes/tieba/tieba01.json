@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-19T00:07:38+08:00",
+  "generated_at": "2026-09-19T00:12:45+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "d76b96998f38513bf4879e0118456e650fe6996d",
+    "repo_head": "07e1e4243f0ffcd75c83ff5d060d83bc01938722",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T00:07:38+08:00",
+    "generated_at": "2026-09-19T00:12:44+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T00:04:24+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -233,24 +233,21 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
-        "cycle_finished_at": "2026-09-19T00:04:31+08:00",
+        "cycle_finished_at": "2026-09-19T00:09:58+08:00",
         "crawler_status": "ok",
-        "crawler_state": "SUCCESS",
+        "crawler_state": "SUCCESS_NO_COMMENTS",
         "return_code": 0,
-        "duration_seconds": 118.95,
-        "new_records": 2,
-        "filtered_before_start": 7,
-        "classified_records": 2,
+        "duration_seconds": 152.89,
+        "new_records": 0,
+        "filtered_before_start": 0,
+        "classified_records": 0,
         "ingest_comments": true,
-        "input_file_count": 3,
-        "comment_input_file_count": 1,
+        "input_file_count": 2,
+        "comment_input_file_count": 0,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {
-          "未知": 1,
-          "汉语": 1
-        },
+        "language_counts": {},
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -261,7 +258,7 @@
     "discussion_thread_stats": {
       "unique_threads": 504,
       "new_threads_on_result_date": 2,
-      "source_rows_scanned": 24866,
+      "source_rows_scanned": 24890,
       "record_type": "discussion_post",
       "count_basis": "unique_tieba_threads_discovered_during_monitoring_window",
       "publish_time_note": "thread original publish_time may predate monitoring_start_time; daily reporting treats these as discussion containers discovered/active during monitoring"
@@ -126292,19 +126289,19 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260919_000725",
+      "cycle": "20260919_001225",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
       "jsonl_files": [],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260919_000725/tieba_20260919_000725/stderr.log",
-          "bytes": 3935,
-          "sha256": "1ad700b0d9f16ecdfa1a339e6e3247ba62883e5b1d2f38ee87b8b08aa8a52539"
+          "relative_path": "raw_runs/20260919_001225/tieba_20260919_001225/stderr.log",
+          "bytes": 6561,
+          "sha256": "e0948d30b92a79f9f3ff017f048e3e51067b5943c9f2c5d497b210ac38f28f28"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260919_000725/tieba_20260919_000725/stdout.log",
+          "relative_path": "raw_runs/20260919_001225/tieba_20260919_001225/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
