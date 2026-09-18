@@ -5,6 +5,13 @@ from collections import Counter
 import json
 from pathlib import Path
 import re
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from monitor.ingest import _canonical_public_region
 
 
 def load_json(path: Path) -> dict:
@@ -86,14 +93,9 @@ def region(row: dict) -> str:
                 parent.get("province"), parent.get("region"),
             ])
     for value in candidates:
-        text = str(value or "").strip()
-        if not text:
-            continue
-        if re.fullmatch(r"(?:\d{1,3}\.){3}\d{1,3}", text) or re.fullmatch(r"[0-9a-fA-F:]{6,}", text):
-            continue
-        if re.search(r"\d+\.\d+\s*[,，]\s*\d+\.\d+", text):
-            continue
-        return text
+        normalized = _canonical_public_region(value)
+        if normalized:
+            return normalized
     return ""
 
 
@@ -176,6 +178,7 @@ def main() -> int:
     seen_comment_ids = set()
     comment_regions = Counter()
     content_regions = Counter()
+    country_code_only_ip_location_rows = 0
 
     for row in contents:
         r = region(row)
@@ -183,6 +186,9 @@ def main() -> int:
             content_regions[r] += 1
 
     for row in comments:
+        raw_ip = str(row.get("ip_location") or "").strip()
+        if re.fullmatch(r"[A-Za-z]{2,3}", raw_ip) or raw_ip in {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC"}:
+            country_code_only_ip_location_rows += 1
         cid = str(first(row, "comment_id", "cid", "rpid") or "").strip()
         if cid:
             if cid in seen_comment_ids:
@@ -259,6 +265,8 @@ def main() -> int:
     warnings = []
     if not checks["content_public_ip_region_present"]:
         warnings.append("content_public_ip_region_not_observed")
+    if country_code_only_ip_location_rows:
+        warnings.append("douyin_country_code_only_ip_label_not_counted_as_region")
     if 0 < comment_region_rate < 0.5:
         warnings.append("comment_ip_region_coverage_below_50_percent")
     if roots_advertising_replies > 0 and nested == 0:
@@ -311,6 +319,7 @@ def main() -> int:
             "comment_public_ip_region_records": sum(comment_regions.values()),
             "comment_public_ip_region_rate": comment_region_rate,
             "comment_regions": dict(comment_regions.most_common()),
+            "country_code_only_ip_location_rows": country_code_only_ip_location_rows,
         },
         "contents": {
             "content_rows": len(contents),
