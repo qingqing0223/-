@@ -513,6 +513,19 @@ def patch_client(root: Path) -> None:
     text = ensure_h5_comment_fetch_fallback(text)
     text = ensure_debug_helper(text)
 
+    # V6 in-place upgrade for machines that already carry the V5 patch.
+    # Network transport failures (for example an httpx ReadTimeout with an empty
+    # string message) may otherwise escape the REST fallback and only appear as
+    # the generic core-level "may be been blocked" message.
+    text = text.replace(
+        "except DataFetchError as _ks_rest_exc:",
+        "except (DataFetchError, httpx.TransportError) as _ks_rest_exc:",
+    )
+    text = text.replace(
+        "detail={str(_ks_rest_exc)[:240]}",
+        "detail={repr(_ks_rest_exc)[:240]}",
+    )
+
     # Upgrade an already V5-patched client in place so a REST V2 rejection
     # can fall back to the public H5 comment representation instead of yielding
     # zero comment files. This does not bypass login/captcha/security checks.
