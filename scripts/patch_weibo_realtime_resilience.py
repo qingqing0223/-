@@ -28,7 +28,11 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 def patch_client(root: Path) -> None:
     path = root / "media_platform/weibo/client.py"
-    text = read(path)
+    text = read(path).replace("PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V1", MARKER)
+    text = text.replace(
+        "if response.status_code in {418, 429, 432}:",
+        "if response.status_code in {403, 418, 429, 432}:",
+    )
 
     if "retry_if_not_exception_type" not in text:
         text = text.replace(
@@ -136,7 +140,7 @@ def patch_client(root: Path) -> None:
 
 def patch_core(root: Path) -> None:
     path = root / "media_platform/weibo/core.py"
-    text = read(path)
+    text = read(path).replace("PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V1", MARKER)
 
     old_goto = (
         "            self.context_page = await self.browser_context.new_page()\n"
@@ -198,6 +202,7 @@ def check(root: Path) -> dict:
         "bounded_retry": False,
         "access_guard": False,
         "non_json_guard": False,
+        "forbidden_guard": False,
         "bounded_navigation": False,
         "realtime_full_text_skip": False,
         "ok": False,
@@ -213,6 +218,7 @@ def check(root: Path) -> dict:
         result["bounded_retry"] = "stop=stop_after_attempt(2)" in client_text and "retry_if_not_exception_type" in client_text
         result["access_guard"] = "class WeiboAccessGuardError" in client_text and "WEIBO_VERIFY_REQUIRED status=" in client_text
         result["non_json_guard"] = "WEIBO_VERIFY_REQUIRED non_json_response" in client_text
+        result["forbidden_guard"] = "response.status_code in {403, 418, 429, 432}" in client_text
         result["bounded_navigation"] = 'wait_until="domcontentloaded", timeout=20000' in core_text
         result["realtime_full_text_skip"] = 'os.environ.get("PROMOTION_WEEK_WB_REALTIME") == "1"' in core_text
         result["ok"] = all((
@@ -220,6 +226,7 @@ def check(root: Path) -> dict:
             result["bounded_retry"],
             result["access_guard"],
             result["non_json_guard"],
+            result["forbidden_guard"],
             result["bounded_navigation"],
             result["realtime_full_text_skip"],
         ))
