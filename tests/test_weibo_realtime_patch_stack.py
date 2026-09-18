@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class WeiboRealtimePatchStackTest(unittest.TestCase):
     def test_realtime_resilience_contract(self):
         text = (ROOT / "scripts" / "patch_weibo_realtime_resilience.py").read_text(encoding="utf-8")
-        self.assertIn("PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V1", text)
+        self.assertIn("PROMOTION_WEEK_WB_REALTIME_RESILIENCE_V3", text)
         self.assertIn("WEIBO_VERIFY_REQUIRED", text)
         self.assertIn("stop_after_attempt(2)", text)
         self.assertIn("timeout=25", text)
@@ -18,7 +18,7 @@ class WeiboRealtimePatchStackTest(unittest.TestCase):
 
     def test_comment_hierarchy_contract(self):
         text = (ROOT / "scripts" / "patch_weibo_comment_hierarchy.py").read_text(encoding="utf-8")
-        self.assertIn("PROMOTION_WEEK_WB_COMMENT_HIERARCHY_V1", text)
+        self.assertIn("PROMOTION_WEEK_WB_COMMENT_HIERARCHY_V2", text)
         self.assertIn('["parent_comment_id"] = ""', text)
         self.assertIn('["root_comment_id"]', text)
 
@@ -40,6 +40,8 @@ class WeiboRealtimePatchStackTest(unittest.TestCase):
         crawler = (ROOT / "monitor" / "crawler_runner.py").read_text(encoding="utf-8")
         self.assertIn('args.platform == "wb"', runner)
         self.assertIn('"wb_realtime_detail_max_items_per_cycle"', runner)
+        self.assertIn('"wb_realtime_search_timeout_seconds"', runner)
+        self.assertIn('"wb_realtime_discovery_max_notes_count"] = 10', runner)
         self.assertIn('"PROMOTION_WEEK_WB_REALTIME"', crawler)
         self.assertIn('"weibo_verify_required"', crawler.lower())
 
