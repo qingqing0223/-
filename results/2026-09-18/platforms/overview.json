@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T13:20:08+00:00",
+  "generated_at": "2026-09-18T13:20:38+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "single_node_passthrough",
@@ -77,13 +77,13 @@
       "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "tieba01",
       "latest_node_id": "tieba01",
-      "unique_records": 4663,
-      "comment_records": 4660,
-      "root_comment_records": 34,
+      "unique_records": 4665,
+      "comment_records": 4662,
+      "root_comment_records": 36,
       "reply_comment_records": 4626,
-      "region_records": 3,
-      "comment_region_records": 0,
-      "latest_seen_time": "2026-09-18T18:42:25+08:00",
+      "region_records": 5,
+      "comment_region_records": 2,
+      "latest_seen_time": "2026-09-18T21:17:54+08:00",
       "node_count": 1,
       "all_counting_nodes_have_fingerprints": true
     },
