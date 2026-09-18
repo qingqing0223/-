@@ -74,6 +74,11 @@ def _llm_classify(unresolved: list[dict]) -> dict[str, str]:
         "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
     ).strip()
     model = os.environ.get("CONTENT_SOURCE_MODEL", "qwen3.8-flash").strip()
+    try:
+        timeout_seconds = int(os.environ.get("CONTENT_SOURCE_TIMEOUT_SECONDS", "25"))
+    except Exception:
+        timeout_seconds = 25
+    timeout_seconds = max(5, min(timeout_seconds, 60))
 
     items = []
     for row in unresolved:
@@ -114,7 +119,7 @@ def _llm_classify(unresolved: list[dict]) -> dict[str, str]:
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=90) as resp:
+        with urllib.request.urlopen(req, timeout=timeout_seconds) as resp:
             obj = json.loads(resp.read().decode("utf-8", errors="replace"))
         content = obj["choices"][0]["message"]["content"]
         data = json.loads(_strip_fence(content))
