@@ -6,22 +6,22 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T14:40:14+08:00",
+  "generated_at": "2026-09-18T14:47:57+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T14:40:14+08:00",
+    "generated_at": "2026-09-18T14:47:57+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-18T13:25:12+08:00",
+    "latest_seen_time": "2026-09-18T14:43:41+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 47,
+      "unique_records": 48,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 5,
-      "region_coverage_rate": 0.1064,
+      "region_coverage_rate": 0.1042,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 3,
@@ -32,8 +32,8 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 3,
-      "public_publisher_accounts": 37,
-      "likes": 35,
+      "public_publisher_accounts": 38,
+      "likes": 37,
       "comments": 1,
       "shares": 15,
       "views": 0,
@@ -42,17 +42,17 @@
       "coins": 0
     },
     "platforms": {
-      "wb": 47
+      "wb": 48
     },
     "platform_attitude": {
       "wb": {
         "unknown": 25,
         "neutral": 19,
-        "support": 3
+        "support": 4
       }
     },
     "languages": {
-      "汉语": 47
+      "汉语": 48
     },
     "minority_languages": {},
     "regions": {
@@ -71,16 +71,16 @@
     "v2_status": {
       "unclassified": 25,
       "neutral": 19,
-      "normal": 3
+      "normal": 4
     },
     "v2_type": {
       "null": 44,
-      "support": 3
+      "support": 4
     },
     "attitude": {
       "unknown": 25,
       "neutral": 19,
-      "support": 3
+      "support": 4
     },
     "comment_v2_status": {
       "neutral": 3
@@ -92,18 +92,18 @@
       "neutral": 3
     },
     "source_types": {
-      "权威媒体/新闻评论": 40,
+      "权威媒体/新闻评论": 41,
       "普通用户舆情": 4,
       "自媒体观点": 2,
       "律师/专家解读": 1
     },
     "record_types": {
-      "post": 44,
+      "post": 45,
       "comment": 3
     },
     "keywords": {
       "2026年民族团结进步宣传周": 20,
-      "首个民族团结进步宣传周": 14,
+      "首个民族团结进步宣传周": 15,
       "促进民族团结进步，奋进伟大复兴征程": 4,
       "民族团结进步倡议": 4,
       "民族团结进步宣传周主场活动": 2
@@ -462,6 +462,28 @@
         "regions": {},
         "engagement": {
           "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "广***院",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 2,
           "comments": 0,
           "shares": 0,
           "views": 0,
@@ -943,26 +965,28 @@
         }
       }
     ],
-    "public_account_stats_total": 37,
+    "public_account_stats_total": 38,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T14:23:48+08:00",
+        "cycle_finished_at": "2026-09-18T14:43:46+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 1338.59,
-        "new_records": 0,
+        "duration_seconds": 893.5,
+        "new_records": 1,
         "filtered_before_start": 0,
-        "classified_records": 0,
+        "classified_records": 1,
         "ingest_comments": true,
         "input_file_count": 1,
         "comment_input_file_count": 0,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 1
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -982,10 +1006,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_142848/wb_20260918_142848/weibo/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 332662,
-          "rows": 117,
-          "sha256": "7325382eba84134c26a83db364c196b1f38b4f07d67ed749d197d8f830ac3c2d",
-          "modified_at": "2026-09-18T14:39:41+08:00",
+          "bytes": 410469,
+          "rows": 138,
+          "sha256": "29c763ffa17a6b549f45bfe14a11cc2b339fd41e80ef4c33f6dbee6bc8c9703d",
+          "modified_at": "2026-09-18T14:41:40+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1209,14 +1233,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_142848/wb_20260918_142848/stderr.log",
-          "bytes": 71892,
-          "sha256": "f82f246949be80be840c499f229df459f87d22aa7ab5a9925867b152c37148c7"
+          "bytes": 94778,
+          "sha256": "7fd1ed2edde4f9ca1652773b1f739d3d6e01bc7808843a8494dbba6626628b2b"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_142848/wb_20260918_142848/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 361,
+          "sha256": "7ef71d3a78788b8e791a42d5f6aad5b53edef1696980f6b2e96b8fd8d782df79"
         }
       ]
     }
