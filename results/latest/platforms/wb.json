@@ -2,7 +2,7 @@
   "schema_version": 2,
   "platform": "wb",
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T09:24:22+00:00",
+  "generated_at": "2026-09-18T09:27:48+00:00",
   "aggregation_mode": "single_node_passthrough",
   "aggregation_note": "Exact cross-node totals are used only when every count-bearing node publishes privacy-safe record fingerprints. Until then, the largest complete node snapshot is the conservative reporting total so overlapping nodes are never blindly summed.",
   "authoritative_node_id": "wb01",
@@ -11,16 +11,16 @@
   "diagnostic_node_count": 0,
   "all_counting_nodes_have_fingerprints": false,
   "fingerprint_union_records": 0,
-  "known_unique_lower_bound": 55,
-  "naive_sum_upper_bound": 55,
+  "known_unique_lower_bound": 58,
+  "naive_sum_upper_bound": 58,
   "nodes": [
     {
       "node_id": "wb01",
       "file": "results/2026-09-18/nodes/wb/wb01.json",
       "schema_version": 4,
-      "generated_at": "2026-09-18T17:07:05+08:00",
-      "latest_seen_time": "2026-09-18T16:40:47+08:00",
-      "unique_records": 55,
+      "generated_at": "2026-09-18T17:27:11+08:00",
+      "latest_seen_time": "2026-09-18T17:26:36+08:00",
+      "unique_records": 58,
       "comment_records": 3,
       "root_comment_records": 0,
       "reply_comment_records": 3,
@@ -34,15 +34,15 @@
   "diagnostic_nodes": [],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T17:07:05+08:00",
+    "generated_at": "2026-09-18T17:27:11+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-18T16:40:47+08:00",
+    "latest_seen_time": "2026-09-18T17:26:36+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 55,
+      "unique_records": 58,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 5,
-      "region_coverage_rate": 0.0909,
+      "region_coverage_rate": 0.0862,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 3,
@@ -53,8 +53,8 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 3,
-      "public_publisher_accounts": 40,
-      "likes": 37,
+      "public_publisher_accounts": 43,
+      "likes": 38,
       "comments": 1,
       "shares": 15,
       "views": 0,
@@ -63,17 +63,17 @@
       "coins": 0
     },
     "platforms": {
-      "wb": 55
+      "wb": 58
     },
     "platform_attitude": {
       "wb": {
         "neutral": 26,
         "unknown": 25,
-        "support": 4
+        "support": 7
       }
     },
     "languages": {
-      "汉语": 55
+      "汉语": 58
     },
     "minority_languages": {},
     "regions": {
@@ -92,16 +92,16 @@
     "v2_status": {
       "neutral": 26,
       "unclassified": 25,
-      "normal": 4
+      "normal": 7
     },
     "v2_type": {
       "null": 51,
-      "support": 4
+      "support": 7
     },
     "attitude": {
       "neutral": 26,
       "unknown": 25,
-      "support": 4
+      "support": 7
     },
     "comment_v2_status": {
       "neutral": 3
@@ -113,21 +113,21 @@
       "neutral": 3
     },
     "source_types": {
-      "权威媒体/新闻评论": 47,
+      "权威媒体/新闻评论": 50,
       "普通用户舆情": 4,
       "自媒体观点": 2,
       "律师/专家解读": 1,
       "二创/剪辑解读": 1
     },
     "record_types": {
-      "post": 52,
+      "post": 55,
       "comment": 3
     },
     "keywords": {
       "2026年民族团结进步宣传周": 22,
-      "首个民族团结进步宣传周": 19,
+      "首个民族团结进步宣传周": 21,
+      "促进民族团结进步，奋进伟大复兴征程": 5,
       "民族团结进步倡议": 5,
-      "促进民族团结进步，奋进伟大复兴征程": 4,
       "民族团结进步宣传周主场活动": 2
     },
     "video_analysis": {
@@ -650,6 +650,28 @@
         }
       },
       {
+        "account": "晋***声",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "最***院",
         "platforms": {
           "wb": 1
@@ -799,6 +821,28 @@
         "regions": {},
         "engagement": {
           "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "滇***区",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 1,
           "comments": 0,
           "shares": 0,
           "views": 0,
@@ -986,6 +1030,28 @@
         }
       },
       {
+        "account": "陇***法",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "霍***心",
         "platforms": {
           "wb": 1
@@ -1032,26 +1098,28 @@
         }
       }
     ],
-    "public_account_stats_total": 40,
+    "public_account_stats_total": 43,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T16:55:57+08:00",
+        "cycle_finished_at": "2026-09-18T17:26:41+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 1,
-        "duration_seconds": 600.68,
-        "new_records": 0,
+        "duration_seconds": 623.15,
+        "new_records": 1,
         "filtered_before_start": 0,
-        "classified_records": 0,
+        "classified_records": 1,
         "ingest_comments": true,
         "input_file_count": 2,
         "comment_input_file_count": 0,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 1
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
