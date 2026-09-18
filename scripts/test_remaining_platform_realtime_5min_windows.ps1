@@ -31,6 +31,26 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python .\scripts\patch_mediacrawler_public_regions.py --root $MediaCrawlerRoot --check
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+if ($Platform -eq "xhs") {
+    Write-Host "Applying/verifying XHS bounded realtime resilience patch..." -ForegroundColor Cyan
+    python .\scripts\patch_xhs_realtime_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_xhs_realtime_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying/verifying XHS comment hierarchy patch..." -ForegroundColor Cyan
+    python .\scripts\patch_xhs_comment_hierarchy.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_xhs_comment_hierarchy.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying/verifying XHS strict public-region patch..." -ForegroundColor Cyan
+    python .\scripts\patch_xhs_public_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_xhs_public_regions.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+
 if ($Platform -eq "wb") {
     Write-Host "Applying/verifying Weibo bounded realtime resilience patch..." -ForegroundColor Cyan
     python .\scripts\patch_weibo_realtime_resilience.py --root $MediaCrawlerRoot
@@ -60,7 +80,7 @@ function Set-ConfigProperty($obj, [string]$name, $value) {
 }
 
 $policy = @{
-    "xhs"   = @{ Budget = 70; Timeout = 100; CommentCap = 200 }
+    "xhs"   = @{ Budget = 55; Timeout = 45;  CommentCap = 100 }
     "bili"  = @{ Budget = 70; Timeout = 100; CommentCap = 300 }
     "wb"    = @{ Budget = 50; Timeout = 40;  CommentCap = 100 }
     "tieba" = @{ Budget = 60; Timeout = 90;  CommentCap = 300 }
@@ -104,6 +124,18 @@ Set-ConfigProperty $cfg "get_sub_comment" "yes"
 Set-ConfigProperty $cfg "ingest_comments" $true
 Set-ConfigProperty $cfg "detail_comment_recovery" $true
 Set-ConfigProperty $cfg "max_concurrency_num" 1
+if ($Platform -eq "xhs") {
+    Set-ConfigProperty $cfg "xhs_realtime_discovery_max_notes_count" 20
+    Set-ConfigProperty $cfg "xhs_realtime_items_per_keyword" 5
+    Set-ConfigProperty $cfg "xhs_realtime_search_timeout_seconds" 120
+    Set-ConfigProperty $cfg "xhs_realtime_detail_max_items_per_cycle" 2
+    Set-ConfigProperty $cfg "xhs_realtime_detail_budget_seconds" 55
+    Set-ConfigProperty $cfg "xhs_realtime_candidate_timeout_seconds" 45
+    Set-ConfigProperty $cfg "xhs_realtime_max_comments_per_video" 100
+    Set-ConfigProperty $cfg "classifier_concurrency" 12
+    Set-ConfigProperty $cfg "network_error_cooldown_seconds" 600
+    Set-ConfigProperty $cfg "overrun_cooldown_seconds" 120
+}
 if ($Platform -eq "wb") {
     Set-ConfigProperty $cfg "wb_realtime_discovery_max_notes_count" 10
     Set-ConfigProperty $cfg "wb_realtime_search_timeout_seconds" 100
@@ -127,14 +159,13 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 Write-Host "Realtime test config: $TestConfig" -ForegroundColor Cyan
 Write-Host "Realtime test data:   $platformTestRoot" -ForegroundColor Cyan
 if ($Platform -eq "wb") {
-    Write-Host "Discovery cap:        20" -ForegroundColor Cyan
-    Write-Host "Detail candidates:    3" -ForegroundColor Cyan
-} else {
-    if ($Platform -eq "wb") {
     Write-Host "Discovery cap:        10 (Weibo anti-abuse bounded)" -ForegroundColor Cyan
+    Write-Host "Detail candidates:    2" -ForegroundColor Cyan
+} elseif ($Platform -eq "xhs") {
+    Write-Host "Discovery cap:        5 items/keyword (XHS bounded)" -ForegroundColor Cyan
+    Write-Host "Detail candidates:    2" -ForegroundColor Cyan
 } else {
     Write-Host "Discovery cap:        30" -ForegroundColor Cyan
-}
 }
 Write-Host "Detail budget:        $($p.Budget) seconds" -ForegroundColor Cyan
 Write-Host "Candidate timeout:    $($p.Timeout) seconds" -ForegroundColor Cyan
