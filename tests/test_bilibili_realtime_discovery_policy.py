@@ -50,6 +50,9 @@ class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
             self.assertEqual(cmd[cmd.index("--crawler_max_notes_count") + 1], "20")
             self.assertIn("--max_concurrency_num", cmd)
             self.assertEqual(cmd[cmd.index("--max_concurrency_num") + 1], "4")
+            env = run_mock.call_args.kwargs["env"]
+            self.assertEqual(env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"], "1")
+            self.assertEqual(env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"], "5")
 
     def test_explicit_bilibili_overrides_still_win(self):
         with tempfile.TemporaryDirectory() as td:
@@ -71,6 +74,7 @@ class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
                 "realtime_mode": True,
                 "bili_realtime_discovery_max_notes_count": 40,
                 "bili_realtime_search_concurrency": 3,
+                "bili_realtime_items_per_keyword": 7,
             }
 
             with mock.patch("monitor.crawler_runner.subprocess.run", return_value=_Proc(0)) as run_mock, \
@@ -85,6 +89,8 @@ class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
             cmd = run_mock.call_args.args[0]
             self.assertEqual(cmd[cmd.index("--crawler_max_notes_count") + 1], "40")
             self.assertEqual(cmd[cmd.index("--max_concurrency_num") + 1], "3")
+            env = run_mock.call_args.kwargs["env"]
+            self.assertEqual(env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"], "7")
 
     def test_bilibili_realtime_limits_detail_candidates_to_one_by_default(self):
         queue = {
