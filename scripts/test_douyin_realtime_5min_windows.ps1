@@ -57,7 +57,7 @@ Set-ConfigProperty $cfg "results_date" ""
 Set-ConfigProperty $cfg "results_date_mode" "auto"
 Set-ConfigProperty $cfg "realtime_mode" $true
 Set-ConfigProperty $cfg "interval_seconds" 300
-Set-ConfigProperty $cfg "realtime_discovery_max_notes_count" 30
+Set-ConfigProperty $cfg "realtime_discovery_max_notes_count" 20
 Set-ConfigProperty $cfg "realtime_detail_max_items_per_cycle" 6
 Set-ConfigProperty $cfg "realtime_detail_batch_size" 1
 Set-ConfigProperty $cfg "realtime_comment_refresh_seconds" 300
@@ -69,6 +69,7 @@ Set-ConfigProperty $cfg "get_comment" "yes"
 Set-ConfigProperty $cfg "get_sub_comment" "yes"
 Set-ConfigProperty $cfg "ingest_comments" $true
 Set-ConfigProperty $cfg "max_concurrency_num" 1
+Set-ConfigProperty $cfg "classifier_concurrency" 12
 
 $TestConfig = Join-Path $RepoRoot "config\monitoring.dy-realtime-test.json"
 $json = $cfg | ConvertTo-Json -Depth 100
@@ -77,7 +78,7 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 Write-Host "Realtime test config: $TestConfig" -ForegroundColor Cyan
 Write-Host "Realtime test data:   $platformTestRoot" -ForegroundColor Cyan
-Write-Host "Discovery cap/keyword: 30" -ForegroundColor Cyan
+Write-Host "Discovery cap/keyword: 20" -ForegroundColor Cyan
 Write-Host "Detail soft budget:     70 seconds" -ForegroundColor Cyan
 Write-Host "Candidate timeout:      100 seconds" -ForegroundColor Cyan
 Write-Host "Realtime comments/video: 200" -ForegroundColor Cyan
