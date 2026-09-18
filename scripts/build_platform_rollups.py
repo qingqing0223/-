@@ -383,17 +383,55 @@ def main() -> int:
             built_roots.append(root)
 
     # Stable latest path for dashboards, GPT checks and "current latest" tables.
+    # Choose the newest available day independently per platform so a platform
+    # with no shard today (for example wechat_mp) does not disappear from latest.
     if built_roots:
-        latest_day = max(built_roots, key=lambda p: p.name)
-        source = latest_day / "platforms"
         target = ROOT / "results" / "latest" / "platforms"
         target.mkdir(parents=True, exist_ok=True)
         for old_file in target.glob("*.json"):
             old_file.unlink()
-        for src in source.glob("*.json"):
+
+        latest_overview = {
+            "schema_version": 2,
+            "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "selection": "newest_available_rollup_per_platform",
+            "platforms": {},
+        }
+        for platform in PLATFORMS:
+            candidates = [
+                root / "platforms" / f"{platform}.json"
+                for root in built_roots
+                if (root / "platforms" / f"{platform}.json").exists()
+            ]
+            if not candidates:
+                continue
+            src = max(candidates, key=lambda p: p.parents[1].name)
             dst = target / src.name
             shutil.copyfile(src, dst)
             written.append(dst)
+
+            rollup = read_json(src)
+            summary = rollup.get("summary") or {}
+            totals = summary.get("totals") or {}
+            latest_overview["platforms"][platform] = {
+                "source_results_date": rollup.get("results_date") or src.parents[1].name,
+                "aggregation_mode": rollup.get("aggregation_mode"),
+                "authoritative_node_id": rollup.get("authoritative_node_id"),
+                "latest_node_id": rollup.get("latest_node_id"),
+                "unique_records": as_int(totals.get("unique_records")),
+                "comment_records": as_int(totals.get("comment_records")),
+                "root_comment_records": as_int(totals.get("root_comment_records")),
+                "reply_comment_records": as_int(totals.get("reply_comment_records")),
+                "region_records": as_int(totals.get("region_records")),
+                "comment_region_records": as_int(totals.get("comment_region_records")),
+                "latest_seen_time": summary.get("latest_seen_time") or "",
+                "node_count": rollup.get("node_count", 0),
+                "all_counting_nodes_have_fingerprints": rollup.get("all_counting_nodes_have_fingerprints", False),
+            }
+
+        overview_dst = target / "overview.json"
+        overview_dst.write_text(json.dumps(latest_overview, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        written.append(overview_dst)
 
     print(json.dumps({"ok": True, "written": [p.relative_to(ROOT).as_posix() for p in written]}, ensure_ascii=False, indent=2))
     return 0
