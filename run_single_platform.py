@@ -482,6 +482,38 @@ def main():
             configured_classifier = 4
         cfg["classifier_concurrency"] = max(configured_classifier, 12)
 
+    if args.platform == "xhs" and bool(cfg.get("realtime_mode", False)):
+        cfg["xhs_realtime_discovery_max_notes_count"] = 20
+        cfg["xhs_realtime_items_per_keyword"] = max(
+            1, min(int(cfg.get("xhs_realtime_items_per_keyword", 5)), 10)
+        )
+        cfg["xhs_realtime_search_timeout_seconds"] = min(
+            150, max(60, int(cfg.get("xhs_realtime_search_timeout_seconds", 120)))
+        )
+        cfg["xhs_realtime_detail_max_items_per_cycle"] = min(
+            2, max(1, int(cfg.get("xhs_realtime_detail_max_items_per_cycle", 2)))
+        )
+        cfg["xhs_realtime_detail_budget_seconds"] = min(
+            60, max(30, int(cfg.get("xhs_realtime_detail_budget_seconds", 55)))
+        )
+        cfg["xhs_realtime_candidate_timeout_seconds"] = min(
+            60, max(20, int(cfg.get("xhs_realtime_candidate_timeout_seconds", 45)))
+        )
+        cfg["xhs_realtime_max_comments_per_video"] = min(
+            100, max(20, int(cfg.get("xhs_realtime_max_comments_per_video", 100)))
+        )
+        cfg["network_error_cooldown_seconds"] = max(
+            600, int(cfg.get("network_error_cooldown_seconds", 300))
+        )
+        cfg["overrun_cooldown_seconds"] = max(
+            120, int(cfg.get("overrun_cooldown_seconds", 60))
+        )
+        try:
+            configured_classifier = int(cfg.get("classifier_concurrency", 4))
+        except Exception:
+            configured_classifier = 4
+        cfg["classifier_concurrency"] = max(configured_classifier, 12)
+
     if args.platform == "wb" and bool(cfg.get("realtime_mode", False)):
         # Weibo is more sensitive to repeated requests. Keep discovery bounded,
         # probe only a few comment candidates per cycle, and stop before the next
