@@ -184,7 +184,7 @@ def run_forever(cfg: dict) -> None:
     if interval < 60:
         raise ValueError("interval_seconds must be >= 60")
 
-    soft_empty_cooldown = max(interval, int(cfg.get("soft_empty_cooldown_seconds", 3600)))
+    soft_empty_cooldown = max(interval, int(cfg.get("soft_empty_cooldown_seconds", interval)))
     network_cooldown = max(interval, int(cfg.get("network_error_cooldown_seconds", 300)))
     overrun_cooldown = max(30, int(cfg.get("overrun_cooldown_seconds", 60)))
 
@@ -202,11 +202,19 @@ def run_forever(cfg: dict) -> None:
 
         elapsed = time.time() - started
         if "SOFT_EMPTY" in states:
-            sleep_for = soft_empty_cooldown
-            print(f"[monitor] SOFT_EMPTY detected; cooldown {sleep_for:.1f}s before the next probe cycle")
+            # Keep the configured cadence start-to-start.  A clean empty search
+            # is not a reason to stop near-realtime discovery for 30+ minutes.
+            sleep_for = max(0.0, soft_empty_cooldown - elapsed)
+            print(
+                f"[monitor] SOFT_EMPTY detected; sleep {sleep_for:.1f}s so the next "
+                f"probe starts about {soft_empty_cooldown}s after this cycle started"
+            )
         elif "NETWORK_ERROR" in states:
-            sleep_for = network_cooldown
-            print(f"[monitor] NETWORK_ERROR detected; cooldown {sleep_for:.1f}s before retry")
+            sleep_for = max(0.0, network_cooldown - elapsed)
+            print(
+                f"[monitor] NETWORK_ERROR detected; sleep {sleep_for:.1f}s so the next "
+                f"retry starts about {network_cooldown}s after this cycle started"
+            )
         elif elapsed < interval:
             # Five-minute real-time target is start-to-start, not
             # 'finish a crawl and then wait another five minutes'.
