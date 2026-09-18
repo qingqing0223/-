@@ -100,17 +100,25 @@ Write-Host ""
 
 if ($Start) {
     Write-Host "Starting final five-minute realtime monitor now..." -ForegroundColor Green
-    $args = @(
-        "-Platform", $Platform,
-        "-NodeId", $NodeId,
-        "-Config", $Config,
-        "-PushGithub"
-    )
-    if ($ArchiveRaw) {
-        $args += @("-ArchiveRaw", "-RawArchiveRepo", $RawArchiveRepo)
-        if ($PrivateRepoConfirmed) { $args += "-PrivateRepoConfirmed" }
+
+    # Use hashtable splatting for named PowerShell parameters.
+    # Array splatting would bind the literal string "-Platform" positionally
+    # as the Platform value and fail ValidateSet.
+    $startArgs = @{
+        Platform   = $Platform
+        NodeId     = $NodeId
+        Config     = $Config
+        PushGithub = $true
     }
-    & .\scripts\start_student_platform_windows.ps1 @args
+    if ($ArchiveRaw) {
+        $startArgs["ArchiveRaw"] = $true
+        $startArgs["RawArchiveRepo"] = $RawArchiveRepo
+        if ($PrivateRepoConfirmed) {
+            $startArgs["PrivateRepoConfirmed"] = $true
+        }
+    }
+
+    & .\scripts\start_student_platform_windows.ps1 @startArgs
     exit $LASTEXITCODE
 }
 
