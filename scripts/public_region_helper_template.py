@@ -10,6 +10,8 @@ _PROVINCES = (
     "甘肃", "青海", "台湾",
 )
 _IP_LIKE = re.compile(r"^(?:\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]{6,}$")
+_COUNTRY_CODE_ONLY = re.compile(r"^[A-Za-z]{2,3}$")
+_COUNTRY_ONLY = {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC", "CN"}
 
 
 def coarse_public_region(value) -> str:
@@ -26,9 +28,20 @@ def coarse_public_region(value) -> str:
         return ""
     if text in {"未知", "暂无", "无", "None", "null", "-", "--"}:
         return ""
+    if _COUNTRY_CODE_ONLY.fullmatch(text) or text in _COUNTRY_ONLY:
+        return ""
     for province in _PROVINCES:
         if province in text:
             return province
     if len(text) <= 16 and not any(ch.isdigit() for ch in text):
         return text
+    return ""
+
+
+def first_coarse_public_region(*values) -> str:
+    """Return the first usable coarse public-region label from candidate fields."""
+    for value in values:
+        region = coarse_public_region(value)
+        if region:
+            return region
     return ""
