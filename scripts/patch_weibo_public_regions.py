@@ -5,7 +5,7 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_WB_PUBLIC_REGION_V1"
+MARKER = "PROMOTION_WEEK_WB_PUBLIC_REGION_V2"
 
 PROVINCES = (
     "内蒙古", "广西", "西藏", "宁夏", "新疆", "香港", "澳门",
@@ -105,13 +105,14 @@ def patch_store(root: Path) -> None:
 def check(root: Path) -> dict:
     path = root / "store/weibo/__init__.py"
     result = {
-        "patch_version": 1,
+        "patch_version": 2,
         "store_exists": path.exists(),
         "strict_region_helper": False,
         "content_region_persistence": False,
         "comment_region_persistence": False,
         "safe_probe": False,
         "profile_location_not_used": False,
+        "comment_source_region_support": False,
         "ok": False,
     }
     if not path.exists():
@@ -125,12 +126,17 @@ def check(root: Path) -> dict:
         result["safe_probe"] = '"_public_region_probe"' in text and "public_region_probe" in text
         helper_slice = text[text.find("_WB_PUBLIC_REGION_KEYS"):text.find("def _wb_find_coarse_public_region")]
         result["profile_location_not_used"] = '"location"' not in helper_slice
+        result["comment_source_region_support"] = (
+            '_WB_PUBLIC_SOURCE_KEYS = {"source"}' in text
+            and 'text.startswith("来自")' in text
+        )
         result["ok"] = all((
             result["strict_region_helper"],
             result["content_region_persistence"],
             result["comment_region_persistence"],
             result["safe_probe"],
             result["profile_location_not_used"],
+            result["comment_source_region_support"],
         ))
     except Exception:
         pass
