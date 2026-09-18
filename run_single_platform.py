@@ -363,6 +363,9 @@ def main():
         except Exception:
             configured_discovery = 20
         cfg["realtime_discovery_max_notes_count"] = max(10, min(configured_discovery, 20))
+        cfg["wb_realtime_discovery_max_notes_count"] = max(
+            10, min(int(cfg.get("wb_realtime_discovery_max_notes_count", 20)), 20)
+        )
         cfg["wb_realtime_detail_max_items_per_cycle"] = min(
             3, max(1, int(cfg.get("wb_realtime_detail_max_items_per_cycle", 3)))
         )
