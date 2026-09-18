@@ -58,7 +58,7 @@ def ensure_imports(text: str) -> str:
 
 
 def ensure_helper(text: str) -> str:
-    helper = f"""\n\n_WB_PROVINCES = {PROVINCES!r}\n_WB_PUBLIC_REGION_KEYS = {{
+    helper = f'''\n\n_WB_PROVINCES = {PROVINCES!r}\n_WB_PUBLIC_REGION_KEYS = {{
     "ip_location", "ip_region", "ip_label", "region_name", "province_name",
 }}
 _WB_PUBLIC_SOURCE_KEYS = {{"source"}}\n\n\ndef _wb_region_from_value(key, value):
@@ -104,7 +104,7 @@ _WB_PUBLIC_SOURCE_KEYS = {{"source"}}\n\n\ndef _wb_region_from_value(key, value)
         elif isinstance(obj, (list, tuple)):
             stack.extend(obj)
     return ""
-"""
+'''
     anchor = "\n\nclass WeibostoreFactory:\n"
     if "def _wb_find_coarse_public_region" not in text:
         return replace_once(text, anchor, helper + anchor, "weibo region helper")
