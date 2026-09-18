@@ -339,6 +339,21 @@ def main():
         _install_douyin_realtime_policy()
 
     cfg = load_config(Path(args.config))
+
+    if args.platform == "dy" and bool(cfg.get("realtime_mode", False)):
+        # Keep Douyin's live loop on a start-to-start five-minute cadence.
+        # Historical exhaustive crawling remains a separate backfill job.
+        try:
+            configured_discovery = int(cfg.get("realtime_discovery_max_notes_count", 20))
+        except Exception:
+            configured_discovery = 20
+        cfg["realtime_discovery_max_notes_count"] = max(10, min(configured_discovery, 20))
+        try:
+            configured_classifier = int(cfg.get("classifier_concurrency", 4))
+        except Exception:
+            configured_classifier = 4
+        cfg["classifier_concurrency"] = max(configured_classifier, 12)
+
     configured_codes = {str(p.get("code") or "") for p in cfg.get("platforms", [])}
     if args.platform not in configured_codes:
         raise SystemExit(
