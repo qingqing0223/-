@@ -132,6 +132,18 @@ if ($Platform -eq "bili") {
         Write-Host "ERROR: Bilibili realtime nested-comment bounds verification failed. Monitor will NOT start." -ForegroundColor Red
         exit $LASTEXITCODE
     }
+
+    Write-Host "Applying Bilibili realtime discovery fan-out patch..." -ForegroundColor Cyan
+    python .\scripts\patch_bilibili_realtime_discovery_bound.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili realtime discovery fan-out patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_bilibili_realtime_discovery_bound.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili realtime discovery fan-out verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 if ($Platform -eq "ks") {
