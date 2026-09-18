@@ -280,18 +280,25 @@ def main() -> int:
     reprocess_pipeline = reprocess.get("pipeline") or {}
     reprocess_classification = reprocess.get("classification") or {}
 
-    effective_ppt = reprocess_ppt or {
-        "videos_or_posts": max(0, int(legacy_totals.get("unique_records") or 0) - int(legacy_totals.get("comment_records") or 0)),
+    # Acceptance structure must reflect the latest raw cycle, not the production
+    # time-window/dedupe state. Production reporting may legitimately filter older
+    # comments, but that must not make a live comment-chain acceptance report show
+    # zero first-level/nested comments after raw JSONL already proved they exist.
+    raw_structural_fallback = {
+        "videos_or_posts": int(raw.get("content_rows") or 0),
         "source_type_counts": legacy_source_types,
-        "first_level_comments": int(legacy_totals.get("root_comment_records") or 0),
-        "nested_replies": int(legacy_totals.get("reply_comment_records") or 0),
-        "parent_linked_replies": int(legacy_totals.get("parent_linked_comment_records") or 0),
-        "parent_integrity_rate": 1.0,
-        "comment_public_ip_region_records": int(legacy_totals.get("comment_region_records") or 0),
-        "content_public_ip_region_records": 0,
-        "comment_regions": summary.get("comment_regions") or {},
-        "content_regions": summary.get("content_regions") or {},
+        "first_level_comments": int(raw.get("first_level_comments") or 0),
+        "nested_replies": int(raw.get("nested_replies") or 0),
+        "parent_linked_replies": int(raw.get("parent_linked_replies") or 0),
+        "orphan_parent_links": int(raw.get("orphan_parent_links") or 0),
+        "parent_integrity_rate": float(raw.get("parent_integrity_rate") or 1.0),
+        "comment_public_ip_region_records": int(raw.get("comment_public_ip_region_records") or 0),
+        "content_public_ip_region_records": int(raw.get("content_public_ip_region_records") or 0),
+        "comment_regions": raw.get("comment_regions") or {},
+        "content_regions": raw.get("content_regions") or {},
     }
+    effective_ppt = reprocess_ppt or raw_structural_fallback
+    effective_ppt_source = "acceptance_reprocess_latest_raw" if reprocess_ppt else "raw_structural_fallback"
     effective_pipeline = reprocess_pipeline or ingest
 
     effective_content = max(int(raw.get("content_rows") or 0), int(effective_ppt.get("videos_or_posts") or 0))
@@ -394,13 +401,28 @@ def main() -> int:
         },
         "raw_ppt_fields": raw,
         "reprocessed_ppt_fields": effective_ppt,
+        "reprocessed_ppt_fields_source": effective_ppt_source,
+        "production_summary_ppt_fields": {
+            "videos_or_posts": max(0, int(legacy_totals.get("unique_records") or 0) - int(legacy_totals.get("comment_records") or 0)),
+            "source_type_counts": legacy_source_types,
+            "first_level_comments": int(legacy_totals.get("root_comment_records") or 0),
+            "nested_replies": int(legacy_totals.get("reply_comment_records") or 0),
+            "parent_linked_replies": int(legacy_totals.get("parent_linked_comment_records") or 0),
+            "comment_public_ip_region_records": int(legacy_totals.get("comment_region_records") or 0),
+            "comment_regions": summary.get("comment_regions") or {},
+            "content_regions": summary.get("content_regions") or {},
+        },
         "pipeline": effective_pipeline,
         "classification": reprocess_classification,
         "checks": checks,
         "blocking_gaps": blocking_gaps,
         "observations": observations,
         "interpretation": {
-            "current_result_source": "acceptance/ks_reprocess_latest.json when its source_cycle matches the latest raw cycle; otherwise production classified summary",
+            "current_result_source": (
+                "Acceptance structure uses acceptance/ks_reprocess_latest.json when its source_cycle matches the latest raw cycle; "
+                "otherwise it falls back to structural counts computed directly from the latest raw JSONL. "
+                "Production classified summary is reported separately and may exclude records outside the monitoring time window."
+            ),
             "source_type": (
                 "source_type is the monitoring system's reporting classification from public account/content evidence. "
                 "It is not the same as a Kuaishou platform verification badge. Check raw_ppt_fields.*_schema_probe.platform_verification_candidates for any public platform certification fields actually returned."
