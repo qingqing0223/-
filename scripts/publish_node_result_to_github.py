@@ -88,6 +88,132 @@ def _stable_hash(value, namespace: str) -> str:
     return hashlib.sha256(f"{namespace}:{text}".encode("utf-8")).hexdigest()[:20]
 
 
+def _parse_iso(value: object, default_tz=None):
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except Exception:
+        return None
+    if dt.tzinfo is None and default_tz is not None:
+        dt = dt.replace(tzinfo=default_tz)
+    return dt
+
+
+def _before_monitoring_start(row: dict, monitoring_start_time: str) -> bool:
+    start = _parse_iso(monitoring_start_time)
+    if start is None:
+        return False
+    published = _parse_iso(row.get("publish_time"), default_tz=start.tzinfo)
+    return bool(published is not None and published < start)
+
+
+def _reporting_excluded(row: dict) -> bool:
+    # Keep this aligned with monitor.result_summary.REPORTING_EXCLUDED_SIGNATURES
+    if str(row.get("platform") or "") != "dy" or str(row.get("record_type") or "") != "video":
+        return False
+    signature = (
+        int(row.get("likes") or 0),
+        int(row.get("comments") or 0),
+        int(row.get("shares") or 0),
+    )
+    return signature in {(46431, 50, 900), (6288, 48, 119)}
+
+
+def _attitude_bucket(status: object, type_: object) -> str:
+    status = str(status or "").strip()
+    type_ = str(type_ or "").strip()
+    if status == "normal" and type_ == "support":
+        return "support"
+    if status == "neutral":
+        return "neutral"
+    if status == "problematic":
+        return "non_support"
+    if status == "attention":
+        return "attention"
+    return "unknown"
+
+
+def _classified_record_fingerprints(
+    roots: list[Path],
+    platform: str,
+    monitoring_start_time: str,
+) -> list[dict]:
+    """Export full-record privacy-safe fingerprints for exact cross-node dedupe.
+
+    No raw text, raw IDs, raw URLs, real IPs or precise locations are included.
+    Public coarse region labels and aggregate-safe classification fields are kept.
+    """
+    latest: dict[str, dict] = {}
+    for root in roots:
+        classified = root / "classified" / "classified_results.jsonl"
+        if not classified.exists():
+            continue
+        try:
+            with classified.open("r", encoding="utf-8-sig", errors="replace") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        row = json.loads(line)
+                    except Exception:
+                        continue
+                    if not isinstance(row, dict):
+                        continue
+                    if _before_monitoring_start(row, monitoring_start_time) or _reporting_excluded(row):
+                        continue
+                    dedupe_key = str(
+                        row.get("dedupe_key")
+                        or f"{row.get('platform','')}:{row.get('sample_id','')}"
+                    ).strip()
+                    if not dedupe_key:
+                        continue
+                    record_hash = _stable_hash(dedupe_key, f"{platform}:record")
+                    record_type = str(row.get("record_type") or "unknown")
+                    parent_id = str(row.get("parent_comment_id") or "").strip()
+                    root_id = str(row.get("root_comment_id") or "").strip()
+                    author_basis = str(row.get("author_id") or row.get("author") or "").strip()
+                    first_seen = str(row.get("first_seen_time") or "")
+                    refresh_seen = str(row.get("engagement_refresh_time") or "")
+                    latest_seen = max(first_seen, refresh_seen)
+                    status = str(row.get("status") or "unknown")
+                    type_ = str(row.get("type") or "null")
+                    safe = {
+                        "record_hash": record_hash,
+                        "record_type": record_type,
+                        "region": str(row.get("ip_location") or "").strip(),
+                        "language": str(row.get("language") or "未知"),
+                        "status": status,
+                        "type": type_,
+                        "attitude": _attitude_bucket(status, type_),
+                        "source_type": str(row.get("source_type") or "未分类"),
+                        "keyword": str(row.get("source_keyword") or "").strip(),
+                        "comment_level": int(row.get("comment_level") or 0),
+                        "parent_hash": _stable_hash(parent_id, f"{platform}:comment") if parent_id else "",
+                        "root_hash": _stable_hash(root_id, f"{platform}:comment") if root_id else "",
+                        "author_hash": _stable_hash(author_basis, f"{platform}:author") if record_type == "comment" and author_basis else "",
+                        "publisher_hash": _stable_hash(author_basis, f"{platform}:publisher") if record_type != "comment" and author_basis else "",
+                        "latest_seen_time": latest_seen,
+                        "likes": int(row.get("likes") or 0),
+                        "comments": int(row.get("comments") or 0),
+                        "shares": int(row.get("shares") or 0),
+                        "views": int(row.get("views") or 0),
+                        "favorites": int(row.get("favorites") or 0),
+                        "danmaku": int(row.get("danmaku") or 0),
+                        "coins": int(row.get("coins") or 0),
+                        "has_asr": bool(str(row.get("asr_text") or "").strip()),
+                        "has_ocr": bool(str(row.get("ocr_text") or "").strip()),
+                    }
+                    latest[record_hash] = safe
+        except Exception:
+            continue
+    return [latest[k] for k in sorted(latest)]
+
+
 def _file_sha256(path: Path) -> str:
     h = hashlib.sha256()
     try:
@@ -360,7 +486,7 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
             ),
         }
     payload = {
-        "schema_version": 4,
+        "schema_version": 5,
         "event_id": cfg.get("event_id"),
         "event_name": cfg.get("event_name"),
         "monitoring_start_time": monitoring_start_time,
@@ -371,6 +497,11 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
         "sync_target_seconds": 300,
         "data_roots": [str(p) for p in roots],
         "summary": summary,
+        "record_fingerprints": _classified_record_fingerprints(
+            roots,
+            platform,
+            monitoring_start_time,
+        ),
         "raw_diagnostics": _build_raw_diagnostics(cfg, roots, platform),
     }
     out = ROOT / "results" / result_date / "nodes" / platform / f"{_safe_name(node_id)}.json"
