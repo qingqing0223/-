@@ -33,6 +33,8 @@ jobs:
           git -C /tmp/MediaCrawler checkout --quiet 60e66f2a925816960bbd44af5d6c9b8385d79335
           python scripts/patch_mediacrawler_public_regions.py --root /tmp/MediaCrawler
           python scripts/verify_mediacrawler_public_regions.py --root /tmp/MediaCrawler
+          python scripts/patch_douyin_startup_resilience.py --root /tmp/MediaCrawler
+          python scripts/patch_douyin_startup_resilience.py --root /tmp/MediaCrawler --check
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler --check
 
