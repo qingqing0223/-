@@ -149,6 +149,40 @@ def _first(row: dict, *keys):
     return None
 
 
+def _tri_class_bucket(status) -> str:
+    status = str(status or "").strip()
+    if status == "normal":
+        return "support"
+    if status in {"attention", "neutral"}:
+        return "neutral"
+    if status == "problematic":
+        return "non_support"
+    return "unknown"
+
+
+def _parse_iso_time(value, default_tz=None):
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except Exception:
+        return None
+    if dt.tzinfo is None and default_tz is not None:
+        dt = dt.replace(tzinfo=default_tz)
+    return dt
+
+
+def _classified_before_start(row: dict, monitoring_start_time: str) -> bool:
+    start = _parse_iso_time(monitoring_start_time)
+    if start is None:
+        return False
+    published = _parse_iso_time(row.get("publish_time"), default_tz=start.tzinfo)
+    return bool(published is not None and published < start)
+
+
 def _gpt_feed_row(row: dict, platform: str, kind: str) -> dict:
     content_id = _first(row, "content_id", "video_id", "photo_id", "aweme_id", "note_id", "tieba_id", "id")
     comment_id = _first(row, "comment_id", "cid", "rpid")
@@ -236,6 +270,96 @@ def _write_latest_gpt_feed(
     return dst
 
 
+def _write_non_support_review_feed(
+    data_root: Path,
+    archive_repo: Path,
+    node_id: str,
+    platform: str,
+    monitoring_start_time: str,
+) -> Path | None:
+    """Write a PRIVATE human-review queue for model-classified non-support rows.
+
+    This file intentionally lives only in the access-controlled private archive.
+    It may contain public user-generated text and public source URLs so reviewers
+    can verify context. Raw user IDs, cookies, browser state, real IP addresses
+    and precise locations are not included.
+    """
+    classified = data_root / "classified" / "classified_results.jsonl"
+    if not classified.exists():
+        return None
+
+    latest: dict[str, dict] = {}
+    for row in _iter_jsonl(classified) or []:
+        if _classified_before_start(row, monitoring_start_time):
+            continue
+        status = str(row.get("status") or "").strip()
+        tri_class = str(row.get("tri_class") or _tri_class_bucket(status)).strip()
+        if tri_class != "non_support":
+            continue
+
+        dedupe_key = str(
+            row.get("dedupe_key")
+            or f"{row.get('platform','')}:{row.get('sample_id','')}"
+        ).strip()
+        if not dedupe_key:
+            continue
+
+        review_id = _stable_hash(dedupe_key, f"{platform}:non-support-review")
+        region = _coarse_region(row.get("ip_location"))
+        item = {
+            "review_id": review_id,
+            "platform": platform,
+            "record_type": str(row.get("record_type") or "unknown"),
+            "model_status": status,
+            "model_type": str(row.get("type") or ""),
+            "model_tri_class": "non_support",
+            "classification_state": str(row.get("classification_state") or ""),
+            "classification_method": str(row.get("classification_method") or ""),
+            "publish_time": str(row.get("publish_time") or ""),
+            "first_seen_time": str(row.get("first_seen_time") or ""),
+            "language": str(row.get("language") or "未知"),
+            "ip_location": region,
+            "source_keyword": str(row.get("source_keyword") or "")[:300],
+            "author": str(row.get("author") or "")[:120],
+            "content": str(row.get("content") or "")[:5000],
+            "context": str(row.get("context") or "")[:3000],
+            "public_url": str(row.get("url") or "")[:2000],
+            "comment_level": int(row.get("comment_level") or 0),
+            "likes": int(row.get("likes") or 0),
+            "comments": int(row.get("comments") or 0),
+            "shares": int(row.get("shares") or 0),
+            "views": int(row.get("views") or 0),
+            "review_state": "pending_manual_review",
+        }
+        latest[review_id] = item
+
+    payload = {
+        "schema_version": 1,
+        "node_id": node_id,
+        "platform": platform,
+        "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "monitoring_start_time": monitoring_start_time,
+        "taxonomy": {
+            "normal": "support",
+            "attention": "neutral",
+            "problematic": "non_support",
+        },
+        "privacy": (
+            "PRIVATE access-controlled human-review queue. Contains public user-generated "
+            "text and public source URLs for verification; raw user IDs/cookies/browser "
+            "state/real IP/precise location are excluded. Only coarse platform-displayed "
+            "region labels are retained."
+        ),
+        "pending_non_support_count": len(latest),
+        "records": [latest[k] for k in sorted(latest)],
+    }
+
+    dst = archive_repo / "nodes" / node_id / platform / "latest_non_support_review_queue.json"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return dst
+
+
 def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, push: bool, private_confirmed: bool) -> dict:
     _ensure_private_confirmation(archive_repo, private_confirmed)
     cfg = _read_config(config)
@@ -282,6 +406,14 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
         comment_limit=max(1, int(cfg.get("private_gpt_feed_comment_limit", 600))),
     )
 
+    review_feed = _write_non_support_review_feed(
+        data_root,
+        archive_repo,
+        node_id,
+        platform,
+        str(cfg.get("monitoring_start_time") or ""),
+    )
+
     manifest_path = archive_repo / "nodes" / node_id / platform / "manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest = {
@@ -292,6 +424,7 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
         "privacy": "private_access_controlled_archive; no cookies/browser profiles; coarse public IP-location only when collector persisted it",
         "file_count_total": len(known),
         "latest_gpt_feed": str(gpt_feed.relative_to(archive_repo)).replace("\\", "/") if gpt_feed else "",
+        "latest_non_support_review_queue": str(review_feed.relative_to(archive_repo)).replace("\\", "/") if review_feed else "",
         "files": list(known.values()),
     }
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -302,7 +435,7 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
 
     commit_created = False
     push_ok = None
-    if archived or status_copy is not None or gpt_feed is not None:
+    if archived or status_copy is not None or gpt_feed is not None or review_feed is not None:
         _git(archive_repo, "pull", "--rebase", check=False)
         _git(archive_repo, "add", "--", f"nodes/{node_id}/{platform}")
         diff = _git(archive_repo, "diff", "--cached", "--quiet", check=False)
@@ -329,6 +462,7 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
         "new_or_changed_jsonl": len(archived),
         "manifest": str(manifest_path),
         "latest_gpt_feed": str(gpt_feed) if gpt_feed else "",
+        "latest_non_support_review_queue": str(review_feed) if review_feed else "",
         "commit_created": commit_created,
         "push_enabled": push,
         "push_ok": push_ok,
