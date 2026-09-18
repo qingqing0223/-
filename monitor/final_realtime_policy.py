@@ -13,7 +13,7 @@ import time
 # <platform>_realtime_detail_budget_seconds / _candidate_timeout_seconds /
 # _max_comments_per_video.
 DEFAULT_POLICIES = {
-    "xhs": {"budget": 70, "candidate_timeout": 100, "comment_cap": 200},
+    "xhs": {"budget": 55, "candidate_timeout": 45, "comment_cap": 100},
     "dy": {"budget": 70, "candidate_timeout": 105, "comment_cap": 200},
     "bili": {"budget": 70, "candidate_timeout": 100, "comment_cap": 20},
     "wb": {"budget": 50, "candidate_timeout": 40, "comment_cap": 100},
