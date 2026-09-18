@@ -179,9 +179,9 @@ Write-Host "Official login/captcha/security verification must be completed manua
 Write-Host "Full raw JSONL stays local by default. Public GitHub receives aggregate/privacy-safe monitoring results only." -ForegroundColor Yellow
 
 if ($PushGithub) {
-    $syncCmd = "Set-Location '$RepoRoot'; .\scripts\start_node_results_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config' -Push"
+    $syncCmd = "Set-Location '$RepoRoot'; .\scripts\watch_node_results_sync_windows.ps1 -Platform $Platform -NodeId '$NodeId' -Config '$Config'"
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $syncCmd
-    Write-Host "Public GitHub aggregate + privacy-safe diagnostic sync started in a separate window (300s)." -ForegroundColor Green
+    Write-Host "Public GitHub aggregate + privacy-safe diagnostic sync watchdog started in a separate window (immediate + every 300s; transient failures auto-restart)." -ForegroundColor Green
 } else {
     Write-Host "Public GitHub result push is OFF. Add -PushGithub after this machine has Git write access." -ForegroundColor Yellow
 }
