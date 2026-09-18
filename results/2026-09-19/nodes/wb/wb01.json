@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-19T07:12:18+08:00",
+  "generated_at": "2026-09-19T07:17:40+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "137f8a565074ddaf1d9ebca0f51552bac16a51d6",
+    "repo_head": "757b13c491c3c6fdb63e56316178ad351a98b4db",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T07:12:18+08:00",
+    "generated_at": "2026-09-19T07:17:40+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T04:12:10+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -1493,11 +1493,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-19T07:03:02+08:00",
+        "cycle_finished_at": "2026-09-19T07:12:36+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 136.39,
+        "duration_seconds": 110.27,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -3872,14 +3872,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260919_071045/wb_20260919_071045/stderr.log",
-          "bytes": 35739,
-          "sha256": "0d3dd5f30b175e3472c4709dfe1600d63b6e2bc5586b10a6a94ab9652c463b19"
+          "bytes": 36846,
+          "sha256": "d3e5d1039639e9fea5c284480c6fdcaa2eaaf6433c0608c848d854fafdf7482b"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260919_071045/wb_20260919_071045/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 389,
+          "sha256": "8597f52012153da504e4431a1412045d28d100a0d1d00eada3a8e5fbb95dfd4e"
         }
       ]
     }
