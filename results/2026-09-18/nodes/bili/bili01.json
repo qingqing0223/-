@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "bili01",
   "platform": "bili",
-  "generated_at": "2026-09-18T15:05:52+08:00",
+  "generated_at": "2026-09-18T15:11:05+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T15:05:52+08:00",
+    "generated_at": "2026-09-18T15:11:05+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-17T23:32:08+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -392,11 +392,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
-        "cycle_finished_at": "2026-09-18T14:57:25+08:00",
+        "cycle_finished_at": "2026-09-18T15:07:35+08:00",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS_NO_COMMENTS",
         "return_code": 0,
-        "duration_seconds": 551.39,
+        "duration_seconds": 550.01,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -419,17 +419,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_145825",
+      "cycle": "20260918_150835",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
       "jsonl_files": [
         {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_145825/bili_20260918_145825/bili/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 86981,
-          "rows": 100,
-          "sha256": "d15ba0cbf0ae334f33ed66522d1235396c5c86e7d4edba57c2f143a8b1d4c354",
-          "modified_at": "2026-09-18T15:05:23+08:00",
+          "relative_path": "raw_runs/20260918_150835/bili_20260918_150835/bili/jsonl/search_contents_2026-09-18.jsonl",
+          "bytes": 17851,
+          "rows": 20,
+          "sha256": "e94ad0235d9344c4b257dcb617c61ba641e8673585563773a5e18b7186bd35ba",
+          "modified_at": "2026-09-18T15:10:13+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -483,7 +483,7 @@
                 "video_comment": "2",
                 "liked_count": "28",
                 "create_time": 1776962035,
-                "last_modify_ts": 1789714800611,
+                "last_modify_ts": 1789715413102,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -540,7 +540,7 @@
                 "video_comment": "49",
                 "liked_count": "1018",
                 "create_time": 1587356515,
-                "last_modify_ts": 1789714800625,
+                "last_modify_ts": 1789715413114,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -597,7 +597,7 @@
                 "video_comment": "10",
                 "liked_count": "56",
                 "create_time": 1786108896,
-                "last_modify_ts": 1789714800629,
+                "last_modify_ts": 1789715413117,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -654,7 +654,7 @@
                 "video_comment": "1",
                 "liked_count": "23",
                 "create_time": 1784540479,
-                "last_modify_ts": 1789714800632,
+                "last_modify_ts": 1789715413120,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -711,7 +711,7 @@
                 "video_comment": "0",
                 "liked_count": "11",
                 "create_time": 1789560000,
-                "last_modify_ts": 1789714800634,
+                "last_modify_ts": 1789715413125,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -722,13 +722,13 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_145825/bili_20260918_145825/stderr.log",
-          "bytes": 57052,
-          "sha256": "ace1d251cc26f9ddbaa3935e96ab2b3fd842c34d041007467900875a91107059"
+          "relative_path": "raw_runs/20260918_150835/bili_20260918_150835/stderr.log",
+          "bytes": 15976,
+          "sha256": "2976d20f915ed17ea48593bbea70d4b8195fa7a6dc5d44ede8c4daccd1cd36ba"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_145825/bili_20260918_145825/stdout.log",
+          "relative_path": "raw_runs/20260918_150835/bili_20260918_150835/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
