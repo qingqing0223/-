@@ -136,14 +136,9 @@ def patch_core(root: Path) -> None:
     # tolerate only navigation timeouts; the following pong() still determines
     # whether the cached session is actually usable.
     if f"# {NAVIGATION_MARKER}: bounded homepage navigation" not in text:
-        old = '''            self.context_page = await self.browser_context.new_page()
-            await self.context_page.goto(self.index_url)
-
-            # Create a client to interact with the xiaohongshu website.
+        old = '''            await self.context_page.goto(self.index_url)
 '''
-        new = f'''            self.context_page = await self.browser_context.new_page()
-
-            # {NAVIGATION_MARKER}: bounded homepage navigation.
+        new = f'''            # {NAVIGATION_MARKER}: bounded homepage navigation.
             _bili_home_ready = False
             for _bili_home_attempt in range(2):
                 try:
@@ -170,8 +165,6 @@ def patch_core(root: Path) -> None:
                     "DOMContentLoaded within bounded retries; continuing to cached "
                     "session/API probe"
                 )
-
-            # Create a client to interact with the xiaohongshu website.
 '''
         text = replace_once(text, old, new, "Bilibili bounded homepage navigation")
 
