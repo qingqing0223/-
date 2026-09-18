@@ -132,6 +132,8 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     seen = load_seen(state_path)
     fresh = []
     filtered_before_start = 0
+    filtered_before_start_comment_records = 0
+    filtered_before_start_content_records = 0
     region_by_key: dict[str, str] = {}
 
     raw_rows = 0
@@ -140,6 +142,8 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     normalized_comment_records = 0
     normalization_dropped = 0
     duplicate_skipped = 0
+    duplicate_comment_skipped = 0
+    duplicate_content_skipped = 0
 
     for path in jsonl_files:
         is_comment_file = "comment" in path.name.lower()
@@ -161,10 +165,18 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
                 region_by_key[key] = region
             if key in seen:
                 duplicate_skipped += 1
+                if rec.get("record_type") == "comment":
+                    duplicate_comment_skipped += 1
+                else:
+                    duplicate_content_skipped += 1
                 continue
             seen.add(key)
             if _before_monitoring_start(rec, monitoring_start_time):
                 filtered_before_start += 1
+                if rec.get("record_type") == "comment":
+                    filtered_before_start_comment_records += 1
+                else:
+                    filtered_before_start_content_records += 1
                 continue
             if region:
                 rec["ip_location"] = region
@@ -210,6 +222,10 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "duplicate_skipped": duplicate_skipped,
         "new_records": len(fresh),
         "filtered_before_start": filtered_before_start,
+        "filtered_before_start_comment_records": filtered_before_start_comment_records,
+        "filtered_before_start_content_records": filtered_before_start_content_records,
+        "duplicate_comment_skipped": duplicate_comment_skipped,
+        "duplicate_content_skipped": duplicate_content_skipped,
         "classified_records": total,
         "classified_comment_records": classified_comment_records,
         "classification_degraded_records": classification_degraded_records,
