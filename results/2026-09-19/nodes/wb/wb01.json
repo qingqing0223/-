@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-19T04:51:31+08:00",
+  "generated_at": "2026-09-19T04:56:46+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "8605280a696559d209633d26ae93cfd532225670",
+    "repo_head": "7997dfaae8b5e8d8a4b436cf43b6eb5923d69e76",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T04:51:31+08:00",
+    "generated_at": "2026-09-19T04:56:46+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T04:12:10+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -1493,11 +1493,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-19T04:42:21+08:00",
+        "cycle_finished_at": "2026-09-19T04:52:29+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 96.37,
+        "duration_seconds": 104.06,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -3635,10 +3635,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-19.jsonl",
           "relative_path": "raw_runs/20260919_045045/wb_20260919_045045/weibo/jsonl/search_contents_2026-09-19.jsonl",
-          "bytes": 25157,
-          "rows": 31,
-          "sha256": "151db13d3b5ff3806acb95f91ef5b5b573a852996c44b3ed30af05a1f2c349b1",
-          "modified_at": "2026-09-19T04:51:28+08:00",
+          "bytes": 70688,
+          "rows": 86,
+          "sha256": "a2b71c89320a0c9306013c544cd5d88864694ed49f4d3ace3384bde12af35c17",
+          "modified_at": "2026-09-19T04:51:50+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -3873,14 +3873,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260919_045045/wb_20260919_045045/stderr.log",
-          "bytes": 14145,
-          "sha256": "bff6583f917873f1a335575e7e2a4fd9ad23e832f56965f0552516b35add3ea6"
+          "bytes": 36832,
+          "sha256": "110a3885b374408bea636d681efba0100513aea8daf308401c82a31a79ce21fc"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260919_045045/wb_20260919_045045/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 389,
+          "sha256": "effcbbd02a05ecdfcd247e22ef1f89c0fbde9ef9fe2551c3a0ff0d1247f5468b"
         }
       ]
     }
