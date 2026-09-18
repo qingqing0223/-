@@ -1,4 +1,4 @@
-"""Public opinion monitor v2.1: fixed taxonomy, status/type only."""
+"""Public opinion monitor v2.2: three L1 statuses and conditional L2 types."""
 
 from .client import OpinionMonitorV2
 from .schema import (

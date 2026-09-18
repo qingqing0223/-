@@ -8,6 +8,12 @@ results/YYYY-MM-DD/nodes/<platform>/<node>.json
 
 它不会启动爬虫，不会调用 v2 分类流程，也不会读取或修改大屏 SQLite 中的舆情数据。报告生成时才调用 Qwen3.8 Max，统计数字和图表均由本地代码计算。
 
+分类口径为 v2.2：L1 `normal / attention / problematic`，其中 `attention`
+的中文名称是“中性信息”，L2 为 `neutral / information_gap / consultation`。
+专报展示时将三个 attention 子类合并为“真中性”。历史 v2.1
+`neutral/null` 仅做兼容读取，不是新算法的合法输出。
+`taxonomy_v2_1.json` 的文件名仅为兼容已部署路径而保留，文件内的实际口径版本已是 v2.2。
+
 生成文件默认保存到：
 
 ```text

@@ -70,7 +70,7 @@ python .\scripts\check_suqi_dashboard.py
 | v2 status/type | 大屏 attitude | 大屏 issue_category |
 | --- | --- | --- |
 | normal / support | 支持认可 | 空 |
-| neutral / null | 中性信息 | 空 |
+| attention / neutral | 中性信息 | 空 |
 | attention / information_gap | 中性信息 | 咨询疑问 |
 | attention / consultation | 中性信息 | 咨询疑问 |
 | problematic / concern | 非支持/非肯定 | 担忧影响 |
@@ -80,6 +80,10 @@ python .\scripts\check_suqi_dashboard.py
 | problematic / fairness_dispute | 非支持/非肯定 | 公平争议 |
 | problematic / complaint_rights | 非支持/非肯定 | 投诉维权 |
 | problematic / discriminatory_expression | 非支持/非肯定 | 歧视偏见 |
+
+v2.2 中 L1 `attention` 的中文名称是“中性信息”，其 L2 为
+`neutral / information_gap / consultation`。历史 v2.1 的 `neutral / null`
+在汇总和推送时兼容转换为 `attention / neutral`，原始历史文件不改写。
 
 \* 苏琦当前 `stats.py` 将“质疑”并入“明确批评”。原始 `v2_type=skepticism` 会写入 `notes`，后续如果大屏增加独立“质疑”类别，可以无损拆回。
 

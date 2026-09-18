@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "public-opinion-monitor-v2"
-version = "2.1.0"
+version = "2.2.0"
 description = "Fixed-taxonomy public opinion status/type classifier using Qwen3.8 Flash API"
 requires-python = ">=3.10"
 dependencies = []

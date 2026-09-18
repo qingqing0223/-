@@ -30,7 +30,7 @@ def read_records(path: Path) -> list[dict]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="固定类别的v2.1舆情status/type分类")
+    parser = argparse.ArgumentParser(description="固定类别的v2.2舆情status/type分类")
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--text", help="单条公众原话")
     source.add_argument("--input", type=Path, help="JSONL或CSV批量输入")

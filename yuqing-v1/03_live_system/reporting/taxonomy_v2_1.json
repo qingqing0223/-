@@ -1,23 +1,26 @@
 {
-  "version": "public-opinion-monitor-v2.1",
+  "version": "public-opinion-monitor-v2.2",
   "status": {
     "normal": {
+      "chinese_name": "正常/支持信息",
       "definition": "明确支持、认可或积极评价",
       "allowed_types": ["support"],
       "report_bucket": "认可支持"
     },
-    "neutral": {
-      "definition": "中性陈述、单纯转述信息或观点不明，没有明确支持、疑问或问题判断",
-      "allowed_types": [null],
-      "report_bucket": "真中性"
-    },
     "attention": {
-      "definition": "只是询问、求助、表示不了解或信息不足，尚未明确表达问题判断",
-      "allowed_types": ["information_gap", "consultation"],
+      "chinese_name": "中性信息",
+      "definition": "未明确表达舆情问题，包括中性陈述、信息缺口和咨询求助",
+      "allowed_types": ["neutral", "information_gap", "consultation"],
+      "type_definitions": {
+        "neutral": "中性陈述、单纯转述或观点不明",
+        "information_gap": "表示不了解、不清楚或缺少信息",
+        "consultation": "提出具体询问、求助或办理咨询"
+      },
       "report_bucket": "真中性",
-      "mapping_note": "沿用大屏适配口径，将attention并入中性信息；原始status仍保留"
+      "mapping_note": "attention是L1中性信息；三个L2在专报中均并入真中性"
     },
     "problematic": {
+      "chinese_name": "问题信息",
       "definition": "明确表达担忧、质疑、批评、实施问题、公平争议、投诉维权或歧视偏见",
       "allowed_types": [
         "concern",
@@ -31,5 +34,6 @@
       "report_bucket": "非支持"
     }
   },
+  "legacy_compatibility": "历史v2.1的status=neutral,type=null只在汇总时转换为status=attention,type=neutral，不改写原始文件",
   "unclassified_policy": "unclassified或unknown单列为待分类，不并入认可支持、真中性或非支持"
 }

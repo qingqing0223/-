@@ -85,22 +85,37 @@ def _row_before_start(row: dict, monitoring_start_time: str) -> bool:
     return published < start
 
 
+def _canonical_status_type(status: str, type_: str | None) -> tuple[str, str]:
+    """Map the retired v2.1 neutral/null pair to the v2.2 hierarchy.
+
+    Historical classified JSONL is immutable.  Canonicalizing only while
+    producing summaries keeps old records usable without presenting ``neutral``
+    as a current L1 value.
+    """
+    status = str(status or "").strip()
+    type_ = str(type_ or "").strip()
+    if status == "neutral" and type_ in {"", "null"}:
+        return "attention", "neutral"
+    return status, type_ or "null"
+
+
 def _attitude_bucket(status: str, type_: str) -> str:
     """Reporting bucket derived from the fixed v2 taxonomy.
 
-    The original status/type are always preserved. We do not force attention
-    (information gap / consultation) into a negative bucket.
+    L1 attention is named "中性信息". Its neutral subtype enters the
+    neutral reporting bucket, while information gaps and consultations retain a
+    separate attention bucket. Neither is treated as negative.
     """
     status = str(status or "").strip()
     type_ = str(type_ or "").strip()
     if status == "normal" and type_ == "support":
         return "support"
-    if status == "neutral":
+    if status == "neutral":  # legacy v2.1 compatibility
         return "neutral"
     if status == "problematic":
         return "non_support"
     if status == "attention":
-        return "attention"
+        return "neutral" if type_ == "neutral" else "attention"
     return "unknown"
 
 
@@ -213,8 +228,7 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         platform = str(row.get("platform") or "unknown")
         language = str(row.get("language") or "未知")
         region = str(row.get("ip_location") or "").strip()
-        status = str(row.get("status") or "unknown")
-        type_ = str(row.get("type") or "null")
+        status, type_ = _canonical_status_type(row.get("status") or "unknown", row.get("type"))
         source_type = str(row.get("source_type") or "未分类")
         record_type = str(row.get("record_type") or "unknown")
         keyword = str(row.get("source_keyword") or "").strip()

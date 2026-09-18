@@ -1,4 +1,4 @@
-"""Standalone OpenAI-compatible API client for the v2.1 public-opinion task."""
+"""Standalone OpenAI-compatible API client for the v2.2 public-opinion task."""
 
 from __future__ import annotations
 

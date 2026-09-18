@@ -52,6 +52,13 @@ def _attitude_from_v2(status: str, type_: str | None) -> str:
     return "待核实"
 
 
+def _canonical_status_type(status: str, type_: str | None) -> tuple[str, str | None]:
+    """Translate the retired v2.1 neutral/null pair without mutating source data."""
+    if status == "neutral" and type_ in (None, "", "null"):
+        return "attention", "neutral"
+    return status, type_
+
+
 def _source_label(row: dict) -> str:
     content_type = row.get("video_content_type") or row.get("source_type")
     if content_type:
@@ -69,6 +76,7 @@ def to_suqi_record(row: dict) -> dict:
     platform = PLATFORM_LABELS.get(platform_code, platform_code or "其他")
     v2_status = str(row.get("status") or "").strip()
     v2_type = row.get("type")
+    v2_status, v2_type = _canonical_status_type(v2_status, v2_type)
     region = _clean_region(row.get("ip_location"))
     language = str(row.get("language") or "汉语").strip() or "汉语"
 

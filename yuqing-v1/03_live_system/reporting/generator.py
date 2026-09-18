@@ -219,8 +219,9 @@ def pct(numerator: int, denominator: int) -> str:
 
 
 def attitude_three_way(counter: Counter) -> dict[str, int]:
-    # In the live-system adapter, v2 attention (information gaps/questions) is
-    # mapped to neutral information; problematic maps to non-support.
+    # v2.2 L1 attention is "中性信息". The summary layer uses the
+    # neutral bucket for attention/neutral and the attention bucket for its
+    # information_gap/consultation subtypes; all three become report "真中性".
     return {
         "认可支持": int(counter.get("support", 0)),
         "真中性": int(counter.get("neutral", 0) + counter.get("attention", 0)),

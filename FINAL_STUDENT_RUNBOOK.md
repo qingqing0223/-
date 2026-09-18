@@ -27,7 +27,8 @@
 - 评论父评论、根评论关系标准化
 - 平台公开展示的 IP 属地/地区字段读取（不获取真实IP）
 - 帖子、视频、评论统一进入志鹏 v2 分类
-- 报告层支持 `support / neutral / attention / non_support` 四个汇总桶，同时保留原始 v2 status/type
+- v2.2 L1 为 `normal / attention / problematic`，其中 `attention`的中文名称是“中性信息”，L2 为 `neutral / information_gap / consultation`
+- 报告层仍保留 `support / neutral / attention / non_support` 四个汇总桶：`attention/neutral` 进入 neutral 桶，其他两个 attention 子类进入 attention 桶
 - 中文及少数民族语言识别
 - 视频/帖子来源类型识别
 - 视频 ASR/OCR 字段若存在则纳入分析，并在汇总中显示多模态完整度；学生端本版不要求自行安装额外 ASR/OCR 软件

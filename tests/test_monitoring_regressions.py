@@ -251,8 +251,8 @@ class MonitoringRegressionTests(unittest.TestCase):
             "comment_level": 2,
             "sub_comment_count": 0,
             "content": "楼中楼回复",
-            "status": "neutral",
-            "type": None,
+            "status": "attention",
+            "type": "neutral",
         }
         record = to_suqi_record(row)
         self.assertEqual(record["record_type"], "comment")
