@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import gzip
 import hashlib
 import json
@@ -360,6 +361,132 @@ def _write_non_support_review_feed(
     return dst
 
 
+def _load_review_decisions(path: Path) -> dict[str, dict]:
+    decisions: dict[str, dict] = {}
+    if not path.exists():
+        return decisions
+    try:
+        with path.open("r", encoding="utf-8-sig", newline="") as fh:
+            for row in csv.DictReader(fh):
+                review_id = str(row.get("review_id") or "").strip()
+                if not review_id:
+                    continue
+                decisions[review_id] = {
+                    "manual_label": str(row.get("manual_label") or "").strip(),
+                    "manual_note": str(row.get("manual_note") or "").strip(),
+                    "reviewer": str(row.get("reviewer") or "").strip(),
+                    "reviewed_at": str(row.get("reviewed_at") or "").strip(),
+                }
+    except Exception:
+        return {}
+    return decisions
+
+
+def _write_non_support_review_sheet(
+    review_queue_path: Path | None,
+    archive_repo: Path,
+    node_id: str,
+    platform: str,
+) -> tuple[Path | None, Path | None]:
+    if review_queue_path is None or not review_queue_path.exists():
+        return None, None
+    try:
+        payload = json.loads(review_queue_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None, None
+
+    records = payload.get("records") or []
+    if not isinstance(records, list):
+        return None, None
+
+    base = archive_repo / "nodes" / node_id / platform
+    sheet = base / "non_support_manual_review.csv"
+    confirmed = base / "confirmed_non_support.json"
+    existing = _load_review_decisions(sheet)
+
+    fields = [
+        "review_id",
+        "platform",
+        "record_type",
+        "publish_time",
+        "model_status",
+        "model_type",
+        "model_tri_class",
+        "language",
+        "ip_location",
+        "source_keyword",
+        "author",
+        "content",
+        "context",
+        "public_url",
+        "manual_label",
+        "manual_note",
+        "reviewer",
+        "reviewed_at",
+    ]
+    sheet.parent.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for item in records:
+        if not isinstance(item, dict):
+            continue
+        review_id = str(item.get("review_id") or "").strip()
+        if not review_id:
+            continue
+        decision = existing.get(review_id) or {}
+        row = {key: item.get(key, "") for key in fields}
+        for key in ("manual_label", "manual_note", "reviewer", "reviewed_at"):
+            row[key] = decision.get(key, "")
+        rows.append(row)
+
+    with sheet.open("w", encoding="utf-8-sig", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+
+    confirmed_rows = []
+    for row in rows:
+        if str(row.get("manual_label") or "").strip() != "non_support":
+            continue
+        confirmed_rows.append({
+            "review_id": row.get("review_id"),
+            "platform": row.get("platform"),
+            "record_type": row.get("record_type"),
+            "publish_time": row.get("publish_time"),
+            "model_status": row.get("model_status"),
+            "model_type": row.get("model_type"),
+            "manual_label": "non_support",
+            "manual_note": row.get("manual_note"),
+            "reviewer": row.get("reviewer"),
+            "reviewed_at": row.get("reviewed_at"),
+            "language": row.get("language"),
+            "ip_location": row.get("ip_location"),
+            "source_keyword": row.get("source_keyword"),
+            "author": row.get("author"),
+            "content": row.get("content"),
+            "context": row.get("context"),
+            "public_url": row.get("public_url"),
+        })
+
+    confirmed_payload = {
+        "schema_version": 1,
+        "node_id": node_id,
+        "platform": platform,
+        "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "privacy": (
+            "PRIVATE confirmed non-support review output. Contains public user-generated "
+            "text/source URLs for report verification; raw user IDs/cookies/browser state/"
+            "real IP/precise location are excluded."
+        ),
+        "confirmed_non_support_count": len(confirmed_rows),
+        "records": confirmed_rows,
+    }
+    confirmed.write_text(
+        json.dumps(confirmed_payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return sheet, confirmed
+
+
 def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, push: bool, private_confirmed: bool) -> dict:
     _ensure_private_confirmation(archive_repo, private_confirmed)
     cfg = _read_config(config)
@@ -414,6 +541,13 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
         str(cfg.get("monitoring_start_time") or ""),
     )
 
+    review_sheet, confirmed_review = _write_non_support_review_sheet(
+        review_feed,
+        archive_repo,
+        node_id,
+        platform,
+    )
+
     manifest_path = archive_repo / "nodes" / node_id / platform / "manifest.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest = {
@@ -425,6 +559,8 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
         "file_count_total": len(known),
         "latest_gpt_feed": str(gpt_feed.relative_to(archive_repo)).replace("\\", "/") if gpt_feed else "",
         "latest_non_support_review_queue": str(review_feed.relative_to(archive_repo)).replace("\\", "/") if review_feed else "",
+        "non_support_manual_review_sheet": str(review_sheet.relative_to(archive_repo)).replace("\\", "/") if review_sheet else "",
+        "confirmed_non_support": str(confirmed_review.relative_to(archive_repo)).replace("\\", "/") if confirmed_review else "",
         "files": list(known.values()),
     }
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -435,7 +571,7 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
 
     commit_created = False
     push_ok = None
-    if archived or status_copy is not None or gpt_feed is not None or review_feed is not None:
+    if archived or status_copy is not None or gpt_feed is not None or review_feed is not None or review_sheet is not None or confirmed_review is not None:
         _git(archive_repo, "pull", "--rebase", check=False)
         _git(archive_repo, "add", "--", f"nodes/{node_id}/{platform}")
         diff = _git(archive_repo, "diff", "--cached", "--quiet", check=False)
@@ -463,6 +599,8 @@ def archive_once(platform: str, node_id: str, config: Path, archive_repo: Path, 
         "manifest": str(manifest_path),
         "latest_gpt_feed": str(gpt_feed) if gpt_feed else "",
         "latest_non_support_review_queue": str(review_feed) if review_feed else "",
+        "non_support_manual_review_sheet": str(review_sheet) if review_sheet else "",
+        "confirmed_non_support": str(confirmed_review) if confirmed_review else "",
         "commit_created": commit_created,
         "push_enabled": push,
         "push_ok": push_ok,
