@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "bili01",
   "platform": "bili",
-  "generated_at": "2026-09-18T21:40:23+08:00",
+  "generated_at": "2026-09-18T21:45:30+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "67bfda72c2905daf51caa81ab078fa8c30d67e2f",
+    "repo_head": "2d88410e3e837c3817d048e929d174477b6861ff",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T21:40:23+08:00",
+    "generated_at": "2026-09-18T21:45:30+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T21:32:01+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -465,11 +465,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
-        "cycle_finished_at": "2026-09-18T21:37:05+08:00",
+        "cycle_finished_at": "2026-09-18T21:42:07+08:00",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 110.02,
+        "duration_seconds": 112.02,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -1742,19 +1742,19 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_214015",
+      "cycle": "20260918_214515",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
       "jsonl_files": [],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_214015/bili_20260918_214015/stderr.log",
-          "bytes": 512,
-          "sha256": "157a2fafc5c8b1ec6b669775dd15801b853c92319f190613840bed90759ce0f8"
+          "relative_path": "raw_runs/20260918_214515/bili_20260918_214515/stderr.log",
+          "bytes": 1873,
+          "sha256": "4ee3991ecf7efb0f809f274333d9c88e5a329183767a790ee7ac6ff47aa475e9"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_214015/bili_20260918_214015/stdout.log",
+          "relative_path": "raw_runs/20260918_214515/bili_20260918_214515/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
