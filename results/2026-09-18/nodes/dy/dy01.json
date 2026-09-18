@@ -6,19 +6,19 @@
   "results_date": "2026-09-18",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-18T12:58:59+08:00",
+  "generated_at": "2026-09-18T13:01:54+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T12:58:59+08:00",
+    "generated_at": "2026-09-18T13:01:54+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T07:10:52+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 447,
+      "unique_records": 445,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
@@ -32,28 +32,28 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 394,
-      "public_publisher_accounts": 32,
-      "likes": 61215,
-      "comments": 529,
-      "shares": 1249,
+      "public_publisher_accounts": 31,
+      "likes": 8496,
+      "comments": 431,
+      "shares": 230,
       "views": 0,
       "favorites": 304,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "dy": 447
+      "dy": 445
     },
     "platform_attitude": {
       "dy": {
         "support": 337,
-        "neutral": 75,
+        "neutral": 73,
         "non_support": 25,
         "attention": 10
       }
     },
     "languages": {
-      "汉语": 425,
+      "汉语": 423,
       "未知": 22
     },
     "minority_languages": {},
@@ -62,13 +62,13 @@
     "comment_regions": {},
     "v2_status": {
       "normal": 337,
-      "neutral": 75,
+      "neutral": 73,
       "problematic": 25,
       "attention": 10
     },
     "v2_type": {
       "support": 337,
-      "null": 75,
+      "null": 73,
       "concern": 7,
       "discriminatory_expression": 7,
       "consultation": 6,
@@ -80,7 +80,7 @@
     },
     "attitude": {
       "support": 337,
-      "neutral": 75,
+      "neutral": 73,
       "non_support": 25,
       "attention": 10
     },
@@ -110,52 +110,29 @@
     },
     "source_types": {
       "普通用户舆情": 413,
-      "权威媒体/新闻评论": 19,
+      "权威媒体/新闻评论": 17,
       "自媒体观点": 12,
       "律师/专家解读": 2,
       "二创/剪辑解读": 1
     },
     "record_types": {
       "comment": 414,
-      "video": 33
+      "video": 31
     },
     "keywords": {
       "首个民族团结进步宣传周": 17,
       "2026年民族团结进步宣传周": 11,
-      "促进民族团结进步，奋进伟大复兴征程": 2,
       "民族团结进步倡议": 2,
       "民族团结进步宣传周主场活动": 1
     },
     "video_analysis": {
-      "video_records": 33,
+      "video_records": 31,
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,
       "multimodal_completion_rate": 0.0
     },
     "public_account_stats": [
-      {
-        "account": "中***网",
-        "platforms": {
-          "dy": 2
-        },
-        "records": 2,
-        "posts": 0,
-        "videos": 2,
-        "attitude": {
-          "neutral": 2
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 6423,
-          "comments": 48,
-          "shares": 123,
-          "views": 0,
-          "favorites": 6,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
       {
         "account": "一***苑",
         "platforms": {
@@ -179,7 +156,7 @@
         }
       },
       {
-        "account": "中***布",
+        "account": "中***网",
         "platforms": {
           "dy": 1
         },
@@ -191,11 +168,11 @@
         },
         "regions": {},
         "engagement": {
-          "likes": 46431,
-          "comments": 50,
-          "shares": 900,
+          "likes": 135,
+          "comments": 0,
+          "shares": 4,
           "views": 0,
-          "favorites": 0,
+          "favorites": 6,
           "danmaku": 0,
           "coins": 0
         }
@@ -839,7 +816,7 @@
         }
       }
     ],
-    "public_account_stats_total": 32,
+    "public_account_stats_total": 31,
     "public_account_stats_truncated": false,
     "runtime": [
       {
@@ -871,19 +848,19 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_125836",
+      "cycle": "20260918_130151",
       "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
       "jsonl_files": [],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_125836/dy_20260918_125836/stderr.log",
-          "bytes": 104,
-          "sha256": "a2b5b92bc9b88091b6dd5fe5640dcb3299f666bf13f4db6f9a5e5a9c5091439c"
+          "relative_path": "raw_runs/20260918_130151/dy_20260918_130151/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_125836/dy_20260918_125836/stdout.log",
+          "relative_path": "raw_runs/20260918_130151/dy_20260918_130151/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
