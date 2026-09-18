@@ -84,6 +84,7 @@ $Rows = @(
 $Comments = @($Rows | Where-Object { [string]$_.record_type -eq "comment" })
 $Contents = @($Rows | Where-Object { [string]$_.record_type -ne "comment" })
 $Candidates = @($Comments | Where-Object { [string]$_.status -eq "problematic" })
+$ContentCandidates = @($Contents | Where-Object { [string]$_.status -eq "problematic" })
 
 $CommonCols = @(
     "platform","record_type","sample_id","content_id","comment_id",
@@ -116,7 +117,11 @@ $Contents |
 
 $Candidates |
     Select-Object -Property $ReviewCols |
-    Export-Csv (Join-Path $Out "03_problematic候选_人工复核.csv") -NoTypeInformation -Encoding UTF8
+    Export-Csv (Join-Path $Out "03_problematic评论候选_人工复核.csv") -NoTypeInformation -Encoding UTF8
+
+$ContentCandidates |
+    Select-Object -Property $ReviewCols |
+    Export-Csv (Join-Path $Out "03_problematic发布内容候选_人工复核.csv") -NoTypeInformation -Encoding UTF8
 
 $Candidates |
     Group-Object type |
@@ -171,7 +176,8 @@ $Readme = @"
 分类结果：$Classified
 发布内容记录数：$($Contents.Count)
 评论记录数：$($Comments.Count)
-模型 problematic 候选数：$($Candidates.Count)
+模型 problematic 评论候选数：$($Candidates.Count)
+模型 problematic 发布内容候选数：$($ContentCandidates.Count)
 复制原始 JSONL 文件数：$RawFilesCopied
 
 【重要说明】
@@ -195,7 +201,8 @@ $Summary = [PSCustomObject]@{
     classified_file = $Classified
     content_records = $Contents.Count
     comment_records = $Comments.Count
-    problematic_candidates = $Candidates.Count
+    problematic_comment_candidates = $Candidates.Count
+    problematic_content_candidates = $ContentCandidates.Count
     raw_files_copied = $RawFilesCopied
 }
 $Summary | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $Out "00_export_summary.json") -Encoding UTF8
@@ -207,9 +214,10 @@ Write-Host "=== Export completed ===" -ForegroundColor Green
 Write-Host "Platform: $PlatformName" -ForegroundColor Cyan
 Write-Host "DataRoot: $DataRoot" -ForegroundColor Cyan
 Write-Host "Comments: $($Comments.Count)" -ForegroundColor Cyan
-Write-Host "Problematic candidates: $($Candidates.Count)" -ForegroundColor Cyan
+Write-Host "Problematic comment candidates: $($Candidates.Count)" -ForegroundColor Cyan
+Write-Host "Problematic content candidates: $($ContentCandidates.Count)" -ForegroundColor Cyan
 Write-Host "ZIP: $Zip" -ForegroundColor Green
 Write-Host ""
-Write-Host "Send the ZIP to the coordinator. If manual review is requested, fill 03_problematic候选_人工复核.csv and send that CSV too." -ForegroundColor Yellow
+Write-Host "Send the ZIP to the coordinator. If manual review is requested, fill the 03_problematic*_人工复核.csv file(s) and send those CSV files too." -ForegroundColor Yellow
 
 Start-Process explorer.exe $OutputRoot
