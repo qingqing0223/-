@@ -63,9 +63,14 @@ if ($Push) {
     }
 
     Write-Host "Checking GitHub push access once before the sync loop..." -ForegroundColor Cyan
-    $pushOutput = git push --dry-run origin ("HEAD:" + $branch) 2>&1
+    # Git writes normal push status (for example "To https://...") to stderr.
+    # Under Windows PowerShell + ErrorActionPreference=Stop, capturing native
+    # stderr with 2>&1 can be promoted to NativeCommandError even when Git exits 0.
+    # Route the combined stream through cmd.exe so we can inspect the real exit code.
+    $pushOutput = & cmd.exe /d /c ("git push --dry-run origin HEAD:" + $branch + " 2>&1")
+    $pushExitCode = $LASTEXITCODE
     $pushOutput | Out-Host
-    if ($LASTEXITCODE -ne 0) {
+    if ($pushExitCode -ne 0) {
         $pushText = ($pushOutput | Out-String).ToLowerInvariant()
         if ($pushText -match "authentication failed|could not read username|permission denied|repository not found|403|401|credential") {
             Write-Host "ERROR: GitHub push authentication/access preflight failed. Complete the browser sign-in once, then restart this sync." -ForegroundColor Red
