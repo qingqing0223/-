@@ -119,6 +119,18 @@ def _attitude_bucket(status: str, type_: str) -> str:
     return "unknown"
 
 
+def _tri_class_bucket(status: str) -> str:
+    """Exact three-class review label derived from the fixed v2.2 L1 taxonomy."""
+    status = str(status or "").strip()
+    if status == "normal":
+        return "support"
+    if status in {"attention", "neutral"}:  # legacy neutral -> neutral
+        return "neutral"
+    if status == "problematic":
+        return "non_support"
+    return "unknown"
+
+
 def discover_data_roots(base_data_root: Path, include_multilingual: bool = True) -> list[Path]:
     """Discover formal per-platform roots without smoke/region test roots."""
     parent = base_data_root.parent
@@ -202,14 +214,17 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
     status_counts = Counter()
     type_counts = Counter()
     attitude_counts = Counter()
+    tri_class_counts = Counter()
     comment_status_counts = Counter()
     comment_type_counts = Counter()
     comment_attitude_counts = Counter()
+    comment_tri_class_counts = Counter()
     source_type_counts = Counter()
     record_type_counts = Counter()
     keyword_counts = Counter()
     engagement = Counter()
     platform_attitude: dict[str, Counter] = {}
+    platform_tri_class: dict[str, Counter] = {}
     account_stats: dict[str, dict] = {}
     comment_author_keys: set[str] = set()
     latest_seen = ""
@@ -233,6 +248,7 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         record_type = str(row.get("record_type") or "unknown")
         keyword = str(row.get("source_keyword") or "").strip()
         attitude = _attitude_bucket(status, type_)
+        tri_class = _tri_class_bucket(status)
 
         platform_counts[platform] += 1
         language_counts[language] += 1
@@ -243,17 +259,20 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         status_counts[status] += 1
         type_counts[type_] += 1
         attitude_counts[attitude] += 1
+        tri_class_counts[tri_class] += 1
         source_type_counts[source_type] += 1
         record_type_counts[record_type] += 1
         if keyword:
             keyword_counts[keyword] += 1
         platform_attitude.setdefault(platform, Counter())[attitude] += 1
+        platform_tri_class.setdefault(platform, Counter())[tri_class] += 1
 
         if record_type == "comment":
             comment_records += 1
             comment_status_counts[status] += 1
             comment_type_counts[type_] += 1
             comment_attitude_counts[attitude] += 1
+            comment_tri_class_counts[tri_class] += 1
             if region:
                 comment_region_records += 1
                 comment_region_counts_by_name[region] += 1
@@ -383,6 +402,7 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         },
         "platforms": dict(platform_counts.most_common()),
         "platform_attitude": {k: dict(v.most_common()) for k, v in platform_attitude.items()},
+        "platform_tri_class": {k: dict(v.most_common()) for k, v in platform_tri_class.items()},
         "languages": dict(language_counts.most_common()),
         "minority_languages": dict(minority_language_counts.most_common()),
         "regions": dict(region_counts.most_common()),
@@ -391,9 +411,11 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         "v2_status": dict(status_counts.most_common()),
         "v2_type": dict(type_counts.most_common()),
         "attitude": dict(attitude_counts.most_common()),
+        "tri_class": dict(tri_class_counts.most_common()),
         "comment_v2_status": dict(comment_status_counts.most_common()),
         "comment_v2_type": dict(comment_type_counts.most_common()),
         "comment_attitude": dict(comment_attitude_counts.most_common()),
+        "comment_tri_class": dict(comment_tri_class_counts.most_common()),
         "source_types": dict(source_type_counts.most_common()),
         "record_types": dict(record_type_counts.most_common()),
         "keywords": dict(keyword_counts.most_common()),
