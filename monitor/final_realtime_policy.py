@@ -259,11 +259,32 @@ def install_final_realtime_policy(platform: str) -> None:
                 failed.append(identifier)
                 if first_failure_rc is None:
                     first_failure_rc = proc.returncode
+
+                access_guard = False
+                if platform == "wb":
+                    tail = crawler_runner._tail_text(stdout_log, stderr_log)
+                    access_guard = any(token in tail for token in (
+                        "weibo_verify_required",
+                        "captcha",
+                        "security verification",
+                        "验证码",
+                        "安全验证",
+                    ))
+
                 with stdout_log.open("a", encoding="utf-8") as out:
-                    out.write(
-                        f"[monitor] {platform.upper()}_REALTIME_DETAIL_CANDIDATE_FAILED "
-                        f"rc={proc.returncode}; partial_jsonl_rolled_back=yes; continuing_with_next_candidate=yes\n"
-                    )
+                    if access_guard:
+                        out.write(
+                            "[monitor] WB_REALTIME_ACCESS_GUARD_STOP "
+                            f"rc={proc.returncode}; no_more_detail_requests_this_cycle=yes; "
+                            "candidate_remains_retryable=yes\n"
+                        )
+                    else:
+                        out.write(
+                            f"[monitor] {platform.upper()}_REALTIME_DETAIL_CANDIDATE_FAILED "
+                            f"rc={proc.returncode}; partial_jsonl_rolled_back=yes; continuing_with_next_candidate=yes\n"
+                        )
+                if access_guard:
+                    break
 
         setattr(crawler_runner, "_promotion_week_last_detail_outcome", {
             "platform": platform,
