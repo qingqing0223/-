@@ -6,22 +6,22 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T17:07:05+08:00",
+  "generated_at": "2026-09-18T17:12:18+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T17:07:05+08:00",
+    "generated_at": "2026-09-18T17:12:18+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-18T16:40:47+08:00",
+    "latest_seen_time": "2026-09-18T17:11:07+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 55,
+      "unique_records": 57,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 5,
-      "region_coverage_rate": 0.0909,
+      "region_coverage_rate": 0.0877,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 3,
@@ -32,8 +32,8 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 3,
-      "public_publisher_accounts": 40,
-      "likes": 37,
+      "public_publisher_accounts": 42,
+      "likes": 38,
       "comments": 1,
       "shares": 15,
       "views": 0,
@@ -42,17 +42,17 @@
       "coins": 0
     },
     "platforms": {
-      "wb": 55
+      "wb": 57
     },
     "platform_attitude": {
       "wb": {
         "neutral": 26,
         "unknown": 25,
-        "support": 4
+        "support": 6
       }
     },
     "languages": {
-      "汉语": 55
+      "汉语": 57
     },
     "minority_languages": {},
     "regions": {
@@ -71,16 +71,16 @@
     "v2_status": {
       "neutral": 26,
       "unclassified": 25,
-      "normal": 4
+      "normal": 6
     },
     "v2_type": {
       "null": 51,
-      "support": 4
+      "support": 6
     },
     "attitude": {
       "neutral": 26,
       "unknown": 25,
-      "support": 4
+      "support": 6
     },
     "comment_v2_status": {
       "neutral": 3
@@ -92,21 +92,21 @@
       "neutral": 3
     },
     "source_types": {
-      "权威媒体/新闻评论": 47,
+      "权威媒体/新闻评论": 49,
       "普通用户舆情": 4,
       "自媒体观点": 2,
       "律师/专家解读": 1,
       "二创/剪辑解读": 1
     },
     "record_types": {
-      "post": 52,
+      "post": 54,
       "comment": 3
     },
     "keywords": {
       "2026年民族团结进步宣传周": 22,
-      "首个民族团结进步宣传周": 19,
+      "首个民族团结进步宣传周": 20,
+      "促进民族团结进步，奋进伟大复兴征程": 5,
       "民族团结进步倡议": 5,
-      "促进民族团结进步，奋进伟大复兴征程": 4,
       "民族团结进步宣传周主场活动": 2
     },
     "video_analysis": {
@@ -629,6 +629,28 @@
         }
       },
       {
+        "account": "晋***声",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "最***院",
         "platforms": {
           "wb": 1
@@ -778,6 +800,28 @@
         "regions": {},
         "engagement": {
           "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 0,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "滇***区",
+        "platforms": {
+          "wb": 1
+        },
+        "records": 1,
+        "posts": 1,
+        "videos": 0,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 1,
           "comments": 0,
           "shares": 0,
           "views": 0,
@@ -1011,26 +1055,28 @@
         }
       }
     ],
-    "public_account_stats_total": 40,
+    "public_account_stats_total": 42,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T16:55:57+08:00",
+        "cycle_finished_at": "2026-09-18T17:11:13+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 1,
-        "duration_seconds": 600.68,
-        "new_records": 0,
+        "duration_seconds": 609.73,
+        "new_records": 2,
         "filtered_before_start": 0,
-        "classified_records": 0,
+        "classified_records": 2,
         "ingest_comments": true,
         "input_file_count": 2,
         "comment_input_file_count": 0,
         "region_records": 0,
         "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {},
+        "language_counts": {
+          "汉语": 2
+        },
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -1048,12 +1094,66 @@
       "jsonl_files": [
         {
           "kind": "content",
+          "name": "detail_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_170057/wb_20260918_170057/weibo/jsonl/detail_contents_2026-09-18.jsonl",
+          "bytes": 2000,
+          "rows": 1,
+          "sha256": "21d90935a3853cbd87fd769a444933976d39d56bc80c58761508bfab76f8b71b",
+          "modified_at": "2026-09-18T17:10:37+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comments_count",
+                "content",
+                "create_date_time",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "note_id",
+                "note_url",
+                "shared_count",
+                "source_keyword"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "content": "str",
+                "create_time": "int",
+                "create_date_time": "str",
+                "liked_count": "str",
+                "comments_count": "str",
+                "shared_count": "str",
+                "last_modify_ts": "int",
+                "note_url": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "note_id": "7d6de3015ff577ffe9c8"
+              },
+              "safe_values": {
+                "ip_location": "湖北",
+                "comments_count": "0",
+                "liked_count": "2",
+                "create_time": 1783415054,
+                "last_modify_ts": 1789722637053
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
           "relative_path": "raw_runs/20260918_170057/wb_20260918_170057/weibo/jsonl/search_contents_2026-09-18.jsonl",
-          "bytes": 259240,
-          "rows": 94,
-          "sha256": "48f6bc4e6483bd329962dd4a623ccb03ab2fbc6e2992f413de9af1425516b071",
-          "modified_at": "2026-09-18T17:06:40+08:00",
+          "bytes": 413448,
+          "rows": 139,
+          "sha256": "2791b65484ce167b4fd926673375bc4252bcf2cd3478762a22a383ed3d7ac27d",
+          "modified_at": "2026-09-18T17:09:44+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1277,14 +1377,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_170057/wb_20260918_170057/stderr.log",
-          "bytes": 57830,
-          "sha256": "fd0ef89dc10f6d926f786d502ba7a6c4cff8b15db7d8150a66d24a3d1786ac18"
+          "bytes": 95116,
+          "sha256": "487a7970877617830b232f251db2fe64f87b4b58511be4aaf332df90c6db1ce9"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_170057/wb_20260918_170057/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 296,
+          "sha256": "197e6e2a689a06437966bff746ef487dab330fb7ea93a68315cecc4a38b555c3"
         }
       ]
     }
