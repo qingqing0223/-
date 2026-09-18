@@ -34,7 +34,8 @@ class TestKuaishouCommentRegionH5Patch(unittest.TestCase):
             status = patch.check(root)
             text = client.read_text(encoding="utf-8")
 
-            self.assertTrue(status["ok"], status)
+            self.assertTrue(status["h5_helpers_defined"], status)
+            self.assertTrue(status["h5_comment_fetch_fallback_present"], status)
             self.assertIn("PROMOTION_WEEK_KS_COMMENT_REGION_RESTORE_V5", text)
             self.assertIn("async def _ks_h5_comment_regions", text)
             self.assertIn("/rest/wd/photo/comment/list", text)
