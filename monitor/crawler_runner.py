@@ -446,16 +446,37 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 search_env["PROMOTION_WEEK_WB_REALTIME"] = "1"
 
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
-            proc = subprocess.run(
-                cmd,
-                cwd=cfg["media_crawler_root"],
-                stdout=out,
-                stderr=err,
-                text=True,
-                env=search_env,
-            )
-        rc = proc.returncode
-        status = "ok" if rc == 0 else "failed"
+            search_timeout = None
+            if realtime_mode and code == "wb":
+                try:
+                    search_timeout = max(60, min(
+                        int(cfg.get("wb_realtime_search_timeout_seconds", 150)),
+                        180,
+                    ))
+                except Exception:
+                    search_timeout = 150
+            try:
+                proc = subprocess.run(
+                    cmd,
+                    cwd=cfg["media_crawler_root"],
+                    stdout=out,
+                    stderr=err,
+                    text=True,
+                    env=search_env,
+                    timeout=search_timeout,
+                )
+                rc = proc.returncode
+                status = "ok" if rc == 0 else "failed"
+            except subprocess.TimeoutExpired:
+                # Realtime discovery is intentionally bounded.  subprocess.run()
+                # terminates the child on timeout; any JSONL rows already flushed
+                # remain usable and are ingested below.
+                rc = 124
+                status = "failed"
+                err.write(
+                    f"\n[monitor] WB_REALTIME_SEARCH_TIMEOUT timeout={search_timeout}s; "
+                    "partial_jsonl_preserved=yes\n"
+                )
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
         status = "error"
