@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 MARKER = "PROMOTION_WEEK_BILI_LOGIN_RESILIENCE_V1"
+STARTUP_MARKER = "PROMOTION_WEEK_BILI_BROWSER_STARTUP_V2"
 
 
 def read(path: Path) -> str:
@@ -29,10 +30,11 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 def patch_core(root: Path) -> None:
     path = root / "media_platform/bilibili/core.py"
     text = read(path)
-    if f"# {MARKER}: bounded session probe" in text:
-        return
 
-    old = '''            if not await self.bili_client.pong():
+    # Keep the validated V1 session-probe patch composable with later startup
+    # hardening. Do not return early merely because V1 is already installed.
+    if f"# {MARKER}: bounded session probe" not in text:
+        old = '''            if not await self.bili_client.pong():
                 login_obj = BilibiliLogin(
                     login_type=config.LOGIN_TYPE,
                     login_phone="",  # your phone number
@@ -46,7 +48,7 @@ def patch_core(root: Path) -> None:
                     urls=self.cookie_urls,
                 )
 '''
-    new = f'''            # {MARKER}: bounded session probe before treating one transient
+        new = f'''            # {MARKER}: bounded session probe before treating one transient
             # Bilibili API failure as a logged-out session.
             _bili_pong_ok = False
             for _bili_pong_attempt in range(3):
@@ -80,9 +82,103 @@ def patch_core(root: Path) -> None:
                     urls=self.cookie_urls,
                 )
 '''
-    text = replace_once(text, old, new, "Bilibili bounded session probe")
-    write_py(path, text)
+        text = replace_once(text, old, new, "Bilibili bounded session probe")
 
+    # Bilibili repeatedly returned HTTP 502 from Chrome's CDP /json/version
+    # endpoint on the monitoring machine. The upstream fallback then tried to
+    # launch a second persistent Chrome while the failed CDP Chrome was still
+    # alive, which could exit immediately with TargetClosedError/0xC0000142.
+    # For Bilibili only, use Playwright's standard persistent profile directly.
+    if f"# {STARTUP_MARKER}: use standard persistent browser" not in text:
+        old = '''            # Choose launch mode based on configuration
+            if config.ENABLE_CDP_MODE:
+                utils.logger.info("[BilibiliCrawler] Launching browser using CDP mode")
+                self.browser_context = await self.launch_browser_with_cdp(
+                    playwright,
+                    playwright_proxy_format,
+                    self.user_agent,
+                    headless=config.CDP_HEADLESS,
+                )
+            else:
+                utils.logger.info("[BilibiliCrawler] Launching browser using standard mode")
+                # Launch a browser context.
+                chromium = playwright.chromium
+                self.browser_context = await self.launch_browser(chromium, None, self.user_agent, headless=config.HEADLESS)
+                # stealth.min.js is a js script to prevent the website from detecting the crawler.
+                await self.browser_context.add_init_script(path="libs/stealth.min.js")
+'''
+        new = f'''            # {STARTUP_MARKER}: use standard persistent browser.
+            # Bilibili's CDP bootstrap is intentionally skipped for this monitoring
+            # deployment because repeated /json/version HTTP 502 failures left a
+            # Chrome process alive and made the fallback browser unstable. This
+            # does not bypass login or verification; it only selects Playwright's
+            # normal persistent-context launch path.
+            utils.logger.info(
+                "[BILIBILI_BROWSER_STARTUP] using standard persistent browser mode; "
+                "CDP bootstrap skipped for Bilibili"
+            )
+            chromium = playwright.chromium
+            self.browser_context = await self.launch_browser(
+                chromium,
+                playwright_proxy_format,
+                self.user_agent,
+                headless=config.HEADLESS,
+            )
+            await self.browser_context.add_init_script(path="libs/stealth.min.js")
+'''
+        text = replace_once(text, old, new, "Bilibili browser startup mode")
+
+    # One bounded retry handles transient Chrome 0xC0000142 / TargetClosedError
+    # without changing the persistent profile that stores the official login.
+    if f"# {STARTUP_MARKER}: bounded persistent-context retry" not in text:
+        old = '''            browser_context = await chromium.launch_persistent_context(
+                user_data_dir=user_data_dir,
+                accept_downloads=True,
+                headless=headless,
+                proxy=playwright_proxy,  # type: ignore
+                viewport={
+                    "width": 1920,
+                    "height": 1080
+                },
+                user_agent=user_agent,
+                channel="chrome",  # Use system's stable Chrome version
+            )
+            return browser_context
+'''
+        new = f'''            # {STARTUP_MARKER}: bounded persistent-context retry.
+            _bili_launch_exc = None
+            for _bili_launch_attempt in range(2):
+                try:
+                    browser_context = await chromium.launch_persistent_context(
+                        user_data_dir=user_data_dir,
+                        accept_downloads=True,
+                        headless=headless,
+                        proxy=playwright_proxy,  # type: ignore
+                        viewport={{
+                            "width": 1920,
+                            "height": 1080
+                        }},
+                        user_agent=user_agent,
+                        channel="chrome",  # Use system's stable Chrome version
+                    )
+                    if _bili_launch_attempt:
+                        utils.logger.info(
+                            "[BILIBILI_BROWSER_STARTUP] persistent browser retry succeeded"
+                        )
+                    return browser_context
+                except TargetClosedError as _bili_launch_err:
+                    _bili_launch_exc = _bili_launch_err
+                    utils.logger.warning(
+                        f"[BILIBILI_BROWSER_STARTUP] persistent browser attempt="
+                        f"{{_bili_launch_attempt + 1}} failed type={{type(_bili_launch_err).__name__}}"
+                    )
+                    if _bili_launch_attempt < 1:
+                        await asyncio.sleep(2)
+            raise _bili_launch_exc
+'''
+        text = replace_once(text, old, new, "Bilibili persistent browser retry")
+
+    write_py(path, text)
 
 def patch_login(root: Path) -> None:
     path = root / "media_platform/bilibili/login.py"
@@ -186,7 +282,7 @@ def check(root: Path) -> dict:
     core = root / "media_platform/bilibili/core.py"
     login = root / "media_platform/bilibili/login.py"
     result = {
-        "patch_version": 1,
+        "patch_version": 2,
         "core_exists": core.exists(),
         "login_exists": login.exists(),
         "session_probe_retry": False,
@@ -194,6 +290,8 @@ def check(root: Path) -> dict:
         "selector_fallback": False,
         "bounded_click_timeout": False,
         "manual_login_marker": False,
+        "standard_browser_mode": False,
+        "persistent_launch_retry": False,
         "ok": False,
     }
     if not core.exists() or not login.exists():
@@ -223,12 +321,22 @@ def check(root: Path) -> dict:
             "BILIBILI_LOGIN_REQUIRED" in core_text
             and "BILIBILI_LOGIN_REQUIRED" in login_text
         )
+        result["standard_browser_mode"] = (
+            f"# {STARTUP_MARKER}: use standard persistent browser" in core_text
+            and "[BILIBILI_BROWSER_STARTUP] using standard persistent browser mode" in core_text
+        )
+        result["persistent_launch_retry"] = (
+            f"# {STARTUP_MARKER}: bounded persistent-context retry" in core_text
+            and "for _bili_launch_attempt in range(2):" in core_text
+        )
         result["ok"] = all([
             result["session_probe_retry"],
             result["existing_qr_detection"],
             result["selector_fallback"],
             result["bounded_click_timeout"],
             result["manual_login_marker"],
+            result["standard_browser_mode"],
+            result["persistent_launch_retry"],
         ])
     except Exception:
         pass
@@ -259,7 +367,7 @@ def main() -> int:
     print(json.dumps({
         "root": str(root),
         **result,
-        "purpose": "bounded_bilibili_session_probe_and_official_login_ui_resilience",
+        "purpose": "bilibili_standard_persistent_browser_plus_session_and_official_login_resilience",
     }, ensure_ascii=False, indent=2))
     return 0 if result.get("ok") else 3
 
