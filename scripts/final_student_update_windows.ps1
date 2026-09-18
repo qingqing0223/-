@@ -10,7 +10,10 @@ param(
     [switch]$Start,
     [switch]$ArchiveRaw,
     [string]$RawArchiveRepo = $env:PROMOTION_RAW_ARCHIVE_REPO,
-    [switch]$PrivateRepoConfirmed
+    [switch]$PrivateRepoConfirmed,
+    [switch]$ReviewSync,
+    [string]$ReviewRepo = $env:PROMOTION_REVIEW_REPO,
+    [switch]$PrivateReviewRepoConfirmed
 )
 
 $ErrorActionPreference = "Stop"
@@ -332,6 +335,13 @@ if ($Start) {
             $startArgs["PrivateRepoConfirmed"] = $true
         }
     }
+    if ($ReviewSync) {
+        $startArgs["ReviewSync"] = $true
+        $startArgs["ReviewRepo"] = $ReviewRepo
+        if ($PrivateReviewRepoConfirmed) {
+            $startArgs["PrivateReviewRepoConfirmed"] = $true
+        }
+    }
 
     & .\scripts\start_student_platform_windows.ps1 @startArgs
     exit $LASTEXITCODE
@@ -343,6 +353,11 @@ Write-Host ".\scripts\start_student_platform_windows.ps1 -Platform $Platform -No
 Write-Host ""
 Write-Host "After at least one fresh collection cycle, verify public-region persistence with:" -ForegroundColor Cyan
 Write-Host ".\scripts\check_public_region_acceptance_windows.ps1 -Platform $Platform -Config $Config" -ForegroundColor Green
+if ($ReviewSync) {
+    Write-Host "Realtime + private non-support review start command:" -ForegroundColor Cyan
+    Write-Host ".\scripts\start_student_platform_windows.ps1 -Platform $Platform -NodeId $NodeId -Config $Config -PushGithub -ReviewSync -ReviewRepo '$ReviewRepo' -PrivateReviewRepoConfirmed" -ForegroundColor Green
+}
+
 if ($ArchiveRaw) {
     Write-Host "Realtime + private raw archive start command:" -ForegroundColor Cyan
     Write-Host ".\scripts\start_student_platform_windows.ps1 -Platform $Platform -NodeId $NodeId -Config $Config -PushGithub -ArchiveRaw -RawArchiveRepo '$RawArchiveRepo' -PrivateRepoConfirmed" -ForegroundColor Green
