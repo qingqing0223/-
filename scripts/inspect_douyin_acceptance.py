@@ -179,13 +179,22 @@ def main() -> int:
     comment_regions = Counter()
     content_regions = Counter()
     country_code_only_ip_location_rows = 0
+    region_probe_values = Counter()
 
     for row in contents:
+        probe = row.get("_public_region_probe")
+        if isinstance(probe, dict):
+            for key, value in probe.items():
+                region_probe_values[f"content:{key}={value}"] += 1
         r = region(row)
         if r:
             content_regions[r] += 1
 
     for row in comments:
+        probe = row.get("_public_region_probe")
+        if isinstance(probe, dict):
+            for key, value in probe.items():
+                region_probe_values[f"comment:{key}={value}"] += 1
         raw_ip = str(row.get("ip_location") or "").strip()
         if re.fullmatch(r"[A-Za-z]{2,3}", raw_ip) or raw_ip in {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC"}:
             country_code_only_ip_location_rows += 1
@@ -344,6 +353,7 @@ def main() -> int:
         "warnings": warnings,
         "comment_schema_probe": schema_probe(comments),
         "content_schema_probe": schema_probe(contents),
+        "public_region_source_probe": dict(region_probe_values.most_common(40)),
         "privacy_note": "Only platform-displayed coarse IP-region labels are accepted; network IP addresses and precise coordinates are rejected.",
         "source_type_note": "Source type is the monitoring system reporting classification, not a claim of Douyin platform verification unless a separate public verification field is present.",
     }
