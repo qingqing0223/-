@@ -10,7 +10,8 @@ sys.path.insert(0, str(REPO_ROOT / "packages" / "v2"))
 
 from dashboard_adapter.suqi_pusher import _canonical_status_type as adapter_canonical
 from dashboard_adapter.suqi_pusher import to_suqi_record
-from monitor.result_summary import _attitude_bucket, _canonical_status_type
+from monitor.result_summary import _attitude_bucket, _canonical_status_type, _tri_class_bucket
+from pipeline.classifier import _tri_class_from_decision
 from opinion_monitor_v2.schema import ClassificationError, TYPE_BY_STATUS, validate_output
 
 
@@ -42,6 +43,19 @@ class OpinionMonitorV22TaxonomyTests(unittest.TestCase):
         self.assertEqual(_attitude_bucket("attention", "neutral"), "neutral")
         self.assertEqual(_attitude_bucket("attention", "information_gap"), "attention")
         self.assertEqual(_attitude_bucket("attention", "consultation"), "attention")
+
+    def test_three_class_review_mapping(self):
+        cases = {
+            "normal": "support",
+            "attention": "neutral",
+            "problematic": "non_support",
+        }
+        for status, expected in cases.items():
+            self.assertEqual(
+                _tri_class_from_decision({"status": status, "type": "support"}),
+                expected,
+            )
+            self.assertEqual(_tri_class_bucket(status), expected)
 
     def test_dashboard_receives_canonical_labels_for_legacy_rows(self):
         record = to_suqi_record({
