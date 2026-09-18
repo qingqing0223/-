@@ -6,7 +6,7 @@
 * ``stats_start``：只统计该时间点之后入库（collected_at）的记录；
   设为 off/空 表示不做时间过滤。
 * ``include_history``：=1 时恢复“第一阶段 data.js 基线 + 实时增量”的旧口径；
-  默认 0，即大屏不叠加静态页面基线；历史采集数据仍以数据库记录方式参与累计统计。
+  默认 0，即大屏只显示统计起点之后实际入库的数据，旧主题历史记录保留在库中但不参与展示。
 
 顶部 KPI、平台、地区、小时趋势、重点账号全部取自同一批入库记录，
 因此与采集端（--main）实际入库数量一致。
@@ -197,7 +197,7 @@ def compute_live_stats():
     sql = f"SELECT * FROM incidents WHERE status='accepted' AND COALESCE(origin,'') NOT IN ({placeholders})"
     params = list(EXCLUDED_LIVE_ORIGINS)
     if STATS_START:
-        sql += " AND (collected_at>=? OR origin='history')"
+        sql += " AND collected_at>=?"
         params.append(STATS_START)
     sql += " ORDER BY id DESC"
     rows = db.query_all(sql, params)
