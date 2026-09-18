@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T12:16:08+00:00",
+  "generated_at": "2026-09-18T12:16:44+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "single_node_passthrough",
@@ -63,13 +63,13 @@
       "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "wb01",
       "latest_node_id": "wb01",
-      "unique_records": 69,
+      "unique_records": 70,
       "comment_records": 3,
       "root_comment_records": 0,
       "reply_comment_records": 3,
       "region_records": 6,
       "comment_region_records": 0,
-      "latest_seen_time": "2026-09-18T20:03:00+08:00",
+      "latest_seen_time": "2026-09-18T20:13:00+08:00",
       "node_count": 1,
       "all_counting_nodes_have_fingerprints": true
     },
