@@ -108,6 +108,18 @@ if ($Platform -eq "bili") {
         Write-Host "ERROR: Bilibili AV/AID detail comment recovery verification failed. Monitor will NOT start." -ForegroundColor Red
         exit $LASTEXITCODE
     }
+
+    Write-Host "Applying Bilibili HTTP transport resilience patch..." -ForegroundColor Cyan
+    python .\scripts\patch_bilibili_network_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili HTTP transport resilience patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_bilibili_network_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili HTTP transport resilience verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 if ($Platform -eq "ks") {
