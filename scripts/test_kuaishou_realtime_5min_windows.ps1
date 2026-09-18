@@ -100,7 +100,12 @@ if ($runCode -ne 0) {
 }
 
 Write-Host ""
-Write-Host "[2/3] Inspecting five-minute + comments + hierarchy acceptance..." -ForegroundColor Cyan
+Write-Host "[2/3] Reprocessing the latest raw cycle, then inspecting comments + hierarchy acceptance..." -ForegroundColor Cyan
+python .\scripts\reprocess_kuaishou_latest_raw.py --config $TestConfig
+$reprocessCode = $LASTEXITCODE
+if ($reprocessCode -ne 0) {
+    Write-Host "Acceptance reprocess did not complete cleanly; inspector will use latest-raw structural fallback." -ForegroundColor Yellow
+}
 python .\scripts\inspect_kuaishou_acceptance.py --config $TestConfig
 $inspectCode = $LASTEXITCODE
 
