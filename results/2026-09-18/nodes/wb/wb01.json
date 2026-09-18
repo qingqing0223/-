@@ -6,14 +6,14 @@
   "results_date": "2026-09-18",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-18T14:23:09+08:00",
+  "generated_at": "2026-09-18T14:28:25+08:00",
   "sync_target_seconds": 300,
   "data_roots": [
     "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb"
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T14:23:09+08:00",
+    "generated_at": "2026-09-18T14:28:25+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T13:25:12+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -948,11 +948,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
-        "cycle_finished_at": "2026-09-18T13:56:28+08:00",
+        "cycle_finished_at": "2026-09-18T14:23:48+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 646.61,
+        "duration_seconds": 1338.59,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -978,59 +978,6 @@
       "cycle": "20260918_140128",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
       "jsonl_files": [
-        {
-          "kind": "content",
-          "name": "detail_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_140128/wb_20260918_140128/weibo/jsonl/detail_contents_2026-09-18.jsonl",
-          "bytes": 2412,
-          "rows": 1,
-          "sha256": "28c458542116638724a07bd8420058ab93de89786a7eaadb04be51615add9858",
-          "modified_at": "2026-09-18T14:23:03+08:00",
-          "sanitized_schema_samples": [
-            {
-              "fields": [
-                "comments_count",
-                "content",
-                "create_date_time",
-                "create_time",
-                "creator_hash",
-                "ip_location",
-                "last_modify_ts",
-                "liked_count",
-                "nickname",
-                "note_id",
-                "note_url",
-                "shared_count",
-                "source_keyword"
-              ],
-              "field_types": {
-                "note_id": "str",
-                "content": "str",
-                "create_time": "int",
-                "create_date_time": "str",
-                "liked_count": "str",
-                "comments_count": "str",
-                "shared_count": "str",
-                "last_modify_ts": "int",
-                "note_url": "str",
-                "creator_hash": "str",
-                "nickname": "str",
-                "source_keyword": "str",
-                "ip_location": "str"
-              },
-              "stable_id_hashes": {
-                "note_id": "29954d379740b6be1c15"
-              },
-              "safe_values": {
-                "comments_count": "0",
-                "liked_count": "0",
-                "create_time": 1782953137,
-                "last_modify_ts": 1789712583486
-              },
-              "nested_fields": {}
-            }
-          ]
-        },
         {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
@@ -1262,14 +1209,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260918_140128/wb_20260918_140128/stderr.log",
-          "bytes": 93769,
-          "sha256": "aeaa9403f0ffcf0f63890000b07a4ec8a780de442aa96978cc5b4f8c572e28e4"
+          "bytes": 95655,
+          "sha256": "cf6b0f514847bc91f30d03a8c2c590fd8baba37e35f4684fcb51bbd9bdcb279f"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260918_140128/wb_20260918_140128/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 361,
+          "sha256": "7ef71d3a78788b8e791a42d5f6aad5b53edef1696980f6b2e96b8fd8d782df79"
         }
       ]
     }
