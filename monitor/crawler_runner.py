@@ -290,6 +290,16 @@ def _classify_state(
         "cards=[]",
     )
 
+    recovered_transport_markers = (
+        "fallback to standard mode",
+        "回退到标准模式",
+        "continued after main navigation commit",
+    )
+    clean_completion_markers = (
+        "crawler finished",
+        "douyin crawler finished",
+    )
+
     # A zero process exit plus valid persisted data means the collector recovered
     # successfully.  Startup/fallback warnings (for example a CDP 502 followed by
     # a healthy standard-Playwright run) must not downgrade the whole cycle to a
@@ -306,6 +316,19 @@ def _classify_state(
         return "VERIFY_REQUIRED"
     if any(marker in text for marker in login_markers):
         return "LOGIN_REQUIRED"
+
+    # A startup transport warning that was explicitly recovered (for example,
+    # Douyin CDP HTTP 502 followed by a successful fallback to standard mode)
+    # must not turn a clean zero-row search into NETWORK_ERROR.  When the
+    # collector exits 0 and logs both the recovery and a normal completion,
+    # treat the cycle as a legitimate soft-empty probe.
+    if (
+        return_code == 0
+        and any(marker in text for marker in recovered_transport_markers)
+        and any(marker in text for marker in clean_completion_markers)
+    ):
+        return "SOFT_EMPTY"
+
     if any(marker in text for marker in network_markers):
         return "NETWORK_ERROR"
 
