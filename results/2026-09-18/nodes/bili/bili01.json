@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "bili01",
   "platform": "bili",
-  "generated_at": "2026-09-18T19:27:01+08:00",
+  "generated_at": "2026-09-18T19:32:15+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "518c34d91a5b476d4ca30c1e92d802e0270041d0",
+    "repo_head": "d5c190ef7a0aebda9f662893f0d3bf466839005e",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T19:27:01+08:00",
+    "generated_at": "2026-09-18T19:32:15+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T18:56:53+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -449,11 +449,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
-        "cycle_finished_at": "2026-09-18T19:26:52+08:00",
+        "cycle_finished_at": "2026-09-18T19:32:01+08:00",
         "crawler_status": "ok",
         "crawler_state": "SUCCESS",
         "return_code": 0,
-        "duration_seconds": 97.03,
+        "duration_seconds": 105.57,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -1466,17 +1466,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_192515",
+      "cycle": "20260918_193015",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_bili",
       "jsonl_files": [
         {
           "kind": "comment",
           "name": "detail_comments_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_192515/bili_20260918_192515/bili/jsonl/detail_comments_2026-09-18.jsonl",
-          "bytes": 7166,
-          "rows": 20,
-          "sha256": "3ad7b257f9df97fd1844bd2d2cac60d93184b9fc7231ea00593bfd0b5b5ba66f",
-          "modified_at": "2026-09-18T19:26:49+08:00",
+          "relative_path": "raw_runs/20260918_193015/bili_20260918_193015/bili/jsonl/detail_comments_2026-09-18.jsonl",
+          "bytes": 9021,
+          "rows": 26,
+          "sha256": "0bce3a0356146621db06ec983a855822673ea17e4ed9d66041ca49f70c6f2394",
+          "modified_at": "2026-09-18T19:31:58+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1506,16 +1506,16 @@
                 "ip_location": "str"
               },
               "stable_id_hashes": {
-                "comment_id": "65aa4768f3a95ca38473",
-                "parent_comment_id": "15fe1c43bf0e83ee6194",
-                "video_id": "ae5a3c5ca3705c22235c"
+                "comment_id": "870efbf709fc96a8c70d",
+                "parent_comment_id": "933ed9de575764b77d6f",
+                "video_id": "1b21f28e51d6cd3a0aa6"
               },
               "safe_values": {
-                "ip_location": "黑龙江",
+                "ip_location": "云南",
                 "sub_comment_count": "0",
-                "like_count": 1,
-                "create_time": 1789728567,
-                "last_modify_ts": 1789730809504
+                "like_count": 7,
+                "create_time": 1788682243,
+                "last_modify_ts": 1789731112451
               },
               "nested_fields": {}
             },
@@ -1547,57 +1547,16 @@
                 "ip_location": "str"
               },
               "stable_id_hashes": {
-                "comment_id": "822c591d0578d6ebfe7b",
-                "parent_comment_id": "15fe1c43bf0e83ee6194",
-                "video_id": "ae5a3c5ca3705c22235c"
+                "comment_id": "368c9a9a1950660397f0",
+                "parent_comment_id": "acdfd970affe09f0b002",
+                "video_id": "1b21f28e51d6cd3a0aa6"
               },
               "safe_values": {
-                "ip_location": "河北",
-                "sub_comment_count": "0",
-                "like_count": 1,
-                "create_time": 1789726768,
-                "last_modify_ts": 1789730809510
-              },
-              "nested_fields": {}
-            },
-            {
-              "fields": [
-                "comment_id",
-                "content",
-                "create_time",
-                "creator_hash",
-                "ip_location",
-                "last_modify_ts",
-                "like_count",
-                "nickname",
-                "parent_comment_id",
-                "sub_comment_count",
-                "video_id"
-              ],
-              "field_types": {
-                "comment_id": "str",
-                "parent_comment_id": "str",
-                "create_time": "int",
-                "video_id": "str",
-                "content": "str",
-                "creator_hash": "str",
-                "nickname": "str",
-                "sub_comment_count": "str",
-                "like_count": "int",
-                "last_modify_ts": "int",
-                "ip_location": "str"
-              },
-              "stable_id_hashes": {
-                "comment_id": "9c3858ad5f00057ac253",
-                "parent_comment_id": "15fe1c43bf0e83ee6194",
-                "video_id": "ae5a3c5ca3705c22235c"
-              },
-              "safe_values": {
-                "ip_location": "安徽",
+                "ip_location": "江苏",
                 "sub_comment_count": "0",
                 "like_count": 0,
-                "create_time": 1789726241,
-                "last_modify_ts": 1789730809515
+                "create_time": 1788682387,
+                "last_modify_ts": 1789731112456
               },
               "nested_fields": {}
             },
@@ -1629,16 +1588,16 @@
                 "ip_location": "str"
               },
               "stable_id_hashes": {
-                "comment_id": "0ee17ba60d9975507369",
-                "parent_comment_id": "15fe1c43bf0e83ee6194",
-                "video_id": "ae5a3c5ca3705c22235c"
+                "comment_id": "847b1ca5758a7f6aef03",
+                "parent_comment_id": "d993b380d58952b13aa0",
+                "video_id": "1b21f28e51d6cd3a0aa6"
               },
               "safe_values": {
-                "ip_location": "辽宁",
+                "ip_location": "江苏",
                 "sub_comment_count": "0",
-                "like_count": 4,
-                "create_time": 1789725011,
-                "last_modify_ts": 1789730809519
+                "like_count": 19,
+                "create_time": 1788593727,
+                "last_modify_ts": 1789731116056
               },
               "nested_fields": {}
             },
@@ -1670,16 +1629,57 @@
                 "ip_location": "str"
               },
               "stable_id_hashes": {
-                "comment_id": "d2fb906141d061f84ea7",
-                "parent_comment_id": "15fe1c43bf0e83ee6194",
-                "video_id": "ae5a3c5ca3705c22235c"
+                "comment_id": "6d5abc0cc72e7995ca31",
+                "parent_comment_id": "782e0a489202befcfb78",
+                "video_id": "1b21f28e51d6cd3a0aa6"
               },
               "safe_values": {
-                "ip_location": "四川",
+                "ip_location": "重庆",
                 "sub_comment_count": "0",
-                "like_count": 1,
-                "create_time": 1789713249,
-                "last_modify_ts": 1789730809521
+                "like_count": 16,
+                "create_time": 1788599078,
+                "last_modify_ts": 1789731116059
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "like_count",
+                "nickname",
+                "parent_comment_id",
+                "sub_comment_count",
+                "video_id"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "parent_comment_id": "str",
+                "create_time": "int",
+                "video_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "like_count": "int",
+                "last_modify_ts": "int",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "91eea115be658db9e1a5",
+                "parent_comment_id": "d993b380d58952b13aa0",
+                "video_id": "1b21f28e51d6cd3a0aa6"
+              },
+              "safe_values": {
+                "ip_location": "浙江",
+                "sub_comment_count": "0",
+                "like_count": 3,
+                "create_time": 1788642136,
+                "last_modify_ts": 1789731116061
               },
               "nested_fields": {}
             }
@@ -1688,11 +1688,11 @@
         {
           "kind": "content",
           "name": "detail_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_192515/bili_20260918_192515/bili/jsonl/detail_contents_2026-09-18.jsonl",
-          "bytes": 975,
+          "relative_path": "raw_runs/20260918_193015/bili_20260918_193015/bili/jsonl/detail_contents_2026-09-18.jsonl",
+          "bytes": 1162,
           "rows": 1,
-          "sha256": "feb22b78cda59d22ef76fa91cd2baa8ce72c0022f569b921487188ecdaff5219",
-          "modified_at": "2026-09-18T19:26:45+08:00",
+          "sha256": "71cc2fd87d7b6c7192023ca84dfc64b808403cd695ed5876af38671f712dc385",
+          "modified_at": "2026-09-18T19:31:47+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1740,13 +1740,13 @@
                 "ip_location": "str"
               },
               "stable_id_hashes": {
-                "video_id": "ae5a3c5ca3705c22235c"
+                "video_id": "1b21f28e51d6cd3a0aa6"
               },
               "safe_values": {
-                "video_comment": "3928",
+                "video_comment": "13600",
                 "liked_count": "",
-                "create_time": 1758124800,
-                "last_modify_ts": 1789730805956
+                "create_time": 1624685098,
+                "last_modify_ts": 1789731107244
               },
               "nested_fields": {}
             }
@@ -1755,11 +1755,11 @@
         {
           "kind": "content",
           "name": "search_contents_2026-09-18.jsonl",
-          "relative_path": "raw_runs/20260918_192515/bili_20260918_192515/bili/jsonl/search_contents_2026-09-18.jsonl",
+          "relative_path": "raw_runs/20260918_193015/bili_20260918_193015/bili/jsonl/search_contents_2026-09-18.jsonl",
           "bytes": 32572,
           "rows": 30,
-          "sha256": "9881ddc53fe92e07548c9ae2f94fc7eb8c8d70dc4d45ce036099826ccf04d24f",
-          "modified_at": "2026-09-18T19:26:32+08:00",
+          "sha256": "8b2eab69ede4139e9005562a6c13c06eccd998230566e40c17498f70c6a83d37",
+          "modified_at": "2026-09-18T19:31:34+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -1813,7 +1813,7 @@
                 "video_comment": "4",
                 "liked_count": "46",
                 "create_time": 1768041945,
-                "last_modify_ts": 1789730731871,
+                "last_modify_ts": 1789731032174,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -1870,7 +1870,7 @@
                 "video_comment": "44",
                 "liked_count": "1294",
                 "create_time": 1703818658,
-                "last_modify_ts": 1789730731874,
+                "last_modify_ts": 1789731032184,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -1927,7 +1927,7 @@
                 "video_comment": "1",
                 "liked_count": "18",
                 "create_time": 1787462961,
-                "last_modify_ts": 1789730731880,
+                "last_modify_ts": 1789731032187,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -1984,7 +1984,7 @@
                 "video_comment": "0",
                 "liked_count": "12",
                 "create_time": 1789560000,
-                "last_modify_ts": 1789730731882,
+                "last_modify_ts": 1789731032191,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -2041,7 +2041,7 @@
                 "video_comment": "10",
                 "liked_count": "58",
                 "create_time": 1786108896,
-                "last_modify_ts": 1789730731885,
+                "last_modify_ts": 1789731032194,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -2052,13 +2052,13 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_192515/bili_20260918_192515/stderr.log",
-          "bytes": 26579,
-          "sha256": "fa63026b800498ba7c4f6596d18bdb5a531d14e23f374288390a679f98c25b8a"
+          "relative_path": "raw_runs/20260918_193015/bili_20260918_193015/stderr.log",
+          "bytes": 28003,
+          "sha256": "5f63c1b05d2534eeb67fc286b22f1eda7d8be8dd9744916ef13d6b5b1fd94c4b"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_192515/bili_20260918_192515/stdout.log",
+          "relative_path": "raw_runs/20260918_193015/bili_20260918_193015/stdout.log",
           "bytes": 162,
           "sha256": "4d2614d7a4222299e49b63e1d767b6b7f78f5391733f6c08e8176cd1b387291c"
         }
