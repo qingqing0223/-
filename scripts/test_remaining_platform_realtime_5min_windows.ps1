@@ -71,6 +71,26 @@ if ($Platform -eq "wb") {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
+if ($Platform -eq "tieba") {
+    Write-Host "Applying/verifying Tieba bounded realtime patch..." -ForegroundColor Cyan
+    python .\scripts\patch_tieba_realtime_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_tieba_realtime_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying/verifying Tieba comment hierarchy patch..." -ForegroundColor Cyan
+    python .\scripts\patch_tieba_comment_hierarchy.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_tieba_comment_hierarchy.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Verifying Tieba strict public-region persistence..." -ForegroundColor Cyan
+    python .\scripts\patch_tieba_public_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_tieba_public_regions.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+
 function Set-ConfigProperty($obj, [string]$name, $value) {
     if ($obj.PSObject.Properties.Name -contains $name) {
         $obj.$name = $value
@@ -83,7 +103,7 @@ $policy = @{
     "xhs"   = @{ Budget = 55; Timeout = 45;  CommentCap = 100 }
     "bili"  = @{ Budget = 70; Timeout = 100; CommentCap = 300 }
     "wb"    = @{ Budget = 50; Timeout = 40;  CommentCap = 100 }
-    "tieba" = @{ Budget = 60; Timeout = 90;  CommentCap = 300 }
+    "tieba" = @{ Budget = 55; Timeout = 45;  CommentCap = 100 }
     "zhihu" = @{ Budget = 60; Timeout = 90;  CommentCap = 200 }
 }
 $p = $policy[$Platform]
@@ -134,6 +154,19 @@ if ($Platform -eq "xhs") {
     Set-ConfigProperty $cfg "xhs_realtime_max_comments_per_video" 100
     Set-ConfigProperty $cfg "classifier_concurrency" 12
     Set-ConfigProperty $cfg "network_error_cooldown_seconds" 600
+    Set-ConfigProperty $cfg "overrun_cooldown_seconds" 120
+}
+if ($Platform -eq "tieba") {
+    Set-ConfigProperty $cfg "tieba_realtime_discovery_max_notes_count" 10
+    Set-ConfigProperty $cfg "tieba_realtime_items_per_keyword" 4
+    Set-ConfigProperty $cfg "tieba_realtime_search_timeout_seconds" 120
+    Set-ConfigProperty $cfg "tieba_realtime_detail_max_items_per_cycle" 2
+    Set-ConfigProperty $cfg "tieba_realtime_detail_budget_seconds" 55
+    Set-ConfigProperty $cfg "tieba_realtime_candidate_timeout_seconds" 45
+    Set-ConfigProperty $cfg "tieba_realtime_max_comments_per_video" 100
+    Set-ConfigProperty $cfg "tieba_realtime_subcomment_root_cap" 3
+    Set-ConfigProperty $cfg "tieba_realtime_subcomment_page_cap" 1
+    Set-ConfigProperty $cfg "classifier_concurrency" 12
     Set-ConfigProperty $cfg "overrun_cooldown_seconds" 120
 }
 if ($Platform -eq "wb") {
