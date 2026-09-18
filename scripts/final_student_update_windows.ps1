@@ -84,6 +84,44 @@ if ($Platform -eq "dy") {
     }
 }
 
+if ($Platform -eq "xhs") {
+    Write-Host "Applying XHS bounded realtime / verification-stop patch..." -ForegroundColor Cyan
+    python .\scripts\patch_xhs_realtime_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: XHS realtime resilience patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_xhs_realtime_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: XHS realtime resilience verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying XHS first-level/nested comment hierarchy patch..." -ForegroundColor Cyan
+    python .\scripts\patch_xhs_comment_hierarchy.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: XHS comment hierarchy patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_xhs_comment_hierarchy.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: XHS comment hierarchy verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying XHS strict public-region persistence patch..." -ForegroundColor Cyan
+    python .\scripts\patch_xhs_public_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: XHS public-region patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_xhs_public_regions.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: XHS public-region verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
+
 if ($Platform -eq "wb") {
     Write-Host "Applying Weibo bounded realtime / anti-abuse stop patch..." -ForegroundColor Cyan
     python .\scripts\patch_weibo_realtime_resilience.py --root $MediaCrawlerRoot
