@@ -6,10 +6,10 @@
   "results_date": "2026-09-18",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-18T22:57:46+08:00",
+  "generated_at": "2026-09-18T23:02:56+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "af3f2fd5c6d885d3c1c5ecdd9c528178df309b38",
+    "repo_head": "2c6367867baeee6ec14258d6e25e07f7685d9487",
     "repo_branch": "main",
     "douyin_request_profile_v2": true,
     "douyin_startup_resilience": true,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-18T22:57:46+08:00",
+    "generated_at": "2026-09-18T23:02:56+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-18T07:10:52+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -897,11 +897,11 @@
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-18T22:52:57+08:00",
+        "cycle_finished_at": "2026-09-18T22:58:02+08:00",
         "crawler_status": "ok",
         "crawler_state": "SOFT_EMPTY",
         "return_code": 0,
-        "duration_seconds": 34.57,
+        "duration_seconds": 39.45,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -12496,19 +12496,19 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260918_225723",
+      "cycle": "20260918_230223",
       "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
       "jsonl_files": [],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260918_225723/dy_20260918_225723/stderr.log",
-          "bytes": 1909,
-          "sha256": "8bc458f50a36ee44b294c7807c08b8f7a8b07c9ef08eea5368b3cd274eba4b6a"
+          "relative_path": "raw_runs/20260918_230223/dy_20260918_230223/stderr.log",
+          "bytes": 3221,
+          "sha256": "d0138673689f6676fba8d1fb5e3420f61d9835a8b2924f032cd686f02e6f9fd6"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260918_225723/dy_20260918_225723/stdout.log",
+          "relative_path": "raw_runs/20260918_230223/dy_20260918_230223/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
