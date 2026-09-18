@@ -234,6 +234,44 @@ if ($Platform -eq "bili") {
     }
 }
 
+if ($Platform -eq "tieba") {
+    Write-Host "Applying Tieba bounded realtime patch..." -ForegroundColor Cyan
+    python .\scripts\patch_tieba_realtime_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Tieba realtime resilience patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_tieba_realtime_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Tieba realtime resilience verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Tieba first-level/nested comment hierarchy patch..." -ForegroundColor Cyan
+    python .\scripts\patch_tieba_comment_hierarchy.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Tieba comment hierarchy patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_tieba_comment_hierarchy.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Tieba comment hierarchy verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Tieba strict public-region persistence patch..." -ForegroundColor Cyan
+    python .\scripts\patch_tieba_public_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Tieba public-region patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_tieba_public_regions.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Tieba public-region verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
+
 if ($Platform -eq "ks") {
     Write-Host "Applying Kuaishou public comment-region recovery patch..." -ForegroundColor Cyan
     python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot
