@@ -25,6 +25,8 @@ from config import BASE_DATA_JS, INCLUDE_HISTORY_BASELINE, PHASE_LABEL, STATS_ST
 HOUR_LOOKBACK_LIMIT = 24 * 15
 QUOTE_LIMIT = 1500
 KEY_ACCOUNT_LIMIT = 30
+EXCLUDED_LIVE_ORIGINS = ("history", "simulator", "demo")
+RISK_LIMIT = 80
 
 # 固定关注的 10 个重点地区：五个自治区 + 北京、上海、广州、武汉、哈尔滨
 # 省/自治区按省级字段匹配；广州/武汉/哈尔滨是城市，同时接受地区文本命中。
@@ -146,6 +148,13 @@ def _category_key(category):
     }.get(category)
 
 
+def _is_risk_row(row, bucket, category):
+    if bucket == "non_support":
+        return True
+    text = " ".join(str(row.get(k) or "") for k in ("text", "attitude", "issue_category", "notes"))
+    return any(k in text for k in ("风险", "质疑", "担忧", "投诉", "维权", "歧视", "偏见", "批评", "负面", "舆情"))
+
+
 def _focus_names(row):
     hay = " ".join(str(row.get(k) or "") for k in ("province", "city", "region", "ip_location"))
     if not hay.strip():
@@ -184,8 +193,9 @@ def _empty_base():
 
 
 def compute_live_stats():
-    sql = "SELECT * FROM incidents WHERE status='accepted' AND origin<>'history'"
-    params = []
+    placeholders = ",".join("?" for _ in EXCLUDED_LIVE_ORIGINS)
+    sql = f"SELECT * FROM incidents WHERE status='accepted' AND COALESCE(origin,'') NOT IN ({placeholders})"
+    params = list(EXCLUDED_LIVE_ORIGINS)
     if STATS_START:
         sql += " AND collected_at>=?"
         params.append(STATS_START)
@@ -212,6 +222,7 @@ def compute_live_stats():
     hourly = {}
     nonsup = {}
     hot = []
+    risks = []
     focus = {spec["name"]: _focus_bucket(spec) for spec in FOCUS_REGIONS}
     key_accounts = {}
     region_names = set()
@@ -224,6 +235,7 @@ def compute_live_stats():
         likes = _int(r["likes"])
         comments = _int(r["comments"])
         shares = _int(r["shares"])
+        is_risk = _is_risk_row(r, bucket, category)
 
         acc["total"] += 1
         _add_num(acc, bucket, 1)
@@ -362,6 +374,9 @@ def compute_live_stats():
                 "date": day,
             })
 
+        if is_risk:
+            risks.append(r)
+
         # 重点账号 / 大V 传播监测（is_key=1，或由 creator 监测接口写入）
         origin = str(r["origin"] or "").strip().lower()
         if r["is_key"] or origin in KEY_ACCOUNT_ORIGINS:
@@ -403,6 +418,7 @@ def compute_live_stats():
         fr["topPlatform"] = top[0][0] if top else ""
 
     hot.sort(key=lambda x: x["likes"], reverse=True)
+    risks.sort(key=lambda x: str(x.get("collected_at") or ""), reverse=True)
     key_rows = sorted(
         key_accounts.values(),
         key=lambda x: (x["posts"], x["heat"], x["likes"]),
@@ -431,6 +447,7 @@ def compute_live_stats():
         "hourly_rows": build_hourly_rows(hourly),
         "nonSupport": nonsup,
         "hot": hot,
+        "risks": risks[:RISK_LIMIT],
         "pending": db.query_one("SELECT COUNT(*) AS n FROM incidents WHERE status='pending'")["n"],
         "rows": rows,
     }
@@ -474,6 +491,8 @@ def row_to_quote(r):
         "city": r.get("city") or "",
         "group": r["region"] or "",
         "attitude": r["attitude"] or "",
+        "attitudeBucket": r.get("attitude_bucket") or "",
+        "issueCategory": r.get("issue_category") or "",
         "text": r["text"] or "",
         "date": (r["published_at"] or "")[:10],
         "hour": _hour_key(r.get("collected_at")),
@@ -624,6 +643,7 @@ def build_bootstrap():
     base["unknownPlatforms"] = live["unknown_platforms"]
     base["focusRegions"] = live["focus"]
     base["keyAccounts"] = live["key_accounts"]
+    base["riskItems"] = [row_to_quote(r) for r in live["risks"]]
     base["trendHourly"] = live["hourly_rows"]
     base["phase"] = {
         "label": PHASE_LABEL,

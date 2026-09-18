@@ -75,8 +75,8 @@ INCLUDE_HISTORY_BASELINE = str(
 ).strip().lower() in ("1", "true", "yes", "y", "是", "on")
 PHASE_LABEL = str(_PHASE.get("label") or "预热阶段").strip() or "预热阶段"
 
-# 模拟采集器（演示用，验证整条实时链路）
-SIM_ENABLED = os.getenv("LIVE_SIM_ENABLED", "1") == "1"
+# 模拟采集器只用于链路演示。正式大屏默认关闭，避免混入实时统计。
+SIM_ENABLED = os.getenv("LIVE_SIM_ENABLED", "0") == "1"
 SIM_INTERVAL = int(os.getenv("LIVE_SIM_INTERVAL", "12"))
 SIM_BATCH_MIN = int(os.getenv("LIVE_SIM_BATCH_MIN", "1"))
 SIM_BATCH_MAX = int(os.getenv("LIVE_SIM_BATCH_MAX", "3"))
@@ -164,6 +164,9 @@ HEARTBEAT_INTERVAL = int(os.getenv("LIVE_HEARTBEAT_INTERVAL", "15"))
 # 开启后采集到的新数据立即走 SSE 推送；各采集器仍按自身 interval 轮询。
 LIVE_PLATFORM_ENABLED = os.getenv("LIVE_PLATFORM_ENABLED", "0") == "1"
 LIVE_PLATFORM_POLL = int(os.getenv("LIVE_PLATFORM_POLL", "10"))
+
+# 历史基线只用于离线演示/回放。正式实时大屏默认不迁入 data.js 历史数据。
+LIVE_MIGRATE_HISTORY = os.getenv("LIVE_MIGRATE_HISTORY", "0") == "1"
 
 PLATFORM_GROUPS = [
     "微博/热榜",

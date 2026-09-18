@@ -18,6 +18,7 @@ from config import (
     FILE_WATCH_INTERVAL,
     HEARTBEAT_INTERVAL,
     HOST,
+    LIVE_MIGRATE_HISTORY,
     LIVE_PLATFORM_ENABLED,
     LIVE_PLATFORM_POLL,
     PORT,
@@ -317,7 +318,10 @@ def main():
         print("[init] 重置数据库…")
         db.reset_db()
     db.init_db()
-    migrate_history.migrate(force=args.reset)
+    if LIVE_MIGRATE_HISTORY:
+        migrate_history.migrate(force=args.reset)
+    else:
+        print("[migrate] 历史基线迁移已关闭（LIVE_MIGRATE_HISTORY=1 可开启）")
 
     if args.selftest:
         print("[selftest] 开始自检（不监听端口）…")

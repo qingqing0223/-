@@ -35,7 +35,7 @@
     .main{position:relative;min-height:0;overflow:hidden;border:1px solid rgba(127,197,236,.14);border-radius:8px;background:rgba(4,15,29,.28)}
     .rail{position:absolute;top:5px;bottom:5px;z-index:5;display:grid;grid-template-rows:minmax(0,1fr) 110px;gap:5px;min-height:0}
     .rail-left{left:5px;width:286px;grid-template-rows:minmax(0,1fr) 230px}.rail-right{right:5px;width:318px;grid-template-rows:minmax(0,1.15fr) minmax(0,.85fr)}
-    .bottom{display:grid;grid-template-columns:1.16fr 1fr 1fr 1.16fr;gap:6px;min-height:0}
+    .bottom{display:grid;grid-template-columns:1.08fr .92fr 1fr 1fr 1.08fr;gap:6px;min-height:0}
     .panel{display:flex;flex-direction:column;overflow:hidden;background:rgba(12,32,49,.72)}
     .panel-title{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px 0;min-width:0}
     .timeline-title{display:grid;grid-template-columns:minmax(0,1fr) 126px minmax(0,1fr);align-items:center;gap:8px}
@@ -63,7 +63,7 @@
     .feed{display:flex;flex-direction:column;gap:5px;min-height:0;overflow:hidden}
     .feed-item{padding:7px 8px;border:1px solid rgba(119,190,226,.16);background:linear-gradient(180deg,rgba(15,42,64,.82),rgba(8,25,40,.88));border-radius:7px;min-height:0;flex:1}
     .feed-head{display:flex;align-items:center;gap:7px;color:#a9d8ef;font-size:10px;white-space:nowrap;overflow:hidden}
-    .feed-head span{overflow:hidden;text-overflow:ellipsis}.feed-head b{margin-left:auto;color:var(--hot);font-weight:700;flex:0 0 auto}
+    .feed-head span{overflow:hidden;text-overflow:ellipsis}
     .feed-item p{margin:4px 0 0;color:#f4fbff;font-size:10px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
     .empty{padding:12px;color:var(--muted);font-size:11px;text-align:center}
     .map-panel{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;overflow:hidden;border:0;background:transparent;box-shadow:none}
@@ -82,6 +82,7 @@
     .toggle{border:1px solid rgba(127,197,236,.34);background:rgba(24,68,100,.72);color:#cdeeff;border-radius:999px;padding:3px 9px;font:inherit;font-size:10px;line-height:1.2;cursor:pointer}
     .toggle.paused{color:var(--hot);border-color:rgba(255,207,102,.55);background:rgba(76,55,18,.65)}
     .lang-box{display:grid;grid-template-rows:minmax(0,.76fr) minmax(0,1fr);gap:4px;flex:1;min-height:0;padding:4px 6px 6px}
+    .risk-feed{padding:6px}
     .lang-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;min-height:0}
     .lang-card{border:1px solid rgba(127,197,236,.16);background:rgba(11,35,58,.68);border-radius:7px;padding:6px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
     .lang-card.active{border-color:rgba(255,207,102,.56);background:rgba(56,45,20,.72)}.lang-card b{display:block;font-size:12px}.lang-card em{font-style:normal;font-size:11px;color:#ffcf66}.lang-card span{display:none}
@@ -101,7 +102,7 @@
     .kacct-row .num{text-align:right;font-size:11px;color:#d8f0ff;white-space:nowrap}
     .kacct-row .num.hot{color:var(--hot);font-weight:700}
     .kacct-empty{display:grid;place-items:center;flex:1;min-height:0;padding:8px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7}
-    @media(max-width:1500px){.screen{grid-template-rows:32px 34px minmax(0,1fr) 184px}.rail{grid-template-rows:minmax(0,1fr) 100px}.rail-left{width:260px;grid-template-rows:minmax(0,1fr) 205px}.rail-right{width:292px;grid-template-rows:minmax(0,1.15fr) minmax(0,.85fr)}.map-head{left:276px}.title{padding:0 22px}.title h1{font-size:20px}.title::before,.title::after{width:38px}.bottom{grid-template-columns:1.1fr 1fr 1fr 1.1fr}.split>div:first-child .chart{min-height:126px}.kpi span{font-size:11px}.kpi b{font-size:14px}}
+    @media(max-width:1500px){.screen{grid-template-rows:32px 34px minmax(0,1fr) 184px}.rail{grid-template-rows:minmax(0,1fr) 100px}.rail-left{width:260px;grid-template-rows:minmax(0,1fr) 205px}.rail-right{width:292px;grid-template-rows:minmax(0,1.15fr) minmax(0,.85fr)}.map-head{left:276px}.title{padding:0 22px}.title h1{font-size:20px}.title::before,.title::after{width:38px}.bottom{grid-template-columns:1.05fr .9fr 1fr 1fr 1.05fr}.split>div:first-child .chart{min-height:126px}.kpi span{font-size:11px}.kpi b{font-size:14px}}
   </style>
 </head>
 <body>
@@ -159,6 +160,10 @@
       <section class="panel">
         <div class="panel-title"><h2>重点账号/大V传播监测</h2><span id="keyAccountTag"></span></div>
         <div id="keyAccountList" class="kacct"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-title"><h2>风险信息</h2><span id="riskTag"></span></div>
+        <div id="riskFeed" class="feed risk-feed"></div>
       </section>
       <section class="panel">
         <div class="panel-title"><h2>少数民族语言聚焦</h2><span id="languageTag"></span></div>
@@ -223,8 +228,7 @@
         return Promise.resolve(window.DASH_DATA);
       }
       return fetch("/api/bootstrap",{cache:"no-store"})
-        .then(r=>{if(!r.ok)throw new Error("API "+r.status);return r.json()})
-        .catch(()=>Promise.resolve(window.DASH_DATA));
+        .then(r=>{if(!r.ok)throw new Error("API "+r.status);return r.json()});
     }
     let liveItems=[];
     let refreshTimer=null;
@@ -242,6 +246,7 @@
           if(!data)return;
           D=data;
           liveItems=(data.live&&data.live.incidents||[]).slice(0,50);
+          renderPhaseTag();
           renderAll();
         }).catch(()=>{});
       },600);
@@ -490,7 +495,7 @@
     function renderFeed(id,rows,emptyText,count){
       const box=$(id);
       const items=pickLatest(byTimeline(rows),count);
-      box.innerHTML=items.length?items.map(q=>`<article class="feed-item"><div class="feed-head"><span>${q.collectedAt||q.date||"样本"}</span><span>${q.platform||"未标注平台"}</span><span>${q.region||q.group||"未标注地区"}</span><b>${q.attitude||"态度"}</b></div><p>${escapeHtml(q.text||"")}</p></article>`).join(""):`<div class="empty">${emptyText}</div>`;
+      box.innerHTML=items.length?items.map(q=>`<article class="feed-item"><div class="feed-head"><span>${q.collectedAt||q.date||"样本"}</span><span>${q.platform||"未标注平台"}</span><span>${q.region||q.group||"未标注地区"}</span></div><p>${escapeHtml(q.text||"")}</p></article>`).join(""):`<div class="empty">${emptyText}</div>`;
     }
     function escapeHtml(text){
       return String(text).replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
@@ -523,7 +528,7 @@
       $("regionMeta").innerHTML=[
         ["重点地区",rows.length+" 个"],
         ["累计舆情量",fmt(focusRegionTotal())],
-        ["新增舆情量",fmt(hourNew)]
+        ["每日新增舆情量",fmt(hourNew)]
       ].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("");
       charts.region.setOption(focusRegionOption(rows,r.name),true);
       renderFeed("regionFeed",q,"该地区暂无可展示样本",1);
@@ -538,7 +543,7 @@
       const q=quotesByPlatform(p.name);
       $("platformMeta").innerHTML=[
         ["累计舆情量",fmt(S.total)],
-        ["实时舆情量",fmt(hourNew)]
+        ["每日新增舆情量",fmt(hourNew)]
       ].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("");
       renderFeed("platformFeed",q,"该平台暂无可展示样本",1);
       $("platformTag").textContent="";
@@ -557,6 +562,14 @@
       const head=`<div class="kacct-head">${KEY_ACCOUNT_COLUMNS.map(c=>`<span>${c}</span>`).join("")}</div>`;
       const body=rows.map(r=>`<div class="kacct-row"><div class="acct"><b>${escapeHtml(r.account||"未标注")}</b><span>${escapeHtml(String(r.latestText||"").slice(0,26)||r.latestAt||"")}</span></div><span class="plat">${escapeHtml(r.platform||"—")}</span><span class="num">${fmt(r.posts)}</span><span class="num hot">${fmt(r.likes)}</span><span class="num">${fmt(r.comments)}</span><span class="num">${fmt(r.shares)}</span></div>`).join("");
       box.innerHTML=head+body;
+    }
+    function riskRows(){
+      return D.riskItems||[];
+    }
+    function renderRiskPanel(){
+      const rows=riskRows();
+      renderFeed("riskFeed",rows,"暂无风险信息",2);
+      $("riskTag").textContent=rows.length?`${rows.length} 条`:"待接入";
     }
     function renderLanguagePanel(){
       const rows=languageRows();
@@ -685,6 +698,7 @@
       const attitudeData=bottomAttitudeData();
       charts.attitude.setOption(ringOption(attitudeData.macro,"支持率"),true);
       renderKeyAccounts();
+      renderRiskPanel();
       charts.timeline.setOption(timelineOption(),true);
       const t=activeTimeline();
       if(state.timelineMode==="hour"){
@@ -693,7 +707,7 @@
         $("timelineTag").textContent=t.date?`${t.date}｜${fmt(t.value)} 条｜当日累计`:"暂无数据";
       }
     }
-    function renderAll(){renderKpis();renderRegionPanel();renderPlatformPanel();renderLanguagePanel();renderMap();renderBottomCharts()}
+    function renderAll(){renderKpis();renderRegionPanel();renderPlatformPanel();renderLanguagePanel();renderRiskPanel();renderMap();renderBottomCharts()}
     function barOption(rows,title,cfg={}){
       const max=Math.max(...rows.map(x=>x.value||0),1);
       return {grid:{left:cfg.left||80,right:cfg.right||20,top:cfg.top||14,bottom:cfg.bottom||8,containLabel:false},
