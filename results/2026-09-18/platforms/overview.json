@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-18T09:31:35+00:00",
+  "generated_at": "2026-09-18T09:34:35+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "single_node_passthrough",
@@ -48,7 +48,7 @@
     "bili": {
       "aggregation_mode": "conservative_authoritative_snapshot_pending_fingerprints",
       "authoritative_node_id": "bili-coordinator",
-      "latest_node_id": "bili-coordinator",
+      "latest_node_id": "bili01",
       "unique_records": 22,
       "comment_records": 20,
       "root_comment_records": 20,
