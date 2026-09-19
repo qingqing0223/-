@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "xhs01",
   "platform": "xhs",
-  "generated_at": "2026-09-19T18:20:00+08:00",
+  "generated_at": "2026-09-19T18:39:41+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "6e6664d995ce15fb6807a6bea064623f0ac5aa9a",
+    "repo_head": "5cfb4394ce494c49de1943a94a47a5ef09a96fb9",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T18:20:00+08:00",
+    "generated_at": "2026-09-19T18:39:41+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T18:14:57+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -224,23 +224,21 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_xhs",
-        "cycle_finished_at": "2026-09-19T18:15:45+08:00",
+        "cycle_finished_at": "2026-09-19T18:34:57+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 165.71,
-        "new_records": 4,
-        "filtered_before_start": 6,
-        "classified_records": 4,
+        "duration_seconds": 166.5,
+        "new_records": 0,
+        "filtered_before_start": 2,
+        "classified_records": 0,
         "ingest_comments": true,
         "input_file_count": 1,
         "comment_input_file_count": 0,
-        "region_records": 4,
-        "region_rate": 1.0,
+        "region_records": 0,
+        "region_rate": 0.0,
         "minority_language_records": 0,
-        "language_counts": {
-          "汉语": 4
-        },
+        "language_counts": {},
         "dashboard_ok": null,
         "dashboard_sent": 0,
         "dashboard_inserted": 0,
@@ -363,17 +361,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260919_181211",
+      "cycle": "20260919_183211",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_xhs",
       "jsonl_files": [
         {
           "kind": "content",
           "name": "search_contents_2026-09-19.jsonl",
-          "relative_path": "raw_runs/20260919_181211/xhs_20260919_181211/xhs/jsonl/search_contents_2026-09-19.jsonl",
-          "bytes": 39512,
+          "relative_path": "raw_runs/20260919_183211/xhs_20260919_183211/xhs/jsonl/search_contents_2026-09-19.jsonl",
+          "bytes": 41619,
           "rows": 20,
-          "sha256": "0ae9d801a36990787cb8849fa9212e7feec798e6c0086e7d514f71dcbe51adff",
-          "modified_at": "2026-09-19T18:15:10+08:00",
+          "sha256": "b90d43486d95fbdb5322b04b4825c8930e54629524190065ef17d202ccefd795",
+          "modified_at": "2026-09-19T18:35:19+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -428,7 +426,7 @@
               "safe_values": {
                 "liked_count": "154",
                 "share_count": "34",
-                "last_modify_ts": 1789812790946,
+                "last_modify_ts": 1789813974400,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -488,7 +486,7 @@
                 "comment_count": "3",
                 "liked_count": "46",
                 "share_count": "15",
-                "last_modify_ts": 1789812790950,
+                "last_modify_ts": 1789813974408,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -548,7 +546,7 @@
                 "comment_count": "4",
                 "liked_count": "24",
                 "share_count": "8",
-                "last_modify_ts": 1789812790952,
+                "last_modify_ts": 1789813974412,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -609,7 +607,7 @@
                 "comment_count": "6",
                 "liked_count": "20",
                 "share_count": "1",
-                "last_modify_ts": 1789812790954,
+                "last_modify_ts": 1789813974414,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -669,7 +667,7 @@
                 "ip_location": "天津",
                 "liked_count": "13",
                 "share_count": "1",
-                "last_modify_ts": 1789812790955,
+                "last_modify_ts": 1789813974417,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -681,15 +679,15 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260919_181211/xhs_20260919_181211/stderr.log",
-          "bytes": 409694,
-          "sha256": "917a374f3a5199bc39ae701bb59ab3404c44a6bc3b5d9cf6b95ddc882e563728"
+          "relative_path": "raw_runs/20260919_183211/xhs_20260919_183211/stderr.log",
+          "bytes": 414785,
+          "sha256": "ea3be44582f4dc23795cbac491e91a14455edde6f28bef84f28e107b0df69b82"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260919_181211/xhs_20260919_181211/stdout.log",
+          "relative_path": "raw_runs/20260919_183211/xhs_20260919_183211/stdout.log",
           "bytes": 391,
-          "sha256": "4ca3b89e40d236f5629ffb7353b3f1726c60f91c19f36b75940c64fc7d95a833"
+          "sha256": "4accc971ed643fdde598bea00b41fe02fa4c4dc34a227e6fc474f6144e7596a5"
         }
       ]
     }
