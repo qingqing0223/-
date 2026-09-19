@@ -94,9 +94,25 @@ def _parse_iso(value: object, default_tz=None):
         return None
     if text.endswith("Z"):
         text = text[:-1] + "+00:00"
+
+    dt = None
     try:
         dt = datetime.fromisoformat(text)
     except Exception:
+        # Accept legacy/non-zero-padded platform timestamps such as
+        # "2026-7-16 09:35" so monitoring_start_time filtering is reliable.
+        for fmt in (
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",
+            "%Y/%m/%d %H:%M:%S",
+            "%Y/%m/%d %H:%M",
+        ):
+            try:
+                dt = datetime.strptime(text, fmt)
+                break
+            except Exception:
+                continue
+    if dt is None:
         return None
     if dt.tzinfo is None and default_tz is not None:
         dt = dt.replace(tzinfo=default_tz)
