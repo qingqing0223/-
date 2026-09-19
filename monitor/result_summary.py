@@ -80,9 +80,26 @@ def _parse_scope_time(value, default_tz=None):
         return None
     if text.endswith("Z"):
         text = text[:-1] + "+00:00"
+
+    dt = None
     try:
         dt = datetime.fromisoformat(text)
     except Exception:
+        # Some platform exports use non-zero-padded dates such as
+        # "2026-7-16 09:35".  fromisoformat rejects these, so fall back to
+        # strptime before deciding the timestamp is unparseable.
+        for fmt in (
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",
+            "%Y/%m/%d %H:%M:%S",
+            "%Y/%m/%d %H:%M",
+        ):
+            try:
+                dt = datetime.strptime(text, fmt)
+                break
+            except Exception:
+                continue
+    if dt is None:
         return None
     if dt.tzinfo is None and default_tz is not None:
         dt = dt.replace(tzinfo=default_tz)
