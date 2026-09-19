@@ -53,6 +53,23 @@ if (-not $env:DASHSCOPE_API_KEY) {
 
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $backup = "backup-final-student-$stamp"
+
+# Preserve the machine-local config across "git stash -u".
+# monitoring.local.json is intentionally not stored in GitHub, but -u also
+# stashes untracked files. Without this temporary copy, the upgrade script
+# would remove the config and then immediately fail its own existence check.
+$localConfigBackup = $null
+if (Test-Path $Config) {
+    try {
+        $localConfigBackup = Join-Path $env:TEMP ("promotion-monitoring-local-" + $stamp + ".json")
+        Copy-Item -LiteralPath $Config -Destination $localConfigBackup -Force
+        Write-Host "Preserved machine-local config before repository refresh." -ForegroundColor DarkGray
+    } catch {
+        Write-Host "ERROR: could not preserve machine-local config before repository refresh: $($_.Exception.Message)" -ForegroundColor Red
+        exit 21
+    }
+}
+
 $head = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -eq 0 -and $head) {
     git branch $backup $head 2>$null
@@ -76,6 +93,23 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 git switch -C main origin/main | Out-Host
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+# Restore only the local config we intentionally preserved. Do not pop the
+# whole stash, because it may contain unrelated local work.
+if ($localConfigBackup -and (Test-Path $localConfigBackup)) {
+    try {
+        $configParent = Split-Path -Parent $Config
+        if ($configParent -and -not (Test-Path $configParent)) {
+            New-Item -ItemType Directory -Path $configParent -Force | Out-Null
+        }
+        Copy-Item -LiteralPath $localConfigBackup -Destination $Config -Force
+        Remove-Item -LiteralPath $localConfigBackup -Force -ErrorAction SilentlyContinue
+        Write-Host "Restored machine-local config after repository refresh." -ForegroundColor DarkGray
+    } catch {
+        Write-Host "ERROR: could not restore machine-local config after repository refresh: $($_.Exception.Message)" -ForegroundColor Red
+        exit 22
+    }
+}
 
 Write-Host "Repository aligned with origin/main. Backup branch: $backup" -ForegroundColor Green
 
