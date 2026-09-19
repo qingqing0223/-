@@ -503,11 +503,35 @@ def _tieba_discussion_thread_stats(
     }
 
 
+def _resolve_result_date(cfg: dict) -> str:
+    """Resolve the GitHub result partition for long-running realtime monitors.
+
+    Realtime nodes must roll over to a new results/YYYY-MM-DD partition at local
+    midnight even when an older local config still contains yesterday's
+    results_date.  Explicit results_date_mode=fixed remains available for
+    one-off historical exports.
+    """
+    today = datetime.now().astimezone().date().isoformat()
+    mode = str(cfg.get("results_date_mode") or "").strip().lower()
+    configured = str(cfg.get("results_date") or "").strip()
+
+    if mode == "fixed":
+        return configured or today
+    if mode in {"auto", "daily", "rolling"}:
+        return today
+
+    # Backward compatibility for older local configs: realtime monitoring is
+    # always a rolling daily GitHub partition unless fixed mode is explicit.
+    if bool(cfg.get("realtime_mode", False)):
+        return today
+    return configured or today
+
+
 def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path, dict]:
     cfg = _load_config(config_path)
     roots = _platform_roots(cfg, platform)
     monitoring_start_time = str(cfg.get("monitoring_start_time") or "")
-    result_date = str(cfg.get("results_date") or datetime.now().astimezone().date().isoformat())
+    result_date = _resolve_result_date(cfg)
     summary = build_summary(roots, monitoring_start_time=monitoring_start_time)
     if platform == "tieba":
         discussion = _tieba_discussion_thread_stats(
