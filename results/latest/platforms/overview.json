@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-19T16:02:28+00:00",
+  "generated_at": "2026-09-19T16:02:51+00:00",
   "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
@@ -49,7 +49,7 @@
       "all_counting_nodes_have_fingerprints": true
     },
     "bili": {
-      "source_results_date": "2026-09-19",
+      "source_results_date": "2026-09-20",
       "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "bili01",
       "latest_node_id": "bili01",
