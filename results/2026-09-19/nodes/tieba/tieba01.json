@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-19T20:36:14+08:00",
+  "generated_at": "2026-09-19T20:41:20+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "0f0a8aa11e13f16ad415d170998d742d4574031f",
+    "repo_head": "226fd4baf10082a91d1f7f40f1a23b8e92a874f1",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T20:36:13+08:00",
+    "generated_at": "2026-09-19T20:41:20+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T02:39:55+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
