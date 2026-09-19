@@ -112,9 +112,20 @@ def _before_monitoring_start(row: dict, monitoring_start_time: str) -> bool:
 
 
 def _reporting_excluded(row: dict) -> bool:
-    # Keep this aligned with monitor.result_summary.REPORTING_EXCLUDED_SIGNATURES
-    if str(row.get("platform") or "") != "dy" or str(row.get("record_type") or "") != "video":
+    # Keep this aligned with monitor.result_summary reporting exclusions.
+    platform = str(row.get("platform") or "")
+    record_type = str(row.get("record_type") or "")
+    record_id = str(row.get("comment_id") or row.get("sample_id") or "")
+
+    if (platform, record_type, record_id) in {
+        ("bili", "comment", "314288237793"),
+        ("bili", "comment", "317841315680"),
+    }:
+        return True
+
+    if platform != "dy" or record_type != "video":
         return False
+
     signature = (
         int(row.get("likes") or 0),
         int(row.get("comments") or 0),

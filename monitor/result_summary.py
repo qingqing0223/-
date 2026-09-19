@@ -23,11 +23,25 @@ REPORTING_EXCLUDED_SIGNATURES = {
     ("dy", "video", 6288, 48, 119),
 }
 
+# Manually reviewed Bilibili comments excluded from public GitHub reporting.
+# Raw/local records remain preserved for audit and review.
+REPORTING_EXCLUDED_RECORD_IDS = {
+    ("bili", "comment", "314288237793"),
+    ("bili", "comment", "317841315680"),
+}
+
 
 def _is_reporting_excluded(row: dict) -> bool:
+    platform = str(row.get("platform") or "")
+    record_type = str(row.get("record_type") or "")
+    record_id = str(row.get("comment_id") or row.get("sample_id") or "")
+
+    if (platform, record_type, record_id) in REPORTING_EXCLUDED_RECORD_IDS:
+        return True
+
     signature = (
-        str(row.get("platform") or ""),
-        str(row.get("record_type") or ""),
+        platform,
+        record_type,
         int(row.get("likes") or 0),
         int(row.get("comments") or 0),
         int(row.get("shares") or 0),
