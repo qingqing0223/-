@@ -2,7 +2,7 @@
   "schema_version": 2,
   "platform": "bili",
   "results_date": "2026-09-19",
-  "generated_at": "2026-09-19T09:22:47+00:00",
+  "generated_at": "2026-09-19T09:24:05+00:00",
   "aggregation_mode": "exact_cross_node_dedupe",
   "aggregation_note": "Exact cross-node totals are used only when every count-bearing node publishes privacy-safe record fingerprints. Until then, the largest complete node snapshot is the conservative reporting total so overlapping nodes are never blindly summed.",
   "authoritative_node_id": "bili01",
@@ -10,45 +10,45 @@
   "node_count": 1,
   "diagnostic_node_count": 0,
   "all_counting_nodes_have_fingerprints": true,
-  "fingerprint_union_records": 64,
-  "known_unique_lower_bound": 64,
-  "naive_sum_upper_bound": 64,
+  "fingerprint_union_records": 65,
+  "known_unique_lower_bound": 65,
+  "naive_sum_upper_bound": 65,
   "nodes": [
     {
       "node_id": "bili01",
       "file": "results/2026-09-19/nodes/bili/bili01.json",
       "schema_version": 5,
-      "generated_at": "2026-09-19T17:18:32+08:00",
-      "latest_seen_time": "2026-09-19T15:41:24+08:00",
-      "unique_records": 64,
-      "comment_records": 49,
-      "root_comment_records": 48,
+      "generated_at": "2026-09-19T17:23:40+08:00",
+      "latest_seen_time": "2026-09-19T17:20:37+08:00",
+      "unique_records": 65,
+      "comment_records": 50,
+      "root_comment_records": 49,
       "reply_comment_records": 1,
-      "region_records": 49,
-      "comment_region_records": 49,
+      "region_records": 50,
+      "comment_region_records": 50,
       "crawler_state": "SUCCESS",
-      "fingerprint_records": 64,
+      "fingerprint_records": 65,
       "has_record_fingerprints": true
     }
   ],
   "diagnostic_nodes": [],
   "summary": {
     "schema_version": 7,
-    "generated_at": "2026-09-19T09:22:47+00:00",
-    "latest_seen_time": "2026-09-19T15:41:24+08:00",
+    "generated_at": "2026-09-19T09:24:05+00:00",
+    "latest_seen_time": "2026-09-19T17:20:37+08:00",
     "privacy": "exact_cross_node_dedupe_from_privacy_safe_record_fingerprints",
     "totals": {
-      "unique_records": 64,
-      "region_records": 49,
-      "region_coverage_rate": 0.7656,
-      "comment_records": 49,
-      "root_comment_records": 48,
+      "unique_records": 65,
+      "region_records": 50,
+      "region_coverage_rate": 0.7692,
+      "comment_records": 50,
+      "root_comment_records": 49,
       "reply_comment_records": 1,
       "parent_linked_comment_records": 1,
       "comment_parent_link_rate": 1.0,
-      "comment_region_records": 49,
+      "comment_region_records": 50,
       "comment_region_coverage_rate": 1.0,
-      "unique_comment_authors": 48,
+      "unique_comment_authors": 49,
       "public_publisher_accounts": 13,
       "likes": 140,
       "comments": 2,
@@ -59,11 +59,11 @@
       "coins": 7
     },
     "platforms": {
-      "bili": 64
+      "bili": 65
     },
     "platform_attitude": {
       "bili": {
-        "support": 21,
+        "support": 22,
         "neutral": 20,
         "non_support": 10,
         "attention": 9,
@@ -71,12 +71,12 @@
       }
     },
     "languages": {
-      "汉语": 64
+      "汉语": 65
     },
     "regions": {
+      "广东": 6,
       "湖南": 5,
       "河南": 5,
-      "广东": 5,
       "山东": 4,
       "新疆": 3,
       "四川": 3,
@@ -100,9 +100,9 @@
     },
     "content_regions": {},
     "comment_regions": {
+      "广东": 6,
       "湖南": 5,
       "河南": 5,
-      "广东": 5,
       "山东": 4,
       "新疆": 3,
       "四川": 3,
@@ -125,7 +125,7 @@
       "贵州": 1
     },
     "v2_status": {
-      "normal": 21,
+      "normal": 22,
       "neutral": 20,
       "problematic": 10,
       "attention": 9,
@@ -133,28 +133,28 @@
     },
     "v2_type": {
       "null": 24,
-      "support": 21,
+      "support": 22,
       "criticism": 8,
       "neutral": 7,
       "discriminatory_expression": 2,
       "consultation": 2
     },
     "attitude": {
-      "support": 21,
+      "support": 22,
       "neutral": 20,
       "non_support": 10,
       "attention": 9,
       "unknown": 4
     },
     "comment_v2_status": {
-      "normal": 20,
+      "normal": 21,
       "problematic": 10,
       "attention": 8,
       "neutral": 7,
       "unclassified": 4
     },
     "comment_v2_type": {
-      "support": 20,
+      "support": 21,
       "null": 11,
       "criticism": 8,
       "neutral": 7,
@@ -162,20 +162,20 @@
       "consultation": 1
     },
     "comment_attitude": {
-      "support": 20,
+      "support": 21,
       "non_support": 10,
       "attention": 8,
       "neutral": 7,
       "unknown": 4
     },
     "source_types": {
-      "普通用户舆情": 50,
+      "普通用户舆情": 51,
       "权威媒体/新闻评论": 6,
       "自媒体观点": 5,
       "二创/剪辑解读": 3
     },
     "record_types": {
-      "comment": 49,
+      "comment": 50,
       "video": 15
     },
     "keywords": {
