@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "tieba01",
   "platform": "tieba",
-  "generated_at": "2026-09-19T20:31:02+08:00",
+  "generated_at": "2026-09-19T20:36:14+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "b388c2a3c258c329e55506cd188f2431bc2205ca",
+    "repo_head": "0f0a8aa11e13f16ad415d170998d742d4574031f",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T20:31:02+08:00",
+    "generated_at": "2026-09-19T20:36:13+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T02:39:55+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -259,11 +259,11 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
-        "cycle_finished_at": "2026-09-19T20:27:59+08:00",
+        "cycle_finished_at": "2026-09-19T20:32:57+08:00",
         "crawler_status": "failed",
         "crawler_state": "NETWORK_ERROR",
         "return_code": 124,
-        "duration_seconds": 132.47,
+        "duration_seconds": 131.02,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -284,7 +284,7 @@
     "discussion_thread_stats": {
       "unique_threads": 510,
       "new_threads_on_result_date": 8,
-      "source_rows_scanned": 30026,
+      "source_rows_scanned": 30050,
       "record_type": "discussion_post",
       "count_basis": "unique_tieba_threads_discovered_during_monitoring_window",
       "publish_time_note": "thread original publish_time may predate monitoring_start_time; daily reporting treats these as discussion containers discovered/active during monitoring"
@@ -126344,19 +126344,255 @@
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
       "cycle": "20260919_203046",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_tieba",
-      "jsonl_files": [],
+      "jsonl_files": [
+        {
+          "kind": "content",
+          "name": "search_contents_2026-09-19.jsonl",
+          "relative_path": "raw_runs/20260919_203046/tieba_20260919_203046/tieba/jsonl/search_contents_2026-09-19.jsonl",
+          "bytes": 42376,
+          "rows": 24,
+          "sha256": "e429213d9c18b8e60beca4211951007be9734ea677fdc53fda1ecbb50c1ef16f",
+          "modified_at": "2026-09-19T20:32:10+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "ip_location": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "bc9475ef234cdc7a18dd"
+              },
+              "safe_values": {
+                "ip_location": "湖北",
+                "total_replay_num": 1,
+                "publish_time": "2024-07-31 20:35:42",
+                "last_modify_ts": 1789821070902,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "ip_location": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "a21b1fd67454ec3b4f54"
+              },
+              "safe_values": {
+                "ip_location": "湖北",
+                "total_replay_num": 6,
+                "publish_time": "2023-11-20 22:47:12",
+                "last_modify_ts": 1789821070904,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "ip_location": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "ca435df61b3184d4f1aa"
+              },
+              "safe_values": {
+                "total_replay_num": 1,
+                "publish_time": "2023-11-27 05:05:38",
+                "last_modify_ts": 1789821070904,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "ip_location": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "60af95fad00f2faa7557"
+              },
+              "safe_values": {
+                "ip_location": "湖北",
+                "total_replay_num": 1,
+                "publish_time": "2023-12-13 23:19:47",
+                "last_modify_ts": 1789821070905,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "note_id",
+                "note_url",
+                "publish_time",
+                "source_keyword",
+                "tieba_link",
+                "tieba_name",
+                "title",
+                "total_replay_num",
+                "total_replay_page",
+                "user_nickname"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "title": "str",
+                "desc": "str",
+                "note_url": "str",
+                "publish_time": "str",
+                "ip_location": "str",
+                "creator_hash": "str",
+                "user_nickname": "str",
+                "tieba_name": "str",
+                "tieba_link": "str",
+                "total_replay_num": "int",
+                "total_replay_page": "int",
+                "source_keyword": "str",
+                "last_modify_ts": "int"
+              },
+              "stable_id_hashes": {
+                "note_id": "77285e5176b0c5f2e293"
+              },
+              "safe_values": {
+                "ip_location": "云南",
+                "total_replay_num": 1,
+                "publish_time": "2026-09-18 07:20:55",
+                "last_modify_ts": 1789821083073,
+                "source_keyword": "首个民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            }
+          ]
+        }
+      ],
       "log_files": [
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260919_203046/tieba_20260919_203046/stderr.log",
-          "bytes": 6130,
-          "sha256": "4e9348c4177e280f722f9e483883feeab7e706bec6693f9a666f883bb8336d6b"
+          "bytes": 108215,
+          "sha256": "630db0ef794e8c38b83286acb765243588a68722f79ae1ad7ca8c5e7738bd325"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260919_203046/tieba_20260919_203046/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 397,
+          "sha256": "69d5ad34f0092f8fe20a53b4bc13b6f515da1593795b3d0d5597fa85bc2ebebf"
         }
       ]
     }
