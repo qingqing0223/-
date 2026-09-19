@@ -6,10 +6,10 @@
   "results_date": "2026-09-20",
   "node_id": "dy01",
   "platform": "dy",
-  "generated_at": "2026-09-20T04:07:58+08:00",
+  "generated_at": "2026-09-20T04:13:05+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "f7da72d4710f001adbc748bccd37725c1b86be1d",
+    "repo_head": "fd7d577c0047c30240505de9365eece510d466b8",
     "repo_branch": "main",
     "douyin_request_profile_v2": true,
     "douyin_startup_resilience": true,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-20T04:07:58+08:00",
+    "generated_at": "2026-09-20T04:13:05+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T00:07:03+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -978,11 +978,11 @@
     "runtime": [
       {
         "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
-        "cycle_finished_at": "2026-09-20T04:07:45+08:00",
+        "cycle_finished_at": "2026-09-20T04:12:48+08:00",
         "crawler_status": "ok",
         "crawler_state": "SOFT_EMPTY",
         "return_code": 0,
-        "duration_seconds": 128.91,
+        "duration_seconds": 131.73,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
@@ -13103,19 +13103,19 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260920_040536",
+      "cycle": "20260920_041036",
       "data_root": "D:\\MediaCrawlerData\\2026-09-16_promotion_week_dy",
       "jsonl_files": [],
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260920_040536/dy_20260920_040536/stderr.log",
+          "relative_path": "raw_runs/20260920_041036/dy_20260920_041036/stderr.log",
           "bytes": 4364,
-          "sha256": "4cf9e122b1532710141d424d204413cff1e91788238bc9aa70bbb6087284b53d"
+          "sha256": "f28f4dd0e7e8fb4542049988090bf3517b6846116957333f09b93f35af20d84d"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260920_040536/dy_20260920_040536/stdout.log",
+          "relative_path": "raw_runs/20260920_041036/dy_20260920_041036/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
