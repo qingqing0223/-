@@ -2,7 +2,7 @@
   "schema_version": 2,
   "platform": "ks",
   "results_date": "2026-09-16",
-  "generated_at": "2026-09-19T08:53:56+00:00",
+  "generated_at": "2026-09-19T08:55:23+00:00",
   "aggregation_mode": "single_node_passthrough",
   "aggregation_note": "Exact cross-node totals are used only when every count-bearing node publishes privacy-safe record fingerprints. Until then, the largest complete node snapshot is the conservative reporting total so overlapping nodes are never blindly summed.",
   "authoritative_node_id": "ks01",
