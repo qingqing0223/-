@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "xhs01",
   "platform": "xhs",
-  "generated_at": "2026-09-19T02:29:07+08:00",
+  "generated_at": "2026-09-19T18:13:46+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "36aeae1a766a892df612bba5c7196a397c4da854",
+    "repo_head": "447fb77f0a9b208b0a8e232f7da91df34b80287d",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,12 +21,12 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T02:29:07+08:00",
+    "generated_at": "2026-09-19T18:13:46+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-18T00:20:02+08:00",
+    "latest_seen_time": "",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 11,
+      "unique_records": 0,
       "filtered_before_start_from_existing_output": 0,
       "region_records": 0,
       "region_coverage_rate": 0.0,
@@ -40,331 +40,56 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 0,
-      "public_publisher_accounts": 11,
-      "likes": 37,
-      "comments": 1,
-      "shares": 6,
+      "public_publisher_accounts": 0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
       "views": 0,
-      "favorites": 4,
+      "favorites": 0,
       "danmaku": 0,
       "coins": 0
     },
-    "platforms": {
-      "xhs": 11
-    },
-    "platform_attitude": {
-      "xhs": {
-        "neutral": 11
-      }
-    },
-    "platform_tri_class": {
-      "xhs": {
-        "neutral": 11
-      }
-    },
-    "languages": {
-      "汉语": 11
-    },
+    "platforms": {},
+    "platform_attitude": {},
+    "platform_tri_class": {},
+    "languages": {},
     "minority_languages": {},
     "regions": {},
     "content_regions": {},
     "comment_regions": {},
-    "v2_status": {
-      "attention": 11
-    },
-    "v2_type": {
-      "neutral": 11
-    },
-    "attitude": {
-      "neutral": 11
-    },
-    "tri_class": {
-      "neutral": 11
-    },
+    "v2_status": {},
+    "v2_type": {},
+    "attitude": {},
+    "tri_class": {},
     "comment_v2_status": {},
     "comment_v2_type": {},
     "comment_attitude": {},
     "comment_tri_class": {},
-    "source_types": {
-      "自媒体观点": 4,
-      "权威媒体/新闻评论": 4,
-      "二创/剪辑解读": 2,
-      "普通用户舆情": 1
-    },
-    "record_types": {
-      "post": 8,
-      "video": 3
-    },
-    "keywords": {
-      "首个民族团结进步宣传周": 6,
-      "2026年民族团结进步宣传周": 4,
-      "促进民族团结进步，奋进伟大复兴征程": 1
-    },
+    "source_types": {},
+    "record_types": {},
+    "keywords": {},
     "video_analysis": {
-      "video_records": 3,
+      "video_records": 0,
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,
       "multimodal_completion_rate": 0.0
     },
-    "public_account_stats": [
-      {
-        "account": "l***r",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 1,
-        "videos": 0,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 2,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "一***讲",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 13,
-          "comments": 0,
-          "shares": 2,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "全***。",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 1,
-        "videos": 0,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 1,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "公***室",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 1,
-        "videos": 0,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "北***行",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 1,
-        "videos": 0,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 1,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "宁***呀",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 1,
-        "videos": 0,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 3,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "早***鸭",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 1,
-        "videos": 0,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 1,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "武***区",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 6,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 1,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "花***目",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 1,
-        "videos": 0,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "霖*",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 1,
-        "videos": 0,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 1,
-          "views": 0,
-          "favorites": 3,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "香***r",
-        "platforms": {
-          "xhs": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 11,
-          "comments": 0,
-          "shares": 3,
-          "views": 0,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      }
-    ],
-    "public_account_stats_total": 11,
+    "public_account_stats": [],
+    "public_account_stats_total": 0,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_xhs",
-        "cycle_finished_at": "2026-09-19T02:00:23+08:00",
-        "crawler_status": "failed",
-        "crawler_state": "NETWORK_ERROR",
-        "return_code": 124,
-        "duration_seconds": 120.13,
+        "cycle_finished_at": "",
+        "crawler_status": "unknown",
+        "crawler_state": "unknown",
+        "return_code": null,
+        "duration_seconds": null,
         "new_records": 0,
         "filtered_before_start": 0,
         "classified_records": 0,
-        "ingest_comments": true,
+        "ingest_comments": false,
         "input_file_count": 0,
         "comment_input_file_count": 0,
         "region_records": 0,
@@ -379,323 +104,26 @@
       }
     ]
   },
-  "record_fingerprints": [
-    {
-      "record_hash": "112b66aa682cbee0d5bb",
-      "record_type": "video",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "权威媒体/新闻评论",
-      "keyword": "首个民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "e29109bf98d1432dda56",
-      "latest_seen_time": "2026-09-16T17:25:29+08:00",
-      "likes": 13,
-      "comments": 0,
-      "shares": 2,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "2f2974da8b344ea97536",
-      "record_type": "post",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "二创/剪辑解读",
-      "keyword": "2026年民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "afeb9a6ba374ddf9ae3d",
-      "latest_seen_time": "2026-09-18T00:20:02+08:00",
-      "likes": 0,
-      "comments": 0,
-      "shares": 1,
-      "views": 0,
-      "favorites": 3,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "35702db3c465d6d75b6c",
-      "record_type": "video",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "自媒体观点",
-      "keyword": "首个民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "7b22e009765fc5dfacc6",
-      "latest_seen_time": "2026-09-16T14:56:49+08:00",
-      "likes": 11,
-      "comments": 0,
-      "shares": 3,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "42f1fabe6017b6d565d6",
-      "record_type": "video",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "权威媒体/新闻评论",
-      "keyword": "首个民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "54aa686a74b668dab128",
-      "latest_seen_time": "2026-09-18T00:20:02+08:00",
-      "likes": 6,
-      "comments": 0,
-      "shares": 0,
-      "views": 0,
-      "favorites": 1,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "508bc777af45bc8bc7ec",
-      "record_type": "post",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "二创/剪辑解读",
-      "keyword": "首个民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "e6426e39568c19532274",
-      "latest_seen_time": "2026-09-16T14:56:49+08:00",
-      "likes": 0,
-      "comments": 1,
-      "shares": 0,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "649a05cf6d6bbcb3cd3a",
-      "record_type": "post",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "自媒体观点",
-      "keyword": "首个民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "b23efae4d51877a440c0",
-      "latest_seen_time": "2026-09-18T00:20:02+08:00",
-      "likes": 1,
-      "comments": 0,
-      "shares": 0,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "6f5dcdcba54572a1972e",
-      "record_type": "post",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "自媒体观点",
-      "keyword": "首个民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "dab86a0d6dfcbc1e8a1e",
-      "latest_seen_time": "2026-09-18T00:20:02+08:00",
-      "likes": 0,
-      "comments": 0,
-      "shares": 0,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "9575014dca79c538c917",
-      "record_type": "post",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "自媒体观点",
-      "keyword": "2026年民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "f54a74aaea31cee1d93f",
-      "latest_seen_time": "2026-09-16T14:56:49+08:00",
-      "likes": 3,
-      "comments": 0,
-      "shares": 0,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "b36eb08aaf0f25527315",
-      "record_type": "post",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "权威媒体/新闻评论",
-      "keyword": "2026年民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "af5ae06cae3cd69343ad",
-      "latest_seen_time": "2026-09-16T16:20:10+08:00",
-      "likes": 2,
-      "comments": 0,
-      "shares": 0,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "c7bb05cdae576150e8c1",
-      "record_type": "post",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "普通用户舆情",
-      "keyword": "2026年民族团结进步宣传周",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "ab22f79d90289e6b6c7b",
-      "latest_seen_time": "2026-09-18T00:20:02+08:00",
-      "likes": 0,
-      "comments": 0,
-      "shares": 0,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    },
-    {
-      "record_hash": "dfbf856bb8b1dd0342c0",
-      "record_type": "post",
-      "region": "",
-      "language": "汉语",
-      "status": "neutral",
-      "type": "null",
-      "attitude": "neutral",
-      "tri_class": "neutral",
-      "source_type": "权威媒体/新闻评论",
-      "keyword": "促进民族团结进步，奋进伟大复兴征程",
-      "comment_level": 0,
-      "parent_hash": "",
-      "root_hash": "",
-      "author_hash": "",
-      "publisher_hash": "05247c8f4b8e6c6e9c7a",
-      "latest_seen_time": "2026-09-16T14:56:49+08:00",
-      "likes": 1,
-      "comments": 0,
-      "shares": 0,
-      "views": 0,
-      "favorites": 0,
-      "danmaku": 0,
-      "coins": 0,
-      "has_asr": false,
-      "has_ocr": false
-    }
-  ],
+  "record_fingerprints": [],
   "raw_diagnostics": [
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260919_015823",
+      "cycle": "20260919_181211",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_xhs",
       "jsonl_files": [
         {
           "kind": "content",
           "name": "search_contents_2026-09-19.jsonl",
-          "relative_path": "raw_runs/20260919_015823/xhs_20260919_015823/xhs/jsonl/search_contents_2026-09-19.jsonl",
-          "bytes": 246374,
-          "rows": 120,
-          "sha256": "3c2d97f963cbf354a6d70ab4ca5fdb7891b6f22a5c51c9094b1d7d5686d0f887",
-          "modified_at": "2026-09-19T02:05:24+08:00",
+          "relative_path": "raw_runs/20260919_181211/xhs_20260919_181211/xhs/jsonl/search_contents_2026-09-19.jsonl",
+          "bytes": 20006,
+          "rows": 10,
+          "sha256": "f6c6185f27b8afeb00b0da22799598e910b2fde18f7ffdf726bee71d3e45c9ec",
+          "modified_at": "2026-09-19T18:13:33+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
+                "_public_region_probe",
                 "collected_count",
                 "comment_count",
                 "creator_hash",
@@ -737,15 +165,16 @@
                 "note_url": "str",
                 "source_keyword": "str",
                 "xsec_token": "str",
-                "ip_location": "str"
+                "ip_location": "str",
+                "_public_region_probe": "dict"
               },
               "stable_id_hashes": {
                 "note_id": "c489f5cff33e744388a1"
               },
               "safe_values": {
-                "liked_count": "151",
-                "share_count": "33",
-                "last_modify_ts": 1789754432385,
+                "liked_count": "154",
+                "share_count": "34",
+                "last_modify_ts": 1789812790946,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -753,6 +182,7 @@
             },
             {
               "fields": [
+                "_public_region_probe",
                 "collected_count",
                 "comment_count",
                 "creator_hash",
@@ -794,66 +224,8 @@
                 "note_url": "str",
                 "source_keyword": "str",
                 "xsec_token": "str",
-                "ip_location": "str"
-              },
-              "stable_id_hashes": {
-                "note_id": "62c549e5896b5f1d4279"
-              },
-              "safe_values": {
-                "ip_location": "广东",
-                "comment_count": "1",
-                "liked_count": "108",
-                "share_count": "41",
-                "last_modify_ts": 1789754432388,
-                "type": "normal",
-                "source_keyword": "2026年民族团结进步宣传周"
-              },
-              "nested_fields": {}
-            },
-            {
-              "fields": [
-                "collected_count",
-                "comment_count",
-                "creator_hash",
-                "desc",
-                "image_list",
-                "ip_location",
-                "last_modify_ts",
-                "last_update_time",
-                "liked_count",
-                "nickname",
-                "note_id",
-                "note_url",
-                "share_count",
-                "source_keyword",
-                "tag_list",
-                "time",
-                "title",
-                "type",
-                "video_url",
-                "xsec_token"
-              ],
-              "field_types": {
-                "note_id": "str",
-                "type": "str",
-                "title": "str",
-                "desc": "str",
-                "video_url": "str",
-                "time": "int",
-                "last_update_time": "int",
-                "creator_hash": "str",
-                "nickname": "str",
-                "liked_count": "str",
-                "collected_count": "str",
-                "comment_count": "str",
-                "share_count": "str",
-                "image_list": "str",
-                "tag_list": "str",
-                "last_modify_ts": "int",
-                "note_url": "str",
-                "source_keyword": "str",
-                "xsec_token": "str",
-                "ip_location": "str"
+                "ip_location": "str",
+                "_public_region_probe": "dict"
               },
               "stable_id_hashes": {
                 "note_id": "0667540d17cf597c2965"
@@ -862,7 +234,7 @@
                 "comment_count": "3",
                 "liked_count": "46",
                 "share_count": "15",
-                "last_modify_ts": 1789754432390,
+                "last_modify_ts": 1789812790950,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -870,6 +242,7 @@
             },
             {
               "fields": [
+                "_public_region_probe",
                 "collected_count",
                 "comment_count",
                 "creator_hash",
@@ -911,7 +284,8 @@
                 "note_url": "str",
                 "source_keyword": "str",
                 "xsec_token": "str",
-                "ip_location": "str"
+                "ip_location": "str",
+                "_public_region_probe": "dict"
               },
               "stable_id_hashes": {
                 "note_id": "4c3b5bcea3aada6dcd23"
@@ -920,7 +294,7 @@
                 "comment_count": "4",
                 "liked_count": "24",
                 "share_count": "8",
-                "last_modify_ts": 1789754432392,
+                "last_modify_ts": 1789812790952,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -928,6 +302,7 @@
             },
             {
               "fields": [
+                "_public_region_probe",
                 "collected_count",
                 "comment_count",
                 "creator_hash",
@@ -969,7 +344,8 @@
                 "note_url": "str",
                 "source_keyword": "str",
                 "xsec_token": "str",
-                "ip_location": "str"
+                "ip_location": "str",
+                "_public_region_probe": "dict"
               },
               "stable_id_hashes": {
                 "note_id": "06dff9b57c9fa79b9977"
@@ -979,7 +355,67 @@
                 "comment_count": "6",
                 "liked_count": "20",
                 "share_count": "1",
-                "last_modify_ts": 1789754432392,
+                "last_modify_ts": 1789812790954,
+                "type": "normal",
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "_public_region_probe",
+                "collected_count",
+                "comment_count",
+                "creator_hash",
+                "desc",
+                "image_list",
+                "ip_location",
+                "last_modify_ts",
+                "last_update_time",
+                "liked_count",
+                "nickname",
+                "note_id",
+                "note_url",
+                "share_count",
+                "source_keyword",
+                "tag_list",
+                "time",
+                "title",
+                "type",
+                "video_url",
+                "xsec_token"
+              ],
+              "field_types": {
+                "note_id": "str",
+                "type": "str",
+                "title": "str",
+                "desc": "str",
+                "video_url": "str",
+                "time": "int",
+                "last_update_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "collected_count": "str",
+                "comment_count": "str",
+                "share_count": "str",
+                "image_list": "str",
+                "tag_list": "str",
+                "last_modify_ts": "int",
+                "note_url": "str",
+                "source_keyword": "str",
+                "xsec_token": "str",
+                "ip_location": "str",
+                "_public_region_probe": "dict"
+              },
+              "stable_id_hashes": {
+                "note_id": "5af5d18e12a5f786fa89"
+              },
+              "safe_values": {
+                "ip_location": "天津",
+                "liked_count": "13",
+                "share_count": "1",
+                "last_modify_ts": 1789812790955,
                 "type": "normal",
                 "source_keyword": "2026年民族团结进步宣传周"
               },
@@ -991,13 +427,13 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260919_015823/xhs_20260919_015823/stderr.log",
-          "bytes": 1269722,
-          "sha256": "a1b7e3f664613bc7fa3666bd0ab21b6cc138393520104768eacd4fdff45f4631"
+          "relative_path": "raw_runs/20260919_181211/xhs_20260919_181211/stderr.log",
+          "bytes": 161664,
+          "sha256": "7a1356211a6779ace99f220a87a4a39a7251fd100456a94bd41d356661fcf350"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260919_015823/xhs_20260919_015823/stdout.log",
+          "relative_path": "raw_runs/20260919_181211/xhs_20260919_181211/stdout.log",
           "bytes": 0,
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
