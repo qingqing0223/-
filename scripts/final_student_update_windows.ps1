@@ -100,6 +100,18 @@ if ($Platform -eq "xhs") {
         exit $LASTEXITCODE
     }
 
+    Write-Host "Applying XHS manual official-verification wait patch..." -ForegroundColor Cyan
+    python .\scripts\patch_xhs_manual_verify_wait.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: XHS manual verification wait patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_xhs_manual_verify_wait.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: XHS manual verification wait verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
     Write-Host "Applying XHS first-level/nested comment hierarchy patch..." -ForegroundColor Cyan
     python .\scripts\patch_xhs_comment_hierarchy.py --root $MediaCrawlerRoot
     if ($LASTEXITCODE -ne 0) {
