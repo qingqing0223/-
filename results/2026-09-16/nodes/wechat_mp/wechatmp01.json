@@ -6,10 +6,10 @@
   "results_date": "2026-09-16",
   "node_id": "wechatmp01",
   "platform": "wechat_mp",
-  "generated_at": "2026-09-19T14:47:35+08:00",
+  "generated_at": "2026-09-19T14:52:49+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "51cafe2f686370ee2bed2aefbe7ace41da81d170",
+    "repo_head": "7b53dc35ef29bd8845971df8536cde795db2b54e",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T14:47:35+08:00",
+    "generated_at": "2026-09-19T14:52:49+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T14:44:35+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -128,14 +128,14 @@
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wechat_mp",
-        "cycle_finished_at": "2026-09-19T14:32:11+08:00",
-        "crawler_status": "ok",
-        "crawler_state": "SUCCESS",
-        "return_code": 0,
-        "duration_seconds": 678.72,
-        "new_records": 217,
-        "filtered_before_start": 306,
-        "classified_records": 217,
+        "cycle_finished_at": "2026-09-19T14:47:36+08:00",
+        "crawler_status": "needs_human",
+        "crawler_state": "VERIFY_REQUIRED",
+        "return_code": 2,
+        "duration_seconds": 924.77,
+        "new_records": 141,
+        "filtered_before_start": 26,
+        "classified_records": 141,
         "ingest_comments": false,
         "input_file_count": 1,
         "comment_input_file_count": 0,
@@ -143,13 +143,13 @@
         "region_rate": 0.0,
         "minority_language_records": 0,
         "language_counts": {
-          "汉语": 217
+          "汉语": 141
         },
         "dashboard_ok": false,
-        "dashboard_sent": 8643,
+        "dashboard_sent": 8784,
         "dashboard_inserted": 0,
         "dashboard_skipped": 0,
-        "outbox_after": 8643
+        "outbox_after": 8784
       }
     ]
   },
