@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "record_type": "manual_comment_tri_class_baseline",
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "cutoff_time_exclusive": "2026-09-19T18:00:00+08:00",
+  "generated_for_reporting_at": "2026-09-19T18:00:00+08:00",
+  "classification_standard": {
+    "name": "评论前置三分类标准",
+    "labels": [
+      "support",
+      "neutral",
+      "problematic"
+    ],
+    "rule": "人工复核结果优先于模型初筛；problematic仅表示问题型意见，不直接等同于non_support。"
+  },
+  "reporting_policy": {
+    "baseline_locked_before_cutoff": true,
+    "manual_review_overrides_model": true,
+    "after_cutoff_handling": "仅对18:00之后新进入的数据做增量分类，按稳定记录ID/指纹去重后并入该基线。",
+    "do_not_reintroduce_dismissed_model_candidates": true
+  },
+  "platforms": {
+    "tieba": {
+      "model_problematic_comment_candidates": 1798,
+      "manual_review_status": "completed",
+      "final_problematic_comments": 0,
+      "reporting_note": "人工复核后，9月19日18:00前贴吧暂按无问题型意见统计。"
+    },
+    "dy": {
+      "model_problematic_comment_candidates": 25,
+      "manual_review_status": "completed",
+      "final_problematic_comments": 1,
+      "reporting_note": "此前人工复核确认1条问题型意见；18:00前按1条统计。"
+    },
+    "bili": {
+      "model_problematic_comment_candidates": 10,
+      "manual_review_status": "completed",
+      "final_problematic_comments": 0,
+      "reporting_note": "人工复核后，候选内容均不作为问题型意见统计。"
+    },
+    "wb": {
+      "manual_review_status": "reviewed_current_comments",
+      "final_problematic_comments": 0,
+      "reporting_note": "当前已回传评论未发现问题型意见。"
+    }
+  },
+  "reviewed_platform_totals": {
+    "final_problematic_comments": 1
+  },
+  "scope_note": "本文件用于固定9月19日18:00前已完成人工复核平台的评论三分类问题型口径。未在platforms中列出的平台不由本文件覆盖，后续按新增数据与人工复核结果继续汇总。"
+}
