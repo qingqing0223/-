@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-18",
-  "generated_at": "2026-09-19T10:14:23+00:00",
+  "generated_at": "2026-09-19T10:15:45+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "single_node_passthrough",
