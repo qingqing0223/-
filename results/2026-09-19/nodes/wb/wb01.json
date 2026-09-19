@@ -6,10 +6,10 @@
   "results_date": "2026-09-19",
   "node_id": "wb01",
   "platform": "wb",
-  "generated_at": "2026-09-19T13:09:29+08:00",
+  "generated_at": "2026-09-19T13:15:00+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "6f03991d70b63452e35f148d1124f9843ad9be17",
+    "repo_head": "d03c071a2e5faae0814373b8a13c4de4ff4afa47",
     "repo_branch": "main",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-19T13:09:29+08:00",
+    "generated_at": "2026-09-19T13:15:00+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-19T11:06:30+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
@@ -3970,17 +3970,17 @@
     {
       "available": true,
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
-      "cycle": "20260919_130413",
+      "cycle": "20260919_131413",
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_wb",
       "jsonl_files": [
         {
           "kind": "content",
           "name": "search_contents_2026-09-19.jsonl",
-          "relative_path": "raw_runs/20260919_130413/wb_20260919_130413/weibo/jsonl/search_contents_2026-09-19.jsonl",
-          "bytes": 57691,
-          "rows": 70,
-          "sha256": "43fc204d834196a0e3c96d471d7c60dbbdb4f586ffe96e70048abe70259696f8",
-          "modified_at": "2026-09-19T13:06:30+08:00",
+          "relative_path": "raw_runs/20260919_131413/wb_20260919_131413/weibo/jsonl/search_contents_2026-09-19.jsonl",
+          "bytes": 12975,
+          "rows": 16,
+          "sha256": "21042e7b65ffab854c68fadd51ec92ab38917cbe47d3810b52626e26c19b7ad9",
+          "modified_at": "2026-09-19T13:14:58+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -4022,7 +4022,7 @@
                 "comments_count": "0",
                 "liked_count": "0",
                 "create_time": 1789382012,
-                "last_modify_ts": 1789794299176,
+                "last_modify_ts": 1789794898763,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -4067,7 +4067,7 @@
                 "comments_count": "0",
                 "liked_count": "0",
                 "create_time": 1789380286,
-                "last_modify_ts": 1789794299204,
+                "last_modify_ts": 1789794898778,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -4112,7 +4112,7 @@
                 "comments_count": "0",
                 "liked_count": "0",
                 "create_time": 1788829497,
-                "last_modify_ts": 1789794299224,
+                "last_modify_ts": 1789794898798,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -4151,13 +4151,13 @@
                 "_public_region_probe": "dict"
               },
               "stable_id_hashes": {
-                "note_id": "6d6b76eb2b5c3b8f6a16"
+                "note_id": "7c9f44afe0fc2b07699e"
               },
               "safe_values": {
                 "comments_count": "0",
                 "liked_count": "0",
-                "create_time": 1789380694,
-                "last_modify_ts": 1789794299231,
+                "create_time": 1789380877,
+                "last_modify_ts": 1789794898807,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -4203,7 +4203,7 @@
                 "comments_count": "0",
                 "liked_count": "5",
                 "create_time": 1788771475,
-                "last_modify_ts": 1789794299235,
+                "last_modify_ts": 1789794898821,
                 "source_keyword": "2026年民族团结进步宣传周"
               },
               "nested_fields": {}
@@ -4214,15 +4214,15 @@
       "log_files": [
         {
           "name": "stderr.log",
-          "relative_path": "raw_runs/20260919_130413/wb_20260919_130413/stderr.log",
-          "bytes": 34104,
-          "sha256": "ef5a66fc51dd86a0c33b1d660317bd2b623b97e0c7cc1c4de850b685e7a4f018"
+          "relative_path": "raw_runs/20260919_131413/wb_20260919_131413/stderr.log",
+          "bytes": 8774,
+          "sha256": "f3792cb55afb16f747cec30dbf87f5a4ddc214a51bb57587a9eba6ba5c55ac2c"
         },
         {
           "name": "stdout.log",
-          "relative_path": "raw_runs/20260919_130413/wb_20260919_130413/stdout.log",
-          "bytes": 389,
-          "sha256": "8597f52012153da504e4431a1412045d28d100a0d1d00eada3a8e5fbb95dfd4e"
+          "relative_path": "raw_runs/20260919_131413/wb_20260919_131413/stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
       ]
     }
