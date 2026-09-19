@@ -54,9 +54,39 @@ if ($Push) {
         exit 12
     }
     Write-Host "Synchronizing local branch with origin before GitHub push preflight..." -ForegroundColor Cyan
+
+    # A previous interrupted Git operation can leave the index with unmerged
+    # entries. Git pull then refuses to run. Do not let a harmless
+    # "no rebase in progress" stderr become a terminating PowerShell error.
+    $unmerged = @(& git diff --name-only --diff-filter=U 2>$null)
+    if ($unmerged.Count -gt 0) {
+        $nonResultConflicts = @($unmerged | Where-Object { $_ -notmatch '^(results/|results\\)' })
+        if ($nonResultConflicts.Count -gt 0) {
+            Write-Host "ERROR: unresolved Git conflicts exist outside generated results/. Manual review is required:" -ForegroundColor Red
+            $nonResultConflicts | ForEach-Object { Write-Host ("  " + $_) -ForegroundColor Red }
+            exit 15
+        }
+
+        Write-Host "Recovering interrupted generated-results Git state before sync..." -ForegroundColor Yellow
+        & cmd.exe /d /c "git merge --abort >nul 2>&1"
+        & cmd.exe /d /c "git rebase --abort >nul 2>&1"
+        & cmd.exe /d /c "git cherry-pick --abort >nul 2>&1"
+        & cmd.exe /d /c "git revert --abort >nul 2>&1"
+
+        $stillUnmerged = @(& git diff --name-only --diff-filter=U 2>$null)
+        if ($stillUnmerged.Count -gt 0) {
+            # These paths are generated result shards only; reset them to HEAD.
+            # The publisher regenerates the local node shard immediately.
+            foreach ($conflictPath in $stillUnmerged) {
+                & git restore --source=HEAD --staged --worktree -- $conflictPath 2>$null
+            }
+        }
+    }
+
     git pull --rebase --autostash origin $branch | Out-Host
     if ($LASTEXITCODE -ne 0) {
-        git rebase --abort 2>$null
+        & cmd.exe /d /c "git rebase --abort >nul 2>&1"
+        & cmd.exe /d /c "git merge --abort >nul 2>&1"
         Write-Host "ERROR: GitHub sync preflight could not update the local branch from origin." -ForegroundColor Red
         Write-Host "Resolve the Git pull/rebase issue, then restart this sync. This is not automatically treated as an authentication failure." -ForegroundColor Yellow
         exit 14
