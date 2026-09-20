@@ -5,6 +5,8 @@ param(
 
     [string]$Config = ".\config\monitoring.local.json",
     [string]$OutputRoot = "",
+    [string]$Date = (Get-Date -Format "yyyy-MM-dd"),
+    [switch]$Cumulative,
     [switch]$NoRawCopy
 )
 
@@ -47,8 +49,19 @@ $platformNames = @{
     wechat_mp = "微信公众号"
 }
 $PlatformName = [string]$platformNames[$Platform]
+
+try {
+    $TargetDate = [datetime]::ParseExact($Date, "yyyy-MM-dd", $null)
+} catch {
+    Write-Host "ERROR: -Date must use yyyy-MM-dd, for example 2026-09-20." -ForegroundColor Red
+    exit 4
+}
+$TargetDateText = $TargetDate.ToString("yyyy-MM-dd")
+$TargetDateCompact = $TargetDate.ToString("yyyyMMdd")
+$ScopeLabel = if ($Cumulative) { "累计" } else { $TargetDateText }
+
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$Out = Join-Path $OutputRoot ("{0}_{1}_原始数据与人工复核" -f $stamp, $PlatformName)
+$Out = Join-Path $OutputRoot ("{0}_{1}_{2}_原始数据与人工复核" -f $stamp, $PlatformName, $ScopeLabel)
 $Zip = $Out + ".zip"
 
 Remove-Item $Out -Recurse -Force -ErrorAction SilentlyContinue
@@ -66,12 +79,11 @@ if (-not (Test-Path $Classified)) {
     exit 3
 }
 
-Copy-Item $Classified (Join-Path $Out "01_classified_results_full.jsonl") -Force
 if (Test-Path $StatusFile) {
     Copy-Item $StatusFile (Join-Path $Out "01_latest_status.json") -Force
 }
 
-$Rows = @(
+$AllRows = @(
     Get-Content $Classified -Encoding UTF8 |
     ForEach-Object {
         $line = $_
@@ -80,6 +92,30 @@ $Rows = @(
         }
     }
 )
+
+function Get-RecordScopeDate($row) {
+    foreach ($name in @("first_seen_time", "engagement_refresh_time", "publish_time")) {
+        if ($row.PSObject.Properties.Name -contains $name) {
+            $value = [string]$row.$name
+            if (-not [string]::IsNullOrWhiteSpace($value)) {
+                try { return ([datetimeoffset]::Parse($value)).ToLocalTime().ToString("yyyy-MM-dd") } catch {}
+                try { return ([datetime]::Parse($value)).ToString("yyyy-MM-dd") } catch {}
+            }
+        }
+    }
+    return ""
+}
+
+if ($Cumulative) {
+    $Rows = @($AllRows)
+} else {
+    $Rows = @($AllRows | Where-Object { (Get-RecordScopeDate $_) -eq $TargetDateText })
+}
+
+# The scoped classified JSONL is what belongs in the daily handoff package.
+$ScopedClassified = Join-Path $Out "01_classified_results_scope.jsonl"
+$Rows | ForEach-Object { $_ | ConvertTo-Json -Depth 100 -Compress } |
+    Set-Content $ScopedClassified -Encoding UTF8
 
 $Comments = @($Rows | Where-Object { [string]$_.record_type -eq "comment" })
 $Contents = @($Rows | Where-Object { [string]$_.record_type -ne "comment" })
@@ -153,8 +189,18 @@ if (-not $NoRawCopy -and (Test-Path $RawRoot)) {
 
     $commentIndex = 0
     $contentIndex = 0
-    Get-ChildItem $RawRoot -Recurse -File -Filter *.jsonl -ErrorAction SilentlyContinue |
-    ForEach-Object {
+    $RawFiles = @()
+    if ($Cumulative) {
+        $RawFiles = @(Get-ChildItem $RawRoot -Recurse -File -Filter *.jsonl -ErrorAction SilentlyContinue)
+    } else {
+        $DayCycles = @(Get-ChildItem $RawRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "$TargetDateCompact*" })
+        foreach ($cycle in $DayCycles) {
+            $RawFiles += @(Get-ChildItem $cycle.FullName -Recurse -File -Filter *.jsonl -ErrorAction SilentlyContinue)
+        }
+    }
+
+    $RawFiles | ForEach-Object {
         $nameLower = $_.Name.ToLowerInvariant()
         if ($nameLower -match "comment") {
             $commentIndex++
@@ -171,6 +217,7 @@ if (-not $NoRawCopy -and (Test-Path $RawRoot)) {
 $Readme = @"
 平台：$PlatformName ($Platform)
 导出时间：$(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+导出范围：$ScopeLabel（默认按 first_seen_time 统计当天新发现记录；-Cumulative 可导出累计）
 配置文件：$Config
 真实数据目录：$DataRoot
 分类结果：$Classified
@@ -197,6 +244,8 @@ $Summary = [PSCustomObject]@{
     platform = $Platform
     platform_name = $PlatformName
     exported_at = (Get-Date).ToString("s")
+    scope = $ScopeLabel
+    cumulative = [bool]$Cumulative
     data_root = $DataRoot
     classified_file = $Classified
     content_records = $Contents.Count
