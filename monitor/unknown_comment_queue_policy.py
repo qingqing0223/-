@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-SUPPORTED = {"xhs", "bili", "wb", "tieba", "zhihu"}
+SUPPORTED = {"xhs", "bili", "wb", "toutiao", "zhihu"}
 
 
 def install_unknown_comment_count_fallback(platform: str) -> None:
