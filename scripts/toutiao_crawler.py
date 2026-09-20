@@ -217,22 +217,89 @@ ARTICLE_JS = r"""
   const meta = (name) =>
     attr(`meta[name="${name}"]`, 'content') ||
     attr(`meta[property="${name}"]`, 'content');
+  const firstDefined = (...values) => {
+    for (const value of values) {
+      if (value !== undefined && value !== null && value !== '') return value;
+    }
+    return '';
+  };
+  const htmlText = (value) => {
+    if (!value || typeof value !== 'string') return '';
+    const box = document.createElement('div');
+    box.innerHTML = value;
+    return (box.innerText || box.textContent || '').trim();
+  };
+
+  // Toutiao detail pages expose the article/video's own metrics in RENDER_DATA.
+  // Prefer that structured state over regexes on the whole page body, because
+  // the body may contain recommended cards or other users' comments.
+  let renderData = {};
+  try {
+    const node = document.querySelector('script#RENDER_DATA');
+    const raw = node ? (node.textContent || '') : '';
+    if (raw) {
+      try {
+        renderData = JSON.parse(decodeURIComponent(raw));
+      } catch (_) {
+        renderData = JSON.parse(raw);
+      }
+    }
+  } catch (_) {
+    renderData = {};
+  }
+  const data = renderData && typeof renderData.data === 'object' ? renderData.data : {};
+  const video = data && typeof data.initialVideo === 'object' ? data.initialVideo : {};
+  const media = data && typeof data.mediaInfo === 'object' ? data.mediaInfo : {};
+  const videoUser = video && typeof video.userInfo === 'object' ? video.userInfo : {};
+  const seo = data && typeof data.seoTDK === 'object' ? data.seoTDK : {};
 
   const body = document.body ? document.body.innerText : '';
-  const title = first(['h1','.article-content h1','[class*=title]']) ||
-                meta('og:title') || document.title.replace(/_今日头条.*/, '');
-  const content = first(['article','.syl-page-article','[class*=article-content]','[class*=articleContent]']) ||
-    Array.from(document.querySelectorAll('p')).map(x => (x.innerText || '').trim()).filter(Boolean).join('\n');
-  const author = first(['[class*=author] [class*=name]','[class*=author]','[class*=source]']) ||
-                 meta('author');
-  const publishTime = first(['time','[class*=publish-time]','[class*=time]','[class*=date]']) ||
-                      attr('[datetime]','datetime') || meta('article:published_time') ||
-                      ((body.match(/20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}(?:日)?(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?/)||[''])[0]);
+  const title = firstDefined(
+    video.title, data.title,
+    first(['h1','.article-content h1','[class*=title]']),
+    meta('og:title'),
+    document.title.replace(/_今日头条.*/, '')
+  );
+  const content = firstDefined(
+    video.abstract, htmlText(data.content), data.abstract,
+    first(['article','.syl-page-article','[class*=article-content]','[class*=articleContent]']),
+    Array.from(document.querySelectorAll('p')).map(x => (x.innerText || '').trim()).filter(Boolean).join('\n')
+  );
+  const author = firstDefined(
+    videoUser.name, media.name,
+    first(['[class*=author] [class*=name]','[class*=author]','[class*=source]']),
+    meta('author')
+  );
+  const publishTime = firstDefined(
+    video.publishTime, data.publishTime, seo.publishTimestamp,
+    first(['time','[class*=publish-time]','[class*=time]','[class*=date]']),
+    attr('[datetime]','datetime'), meta('article:published_time'),
+    ((body.match(/20\d{2}[-/.年]\d{1,2}[-/.月]\d{1,2}(?:日)?(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?/)||[''])[0])
+  );
   const pickCount = (label) => {
     const re = new RegExp(label + '\\s*[:：]?\\s*([0-9,.万wW]+)');
     const m = body.match(re);
     return m ? m[1] : '';
   };
+  const structuredCommentCount = firstDefined(
+    video.commentCount, data.commentCount, data.comment_count
+  );
+  const structuredLikeCount = firstDefined(
+    video.diggCount,
+    data.likeData && data.likeData.count,
+    data.diggCount,
+    data.like_count
+  );
+  const structuredShareCount = firstDefined(
+    video.shareCount, data.shareCount, data.share_count
+  );
+  const structuredViewCount = firstDefined(
+    video.playCount, data.readCount, data.read_count, data.playCount
+  );
+  const structuredCollectCount = firstDefined(
+    video.repinCount, data.repinCount, data.repin_count
+  );
+
   // Content-level region must come from an explicit author/source-area element.
   // Do not scan the whole page body: comment sections may contain unrelated
   // users' public IP-region labels and must never be attributed to the publisher.
@@ -244,9 +311,15 @@ ARTICLE_JS = r"""
   ]);
   return {
     title, content, author, publishTime,
-    likeCount: pickCount('(?:点赞|赞)'),
-    commentCount: pickCount('评论'),
-    shareCount: pickCount('分享'),
+    likeCount: structuredLikeCount !== '' ? structuredLikeCount : pickCount('(?:点赞|赞)'),
+    // Do not fall back to whole-body "评论 N" regexes: they can belong to
+    // recommended cards. Unknown stays unknown rather than becoming a false
+    // positive detail-queue candidate.
+    commentCount: structuredCommentCount,
+    commentCountSource: structuredCommentCount !== '' ? 'render_data' : '',
+    shareCount: structuredShareCount !== '' ? structuredShareCount : pickCount('分享'),
+    viewCount: structuredViewCount,
+    collectCount: structuredCollectCount,
     regionText
   };
 }
@@ -571,8 +644,10 @@ async def fetch_public_comment_api(page: Page, content_id: str, cap: int) -> lis
 async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
     captured: dict[str, dict] = {}
     pending: set[asyncio.Task] = set()
+    authoritative_empty = False
 
     async def handle(response: Response) -> None:
+        nonlocal authoritative_empty
         try:
             parsed_url = urlparse(response.url)
             path = parsed_url.path
@@ -650,6 +725,15 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
             default_parent_id=response_parent,
             default_root_id=response_root,
         )
+        if path == "/article/v4/tab_comments/" and matches_current:
+            try:
+                numeric_total = int(total_number) if total_number not in (None, "") else None
+            except Exception:
+                numeric_total = None
+            if numeric_total == 0 and data_len == 0 and not parsed_rows:
+                authoritative_empty = True
+            elif parsed_rows or (numeric_total is not None and numeric_total > 0):
+                authoritative_empty = False
         print(
             f"[toutiao] comment network response path={path} parsed_rows={len(parsed_rows)} "
             f"data_len={data_len} total_number={total_number if total_number not in (None, '') else 'unknown'} "
@@ -700,6 +784,16 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
             await settle(page)
         except Exception as exc:
             print(f"[toutiao] comment-capture reload warning: {type(exc).__name__}: {exc}", flush=True)
+
+        if pending:
+            await asyncio.gather(*list(pending), return_exceptions=True)
+        if authoritative_empty and not captured:
+            print(
+                "[toutiao] authoritative current-article comment response reports total_number=0; "
+                "skip extra comment UI/API probes",
+                flush=True,
+            )
+            return []
 
         for _ in range(10):
             # Current Toutiao PC uses a comment drawer and explicit load-more
@@ -770,7 +864,10 @@ async def fetch_detail(context, url: str, source_keyword: str, timeout_ms: int, 
             "publish_time": clean_text(extracted.get("publishTime")),
             "like_count": observed_int(extracted.get("likeCount")),
             "comment_count": observed_int(extracted.get("commentCount")),
+            "comment_count_source": clean_text(extracted.get("commentCountSource")),
             "share_count": observed_int(extracted.get("shareCount")),
+            "view_count": observed_int(extracted.get("viewCount")),
+            "collect_count": observed_int(extracted.get("collectCount")),
             "content_url": canonical_url(page.url or url) or url,
             "source_keyword": source_keyword,
             "ip_location": coarse_region(extracted.get("regionText")),
