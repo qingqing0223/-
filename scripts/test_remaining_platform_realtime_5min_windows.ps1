@@ -92,24 +92,25 @@ function Set-ConfigProperty($obj, [string]$name, $value) {
 }
 
 # The acceptance script must be self-contained even when a student's local
-# config predates a newly activated platform. Ensure the selected platform is
-# present and enabled before writing the temporary acceptance config.
-$platformNames = @{
-    "xhs" = "小红书"
-    "bili" = "B站"
-    "wb" = "微博"
-    "toutiao" = "今日头条"
-    "zhihu" = "知乎"
-}
+# config predates a newly activated platform. Use the canonical student config
+# as the source of platform metadata and campaign keywords.
+$canonicalConfigPath = Join-Path $RepoRoot "config\monitoring.student.windows.json"
+$canonicalCfg = Get-Content $canonicalConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $activeCodes = @("xhs","dy","ks","bili","wb","toutiao","zhihu")
 $platformList = @($cfg.platforms | Where-Object {
     $_ -and ($activeCodes -contains [string]$_.code)
 })
 $selectedEntry = $platformList | Where-Object { [string]$_.code -eq $Platform } | Select-Object -First 1
 if (-not $selectedEntry) {
+    $canonicalEntry = @($canonicalCfg.platforms | Where-Object {
+        [string]$_.code -eq $Platform
+    }) | Select-Object -First 1
+    if (-not $canonicalEntry) {
+        throw "Canonical config is missing selected platform '$Platform'."
+    }
     $platformList += [pscustomobject]@{
-        code = $Platform
-        name = [string]$platformNames[$Platform]
+        code = [string]$canonicalEntry.code
+        name = [string]$canonicalEntry.name
         enabled = $true
     }
     Write-Host "Added missing platform '$Platform' to temporary acceptance config." -ForegroundColor Yellow
@@ -117,18 +118,7 @@ if (-not $selectedEntry) {
     $selectedEntry.enabled = $true
 }
 Set-ConfigProperty $cfg "platforms" $platformList
-
-# Keep the acceptance run on the canonical six campaign keywords even when a
-# machine-local config is older than the current repository defaults.
-$acceptanceKeywords = @(
-    "2026年民族团结进步宣传周",
-    "首个民族团结进步宣传周",
-    "促进民族团结进步，奋进伟大复兴征程",
-    "民族团结进步倡议",
-    "民族团结进步宣传周主场活动",
-    "石榴花开——铸牢中华民族共同体意识"
-)
-Set-ConfigProperty $cfg "keywords" $acceptanceKeywords
+Set-ConfigProperty $cfg "keywords" @($canonicalCfg.keywords)
 
 $policy = @{
     "xhs"   = @{ Budget = 55; Timeout = 45;  CommentCap = 100 }
