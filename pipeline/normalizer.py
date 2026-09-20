@@ -136,8 +136,8 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
 
     context = title or desc or ""
     content_id = _first(
-        raw, "content_id", "aweme_id", "note_id", "video_id", "photo_id",
-        "dynamic_id", "id", "mid"
+        raw, "content_id", "article_id", "group_id", "item_id", "aweme_id", "note_id",
+        "video_id", "photo_id", "dynamic_id", "id", "mid"
     )
     comment_id = _first(raw, "comment_id", "cid", "rpid")
     parent_comment_id = _nonzero_id(_first(
@@ -216,8 +216,9 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     language_info = detect_language(raw, analysis_text or content)
 
     sample_id = _first(
-        raw, "sample_id", "comment_id", "cid", "rpid", "content_id", "aweme_id",
-        "note_id", "video_id", "photo_id", "dynamic_id", "id", "mid"
+        raw, "sample_id", "comment_id", "cid", "rpid", "content_id", "article_id",
+        "group_id", "item_id", "aweme_id", "note_id", "video_id", "photo_id",
+        "dynamic_id", "id", "mid"
     )
     if sample_id is None:
         basis = f"{platform}|{source_file}|{content}|{context}|{publish_time}|{author}"
