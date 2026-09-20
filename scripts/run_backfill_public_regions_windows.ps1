@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet('xhs','dy','ks','bili','wb','tieba','zhihu','wechat_mp','wechat_channels')]
+    [ValidateSet('xhs','dy','ks','bili','wb','toutiao','zhihu','wechat_mp','wechat_channels')]
     [string]$Platform,
 
     [string]$Config = '.\config\monitoring.local.json'
