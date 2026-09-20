@@ -72,6 +72,9 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
             $obj | Add-Member -NotePropertyName $name -NotePropertyValue $value
         }
     }
+    Set-ConfigProperty $cfgObj "event_id" "promotion_week_2026_preheat"
+    Set-ConfigProperty $cfgObj "event_name" "2026年民族团结进步宣传周预热阶段舆情监测"
+    Set-ConfigProperty $cfgObj "monitoring_start_time" "2026-09-16T00:00:00+08:00"
     Set-ConfigProperty $cfgObj "results_date" ""
     Set-ConfigProperty $cfgObj "results_date_mode" "auto"
     Set-ConfigProperty $cfgObj "interval_seconds" 300
