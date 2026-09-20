@@ -134,12 +134,36 @@ def _merge_regions_into_existing(output_jsonl: Path, region_by_key: dict[str, st
 def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path,
                         output_jsonl: Path, concurrency: int = 4,
                         monitoring_start_time: str = "") -> dict:
+    from monitor.topic_filter import is_campaign_relevant
+
     seen = load_seen(state_path)
     fresh = []
     filtered_before_start = 0
     filtered_before_start_comment_records = 0
     filtered_before_start_content_records = 0
     region_by_key: dict[str, str] = {}
+
+    # For Bilibili, build the valid Table-1 content-id set first.
+    # Comments are accepted only when their parent content exists in this set.
+    valid_bili_content_ids: set[str] = set()
+    if platform == "bili":
+        for scan_path in jsonl_files:
+            if "comment" in scan_path.name.lower():
+                continue
+            for scan_raw in read_jsonl(scan_path):
+                scan_raw = _prepare_region_aliases(scan_raw)
+                scan_rec = normalize_record(
+                    scan_raw,
+                    source_file=scan_path.name,
+                    platform_hint=platform,
+                )
+                if not scan_rec or scan_rec.get("record_type") == "comment":
+                    continue
+                if not is_campaign_relevant(scan_rec):
+                    continue
+                content_id = str(scan_rec.get("content_id") or "").strip()
+                if content_id:
+                    valid_bili_content_ids.add(content_id)
 
     raw_rows = 0
     raw_comment_rows = 0
@@ -161,6 +185,15 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             if not rec:
                 normalization_dropped += 1
                 continue
+
+            if platform == "bili":
+                if rec.get("record_type") == "comment":
+                    parent_content_id = str(rec.get("content_id") or "").strip()
+                    if parent_content_id not in valid_bili_content_ids:
+                        continue
+                elif not is_campaign_relevant(rec):
+                    continue
+
             normalized_records += 1
             if rec.get("record_type") == "comment":
                 normalized_comment_records += 1

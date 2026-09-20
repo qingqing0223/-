@@ -96,18 +96,94 @@ def build_table5_account_rows(
     classified_path: Path,
     raw_files: Iterable[Path] = (),
 ) -> list[dict]:
-    """Build Tech Design V3 Table 5 rows from public profile/post metadata.
+    """Build Tech Design V3 Table 5 rows.
 
-    Unavailable public fields stay null/empty; they are never estimated.
+    Table 5 contains:
+    1. every publisher actually appearing in valid collected content;
+    2. configured key accounts, even if they have not published matching content yet.
+
+    Publicly unavailable fields stay empty and are never estimated.
     """
     latest_rows = _latest_classified_rows(classified_path)
     profiles = _load_profile_rows(raw_files)
     collected_at = datetime.now().astimezone().isoformat(timespec="seconds")
-    output: list[dict] = []
 
+    accounts: list[dict] = []
+
+    # First preserve configured/key monitored accounts.
     for account in configured_accounts:
         if _clean(account.get("platform")) != platform:
             continue
+        item = dict(account)
+        # Entries from the configured key-account catalog are key accounts
+        # unless explicitly marked otherwise.
+        item["is_key_account"] = bool(account.get("is_key_account", True))
+        accounts.append(item)
+
+    def find_existing(creator_id: str, name: str):
+        for item in accounts:
+            item_id = _clean(
+                item.get("creator_id")
+                or item.get("account_id")
+                or item.get("author_id")
+            )
+            item_name = _clean(
+                item.get("name")
+                or item.get("account_name")
+                or item.get("author")
+            )
+
+            if creator_id and item_id and creator_id == item_id:
+                return item
+            if name and item_name and name == item_name:
+                return item
+        return None
+
+    # Then add every real publisher appearing in valid Table-1 content.
+    for row in latest_rows:
+        if _clean(row.get("record_type")) == "comment":
+            continue
+
+        creator_id = _clean(row.get("author_id"))
+        name = _clean(row.get("author"))
+
+        if not creator_id and not name:
+            continue
+
+        existing = find_existing(creator_id, name)
+
+        if existing is not None:
+            if creator_id and not _clean(existing.get("creator_id")):
+                existing["creator_id"] = creator_id
+            if name and not _clean(existing.get("name")):
+                existing["name"] = name
+            if (
+                _clean(row.get("author_profile_url"))
+                and not _clean(existing.get("profile_url"))
+            ):
+                existing["profile_url"] = _clean(row.get("author_profile_url"))
+            if (
+                _clean(row.get("ip_location"))
+                and not _clean(existing.get("ip_location"))
+            ):
+                existing["ip_location"] = _clean(row.get("ip_location"))
+            continue
+
+        accounts.append({
+            "platform": platform,
+            "creator_id": creator_id,
+            "name": name,
+            "profile_url": _clean(row.get("author_profile_url")),
+            "ip_location": _clean(row.get("ip_location")),
+            "account_type": "",
+            "organization": "",
+            "region": "",
+            "is_key_account": False,
+        })
+
+    output: list[dict] = []
+
+    for account in accounts:
         profile = _match_profile(account, profiles)
         posts = _match_content(account, latest_rows)
 
@@ -122,28 +198,52 @@ def build_table5_account_rows(
             or _clean(account.get("account_id"))
             or _clean(account.get("creator_id"))
         )
+
         account_name = (
             _clean(profile.get("account_name"))
             or _clean(account.get("name"))
         )
+
         profile_url = (
             _clean(profile.get("profile_url"))
             or _clean(account.get("profile_url"))
         )
+
         account_type = (
             _clean(account.get("account_type"))
             or _clean(profile.get("account_type_hint"))
         )
+
         organization = (
             _clean(account.get("organization"))
             or _clean(profile.get("organization"))
             or _clean(profile.get("auth_info"))
         )
-        region = _clean(profile.get("region")) or _clean(account.get("region"))
+
+        # "????" and "IP??" are kept as separate fields.
+        region = (
+            _clean(profile.get("region"))
+            or _clean(account.get("region"))
+        )
+
+        ip_location = (
+            _clean(profile.get("ip_location"))
+            or _clean(account.get("ip_location"))
+        )
+
+        # If the profile endpoint did not provide IP location,
+        # retain a publicly exposed location from the publisher's post.
+        if not ip_location:
+            for post in reversed(posts):
+                candidate = _clean(post.get("ip_location"))
+                if candidate:
+                    ip_location = candidate
+                    break
 
         followers = profile.get("followers")
         if followers in ("", None):
             followers = account.get("followers")
+
         following = profile.get("following")
         if following in ("", None):
             following = account.get("following")
@@ -154,11 +254,12 @@ def build_table5_account_rows(
             "account_name": account_name,
             "profile_url": profile_url,
             "account_type": account_type,
+            "ip_location": ip_location,
             "followers": followers if followers not in ("", None) else None,
             "following": following if following not in ("", None) else None,
             "region": region,
             "organization": organization,
-            "is_key_account": bool(account.get("is_key_account", True)),
+            "is_key_account": bool(account.get("is_key_account", False)),
             "related_post_count": len(posts),
             "views": views,
             "likes": likes,
@@ -169,8 +270,8 @@ def build_table5_account_rows(
             "collected_at": collected_at,
             "public_metrics_only": True,
         })
-    return output
 
+    return output
 
 def write_table5_account_snapshots(root: Path, rows: list[dict]) -> dict:
     """Write a latest snapshot plus one replaceable daily snapshot.

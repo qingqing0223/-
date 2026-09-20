@@ -88,6 +88,8 @@ def _as_count(value) -> int:
         return 0
 
 
+from monitor.topic_filter import is_campaign_relevant
+
 _COMMENT_COUNT_KEYS = (
     "comment_count", "comments_count", "comment_num", "video_comment",
     "total_comments", "reply_count", "total_replay_num",
@@ -123,6 +125,8 @@ def _detail_recovery_candidates(platform: str, content_files: list[Path], max_it
     candidates = []
     seen = set()
     for row in _iter_jsonl(content_files):
+        if platform == "bili" and not is_campaign_relevant(row):
+            continue
         if _visible_comment_count(row) <= 0:
             continue
         identifier = _detail_identifier(platform, row)
@@ -160,6 +164,8 @@ def _update_queue_from_content(platform: str, content_files: list[Path], queue: 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     items = queue.setdefault("items", {})
     for row in _iter_jsonl(content_files):
+        if platform == "bili" and not is_campaign_relevant(row):
+            continue
         identifier = _detail_identifier(platform, row)
         if not identifier:
             continue
