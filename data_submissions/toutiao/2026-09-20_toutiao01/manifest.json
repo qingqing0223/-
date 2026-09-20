@@ -1,0 +1,14 @@
+{
+  "directory": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_toutiao\\tables",
+  "rows": {
+    "1": 23,
+    "2": 0,
+    "3": 6,
+    "4": 0,
+    "5": 36
+  },
+  "unknown_fields": "blank",
+  "snapshot_policy": "key content hourly; account profile daily",
+  "poll_interval_seconds": 300,
+  "export_errors": []
+}
