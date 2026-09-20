@@ -2,7 +2,7 @@
 
 当前主链：
 
-**小红书 / 抖音 / 快手 / B站 / 微博 / 今日头条 / 知乎/微信公众号/视频号 → MediaCrawler → 作品/视频/一级评论/楼中楼 → 增量去重 → 评论父子关系重建 → 志鹏 v2 → 来源类型/语言/地区整理 → 苏琦 `/api/ingest` → SQLite → `/api/bootstrap` + SSE → 大屏**
+**小红书 / 抖音 / 快手 / B站 / 微博 / 今日头条 / 知乎 / 微信公众号 / 视频号 → 平台适配器（MediaCrawler + 今日头条 Playwright 适配器） → 作品/视频/一级评论/楼中楼 → 增量去重 → 评论父子关系重建 → 志鹏 v2 → 来源类型/语言/地区整理 → 苏琦 `/api/ingest` → SQLite → `/api/bootstrap` + SSE → 大屏**
 
 默认采用**单平台独立任务**，目标周期 300 秒。平台出现官方验证码、重新登录或安全验证时停止自动请求，人工完成官方验证后再继续；项目不实现验证码绕过。
 
@@ -15,7 +15,8 @@
 - `ks` 快手
 - `bili` B站
 - `wb` 微博
-……
+- `toutiao` 今日头条
+- `zhihu` 知乎
 
 代码接入状态与“真实平台验收通过”要区分；各平台仍受登录状态、官方接口返回范围、平台自身分页上限和风控影响。
 
@@ -93,7 +94,7 @@ search_until_exhausted = true
 crawler_max_notes_count = 100000
 ```
 
-各平台客户端在自身 `has_more/no_more` 等分页信号结束时会自然停止；`100000` 只是异常保护上限。平台自身可能仍存在搜索结果数量上限、登录限制或风控限制，因此“自然终点”指当前官方会话实际可返回的终点。
+MediaCrawler 原生平台按自身 `has_more/no_more` 等分页信号结束；今日头条适配器按公开搜索页滚动结果自然停止或安全上限停止；`100000` 只是异常保护上限。平台自身可能仍存在搜索结果数量上限、登录限制或风控限制，因此“自然终点”指当前官方会话实际可返回的终点。
 
 ## 8. 大屏供数
 
@@ -110,7 +111,7 @@ python .\scripts\preflight.py --config .\config\monitoring.local.json
 - 七平台配置
 - 全矩阵开关
 - Python / Git / uv / API Key
-- MediaCrawler 七平台入口
+- MediaCrawler 原生平台入口 + 项目内置今日头条 Playwright 适配器
 - pipeline / monitor / dashboard_adapter 核心模块
 
 ## 10. 学生正式启动
