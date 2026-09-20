@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "results_date": "2026-09-19",
-  "generated_at": "2026-09-20T01:17:42+00:00",
+  "generated_at": "2026-09-20T01:18:35+00:00",
   "platforms": {
     "xhs": {
       "aggregation_mode": "exact_cross_node_dedupe",
@@ -35,13 +35,13 @@
       "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "ks-main",
       "latest_node_id": "ks-main",
-      "unique_records": 129,
-      "comment_records": 59,
-      "root_comment_records": 59,
+      "unique_records": 134,
+      "comment_records": 63,
+      "root_comment_records": 63,
       "reply_comment_records": 0,
       "region_records": 14,
       "comment_region_records": 7,
-      "latest_seen_time": "2026-09-19T18:08:22+08:00",
+      "latest_seen_time": "2026-09-19T21:56:33+08:00",
       "node_count": 1,
       "all_counting_nodes_have_fingerprints": true
     },
