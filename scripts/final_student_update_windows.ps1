@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu")]
+    [ValidateSet("xhs","dy","ks","bili","wb","toutiao","zhihu")]
     [string]$Platform,
 
     [Parameter(Mandatory=$true)]
@@ -249,40 +249,16 @@ if ($Platform -eq "bili") {
     }
 }
 
-if ($Platform -eq "tieba") {
-    Write-Host "Applying Tieba bounded realtime patch..." -ForegroundColor Cyan
-    python .\scripts\patch_tieba_realtime_resilience.py --root $MediaCrawlerRoot
+if ($Platform -eq "toutiao") {
+    Write-Host "Verifying native Toutiao Playwright adapter..." -ForegroundColor Cyan
+    python -m py_compile .\scripts\toutiao_crawler.py
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Tieba realtime resilience patch failed. Monitor will NOT start." -ForegroundColor Red
+        Write-Host "ERROR: Toutiao adapter syntax verification failed. Monitor will NOT start." -ForegroundColor Red
         exit $LASTEXITCODE
     }
-    python .\scripts\patch_tieba_realtime_resilience.py --root $MediaCrawlerRoot --check
+    uv run --project $MediaCrawlerRoot python -c "import playwright; print('Toutiao Playwright runtime OK')"
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Tieba realtime resilience verification failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
-
-    Write-Host "Applying Tieba first-level/nested comment hierarchy patch..." -ForegroundColor Cyan
-    python .\scripts\patch_tieba_comment_hierarchy.py --root $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Tieba comment hierarchy patch failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
-    python .\scripts\patch_tieba_comment_hierarchy.py --root $MediaCrawlerRoot --check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Tieba comment hierarchy verification failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
-
-    Write-Host "Applying Tieba strict public-region persistence patch..." -ForegroundColor Cyan
-    python .\scripts\patch_tieba_public_regions.py --root $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Tieba public-region patch failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
-    python .\scripts\patch_tieba_public_regions.py --root $MediaCrawlerRoot --check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Tieba public-region verification failed. Monitor will NOT start." -ForegroundColor Red
+        Write-Host "ERROR: Toutiao requires Playwright from the pinned MediaCrawler environment." -ForegroundColor Red
         exit $LASTEXITCODE
     }
 }
