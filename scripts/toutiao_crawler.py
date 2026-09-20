@@ -573,40 +573,91 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
     pending: set[asyncio.Task] = set()
 
     async def handle(response: Response) -> None:
-        if "comment" not in response.url.lower():
-            return
         try:
             parsed_url = urlparse(response.url)
-            print(
-                f"[toutiao] observed comment network response path={parsed_url.path} status={response.status}",
-                flush=True,
-            )
+            path = parsed_url.path
         except Exception:
-            pass
+            return
+
+        # Ignore static assets whose filenames contain "comment". Only inspect
+        # actual public comment/reply endpoints emitted by the Toutiao page.
+        if path not in {
+            "/article/v4/tab_comments/",
+            "/2/comment/v4/reply_list/",
+        }:
+            return
+
+        ctype = (response.headers.get("content-type") or "").lower()
+        print(
+            f"[toutiao] observed comment network response path={path} "
+            f"status={response.status} content_type={ctype or 'unknown'}",
+            flush=True,
+        )
+
+        # Do not reject a successful comment response only because the server
+        # labels JSON as text/plain or another generic content type.
+        payload = None
         try:
-            ctype = (response.headers.get("content-type") or "").lower()
-            if "json" not in ctype and "javascript" not in ctype:
-                return
             payload = await response.json()
         except Exception:
+            try:
+                body = await response.text()
+                stripped = body.lstrip()
+                if stripped.startswith("{") or stripped.startswith("["):
+                    payload = json.loads(body)
+            except Exception:
+                payload = None
+        if payload is None:
+            print(
+                f"[toutiao] comment network response path={path} could_not_parse_json=yes",
+                flush=True,
+            )
             return
 
         response_parent = ""
         response_root = ""
-        try:
-            parsed = urlparse(response.url)
-            if "/2/comment/v4/reply_list/" in parsed.path:
-                response_parent = clean_text((parse_qs(parsed.query).get("id") or [""])[0])
-                response_root = response_parent
-        except Exception:
-            pass
+        if path == "/2/comment/v4/reply_list/":
+            response_parent = clean_text((parse_qs(parsed_url.query).get("id") or [""])[0])
+            response_root = response_parent
 
-        for row in parse_comment_payload(
+        parsed_rows = parse_comment_payload(
             payload,
             content_id,
             default_parent_id=response_parent,
             default_root_id=response_root,
-        ):
+        )
+        print(
+            f"[toutiao] comment network response path={path} parsed_rows={len(parsed_rows)} "
+            f"parent_context={'yes' if response_parent else 'no'}",
+            flush=True,
+        )
+        if not parsed_rows:
+            # Privacy-safe schema diagnostics only: field names/types, never
+            # comment text, user names, ids, URLs, or raw payload values.
+            try:
+                if isinstance(payload, dict):
+                    top_keys = sorted(str(k) for k in payload.keys())[:20]
+                    data = payload.get("data")
+                    data_type = type(data).__name__
+                    first_keys = []
+                    comment_keys = []
+                    if isinstance(data, list) and data and isinstance(data[0], dict):
+                        first_keys = sorted(str(k) for k in data[0].keys())[:20]
+                        wrapped = data[0].get("comment")
+                        if isinstance(wrapped, dict):
+                            comment_keys = sorted(str(k) for k in wrapped.keys())[:30]
+                    elif isinstance(data, dict):
+                        first_keys = sorted(str(k) for k in data.keys())[:20]
+                    print(
+                        f"[toutiao] comment schema path={path} top_keys={top_keys} "
+                        f"data_type={data_type} first_keys={first_keys} "
+                        f"comment_keys={comment_keys}",
+                        flush=True,
+                    )
+            except Exception:
+                pass
+
+        for row in parsed_rows:
             captured[row["comment_id"]] = row
 
     def on_response(response: Response) -> None:
