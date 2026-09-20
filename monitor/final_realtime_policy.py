@@ -17,7 +17,7 @@ DEFAULT_POLICIES = {
     "dy": {"budget": 70, "candidate_timeout": 105, "comment_cap": 200},
     "bili": {"budget": 70, "candidate_timeout": 100, "comment_cap": 20},
     "wb": {"budget": 50, "candidate_timeout": 40, "comment_cap": 100},
-    "tieba": {"budget": 55, "candidate_timeout": 45, "comment_cap": 100},
+    "toutiao": {"budget": 70, "candidate_timeout": 90, "comment_cap": 100},
     "zhihu": {"budget": 60, "candidate_timeout": 90, "comment_cap": 200},
 }
 
@@ -189,19 +189,35 @@ def install_final_realtime_policy(platform: str) -> None:
                     )
                 break
 
-            cmd = [
-                "uv", "run", "main.py",
-                "--platform", actual_platform,
-                "--lt", cfg.get("login_type", "qrcode"),
-                "--type", "detail",
-                "--specified_id", identifier,
-                "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
-                "--get_comment", "yes",
-                "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
-                "--save_data_option", cfg.get("save_data_option", "jsonl"),
-                "--save_data_path", str(output_dir),
-                "--max_comments_count_singlenotes", str(comment_cap),
-            ]
+            if platform == "toutiao":
+                repo_root = Path(__file__).resolve().parents[1]
+                profile_dir = Path(cfg["data_root"]) / "state" / "toutiao_browser_profile"
+                cmd = [
+                    "uv", "run", "--project", str(cfg["media_crawler_root"]),
+                    "python", str(repo_root / "scripts" / "toutiao_crawler.py"),
+                    "--mode", "detail",
+                    "--specified-id", identifier,
+                    "--save-data-path", str(output_dir),
+                    "--profile-dir", str(profile_dir),
+                    "--get-comment", "yes",
+                    "--max-comments", str(comment_cap),
+                ]
+                detail_cwd = str(repo_root)
+            else:
+                cmd = [
+                    "uv", "run", "main.py",
+                    "--platform", actual_platform,
+                    "--lt", cfg.get("login_type", "qrcode"),
+                    "--type", "detail",
+                    "--specified_id", identifier,
+                    "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
+                    "--get_comment", "yes",
+                    "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
+                    "--save_data_option", cfg.get("save_data_option", "jsonl"),
+                    "--save_data_path", str(output_dir),
+                    "--max_comments_count_singlenotes", str(comment_cap),
+                ]
+                detail_cwd = cfg["media_crawler_root"]
 
             snapshot = _snapshot_jsonl(output_dir)
             attempted.append(identifier)
@@ -221,18 +237,9 @@ def install_final_realtime_policy(platform: str) -> None:
                     child_env["PROMOTION_WEEK_BILI_SUBCOMMENT_PAGE_CAP"] = str(
                         max(0, min(_policy_value(cfg, platform, "subcomment_page_cap", 1), 5))
                     )
-                elif platform == "tieba":
-                    child_env = os.environ.copy()
-                    child_env["PROMOTION_WEEK_TIEBA_REALTIME_DETAIL"] = "1"
-                    child_env["PROMOTION_WEEK_TIEBA_SUBCOMMENT_ROOT_CAP"] = str(
-                        max(0, min(_policy_value(cfg, platform, "subcomment_root_cap", 3), 10))
-                    )
-                    child_env["PROMOTION_WEEK_TIEBA_SUBCOMMENT_PAGE_CAP"] = str(
-                        max(0, min(_policy_value(cfg, platform, "subcomment_page_cap", 1), 5))
-                    )
 
                 popen_kwargs = {
-                    "cwd": cfg["media_crawler_root"],
+                    "cwd": detail_cwd,
                     "stdout": out,
                     "stderr": err,
                     "text": True,
@@ -270,11 +277,12 @@ def install_final_realtime_policy(platform: str) -> None:
                     first_failure_rc = proc.returncode
 
                 access_guard = False
-                if platform in {"wb", "xhs"}:
+                if platform in {"wb", "xhs", "toutiao"}:
                     tail = crawler_runner._tail_text(stdout_log, stderr_log)
                     tokens = (
                         "weibo_verify_required",
                         "xhs_verify_required",
+                        "toutiao_verify_required",
                         "captcha",
                         "security verification",
                         "验证码",
@@ -284,7 +292,7 @@ def install_final_realtime_policy(platform: str) -> None:
 
                 with stdout_log.open("a", encoding="utf-8") as out:
                     if access_guard:
-                        guard_name = "WB" if platform == "wb" else "XHS"
+                        guard_name = {"wb": "WB", "xhs": "XHS", "toutiao": "TOUTIAO"}.get(platform, platform.upper())
                         out.write(
                             f"[monitor] {guard_name}_REALTIME_ACCESS_GUARD_STOP "
                             f"rc={proc.returncode}; no_more_detail_requests_this_cycle=yes; "
