@@ -1,13 +1,13 @@
 # 学生分平台部署与 GitHub 汇总
 
-适用于 7 个 MediaCrawler 支持的平台：
+适用于当前项目接入的 7 个平台：
 
 - `xhs` 小红书
 - `dy` 抖音
 - `ks` 快手
 - `bili` B站
 - `wb` 微博
-- `tieba` 百度贴吧
+- `toutiao` 今日头条
 - `zhihu` 知乎
 
 ## 1. 本次正式监测口径
