@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu")]
+    [ValidateSet("xhs","dy","ks","bili","wb","toutiao","zhihu")]
     [string]$Platform,
 
     [string]$NodeId = $env:COMPUTERNAME,
@@ -110,8 +110,9 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
         Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 120
         Set-ConfigProperty $cfgObj "classifier_concurrency" 12
     }
-    if ($Platform -eq "tieba") {
+    if ($Platform -eq "toutiao") {
         Set-ConfigProperty $cfgObj "classifier_concurrency" 12
+        Set-ConfigProperty $cfgObj "network_error_cooldown_seconds" 600
         Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 120
     }
 
@@ -146,15 +147,12 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "wb_realtime_detail_budget_seconds" 55
     Set-ConfigProperty $cfgObj "wb_realtime_candidate_timeout_seconds" 35
     Set-ConfigProperty $cfgObj "wb_realtime_max_comments_per_video" 100
-    Set-ConfigProperty $cfgObj "tieba_realtime_discovery_max_notes_count" 10
-    Set-ConfigProperty $cfgObj "tieba_realtime_items_per_keyword" 4
-    Set-ConfigProperty $cfgObj "tieba_realtime_search_timeout_seconds" 120
-    Set-ConfigProperty $cfgObj "tieba_realtime_detail_max_items_per_cycle" 2
-    Set-ConfigProperty $cfgObj "tieba_realtime_detail_budget_seconds" 55
-    Set-ConfigProperty $cfgObj "tieba_realtime_candidate_timeout_seconds" 45
-    Set-ConfigProperty $cfgObj "tieba_realtime_max_comments_per_video" 100
-    Set-ConfigProperty $cfgObj "tieba_realtime_subcomment_root_cap" 3
-    Set-ConfigProperty $cfgObj "tieba_realtime_subcomment_page_cap" 1
+    Set-ConfigProperty $cfgObj "toutiao_realtime_discovery_max_notes_count" 12
+    Set-ConfigProperty $cfgObj "toutiao_realtime_search_timeout_seconds" 180
+    Set-ConfigProperty $cfgObj "toutiao_realtime_detail_max_items_per_cycle" 2
+    Set-ConfigProperty $cfgObj "toutiao_realtime_detail_budget_seconds" 70
+    Set-ConfigProperty $cfgObj "toutiao_realtime_candidate_timeout_seconds" 90
+    Set-ConfigProperty $cfgObj "toutiao_realtime_max_comments_per_video" 100
     Set-ConfigProperty $cfgObj "zhihu_realtime_detail_budget_seconds" 60
     Set-ConfigProperty $cfgObj "zhihu_realtime_candidate_timeout_seconds" 90
     Set-ConfigProperty $cfgObj "zhihu_realtime_max_comments_per_video" 200
