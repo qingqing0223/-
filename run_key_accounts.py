@@ -92,6 +92,7 @@ def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
             state_path,
             classified_path,
             concurrency=int(cfg.get("classifier_concurrency", 4)),
+            monitoring_start_time=str(cfg.get("monitoring_start_time") or ""),
         )
         push_rows = summary.pop("push_rows")
 
