@@ -37,7 +37,7 @@ from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
 
-PLATFORM_ORDER = ["wechat_mp", "dy", "ks", "xhs", "bili", "wb", "zhihu", "tieba"]
+PLATFORM_ORDER = ["wechat_mp", "dy", "ks", "xhs", "bili", "wb", "zhihu", "toutiao"]
 PLATFORM_NAMES = {
     "wechat_mp": "微信公众号",
     "wechat_channels": "微信视频号",
@@ -47,7 +47,7 @@ PLATFORM_NAMES = {
     "bili": "哔哩哔哩",
     "wb": "微博",
     "zhihu": "知乎",
-    "tieba": "百度贴吧",
+    "toutiao": "今日头条",
 }
 DEFAULT_ENDPOINT = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 DEFAULT_MODEL = "qwen3.8-max"
