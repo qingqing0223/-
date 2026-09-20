@@ -70,7 +70,7 @@ class ToutiaoFinalStackTests(unittest.TestCase):
         self.assertEqual(self.mod.coarse_region("来自：内蒙古"), "内蒙古")
         self.assertEqual(self.mod.coarse_region("127.0.0.1"), "")
 
-    def test_active_runner_mentions_toutiao_not_tieba(self):
+    def test_active_runner_has_toutiao(self):
         runner = (ROOT / "run_single_platform.py").read_text(encoding="utf-8")
         final_policy = (ROOT / "monitor" / "final_realtime_policy.py").read_text(encoding="utf-8")
         self.assertIn('"toutiao"', runner)
