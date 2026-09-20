@@ -71,7 +71,7 @@ git clone <PRIVATE_REPO_URL> E:\PromotionWeekReview
     -PrivateReviewRepoConfirmed
 ```
 
-平台代码：`xhs`、`dy`、`ks`、`bili`、`wb`、`tieba`、`zhihu`。
+平台代码：`xhs`、`dy`、`ks`、`bili`、`wb`、`toutiao`、`zhihu`。
 
 启动后会有三个核心后台流程：
 
