@@ -19,3 +19,4 @@ config/monitoring.local.json
 config/monitoring.wechat.local.json
 config/wechat_channels_screen.local.json
 config/key_accounts.json
+config/zhihu_key_accounts.local.json

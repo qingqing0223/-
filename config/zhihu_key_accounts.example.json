@@ -1,0 +1,408 @@
+{
+  "schema_version": 1,
+  "platform": "zhihu",
+  "source": "Tech Design V3 section 2.3",
+  "note": "复制为 config/zhihu_key_accounts.local.json 后填写已核验的知乎 creator_id/profile_url；本文件不包含猜测ID。",
+  "accounts": [
+    {
+      "name": "人民日报",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "人民网",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "新华社",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "新华网",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "央视新闻",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "央视网",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "央视频",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "中国之声",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "央广网",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "光明日报",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "中国新闻网",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "中国日报",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "中国青年报",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "法治日报",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "中国网",
+      "account_type": "中央媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "统战新语",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "中国统一战线杂志",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "团结报团结网",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "团结e家",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "人民政协报",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "国家民委",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "中国民族报",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "中国民族宗教网",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "道中华",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "民族画报",
+      "account_type": "统战系统媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "内蒙古卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "新疆卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "云南卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "广西卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "西藏卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "宁夏卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "青海卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "贵州卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "四川卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "甘肃卫视",
+      "account_type": "卫视媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "北京日报",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "北京发布",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "上观新闻",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "南方+",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "广州日报",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "湖北日报",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "长江日报",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "龙头新闻",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "内蒙古日报",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "奔腾融媒",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "新疆日报/石榴云",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "云南日报/云新闻",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "广西日报/广西云",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "西藏日报",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    },
+    {
+      "name": "宁夏日报",
+      "account_type": "地方媒体",
+      "creator_id": "",
+      "profile_url": "",
+      "enabled": false,
+      "note": "仅在核验真实知乎主页/creator_id后启用；禁止按名称猜ID"
+    }
+  ]
+}
