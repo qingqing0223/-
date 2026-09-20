@@ -172,7 +172,12 @@ def _update_queue_from_content(platform: str, content_files: list[Path], queue: 
             "retry_count": 0,
         })
         item["last_seen_at"] = now
-        item["visible_comment_count"] = max(int(item.get("visible_comment_count") or 0), visible)
+        if platform == "toutiao" and str(row.get("comment_count_source") or "") == "render_data":
+            # Toutiao RENDER_DATA is article-specific and can safely correct an
+            # earlier false-positive whole-page count, including resetting it to 0.
+            item["visible_comment_count"] = visible
+        else:
+            item["visible_comment_count"] = max(int(item.get("visible_comment_count") or 0), visible)
 
 
 def _select_queue_candidates(queue: dict, max_items: int, refresh_seconds: int) -> list[str]:
@@ -354,6 +359,12 @@ def _classify_state(
         ("xhs_realtime_search_timeout" in text or "toutiao_realtime_search_timeout" in text)
         and content_row_count > 0
     ):
+        return "PARTIAL_SUCCESS"
+
+    # A bounded Toutiao detail-candidate timeout after successful discovery is
+    # not a platform-wide network failure. Preserve the discovered content and
+    # report a partial cycle; the candidate stays retryable in the deep queue.
+    if "toutiao_realtime_detail_candidate_timeout" in text and content_row_count > 0:
         return "PARTIAL_SUCCESS"
 
     if any(marker in text for marker in network_markers):
