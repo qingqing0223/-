@@ -227,13 +227,21 @@ ARTICLE_JS = r"""
     const m = body.match(re);
     return m ? m[1] : '';
   };
-  const regionMatch = body.match(/IP属地[：:]?\s*([^\s·|]{2,12})/);
+  // Content-level region must come from an explicit author/source-area element.
+  // Do not scan the whole page body: comment sections may contain unrelated
+  // users' public IP-region labels and must never be attributed to the publisher.
+  const regionText = first([
+    '[class*=author] [class*=ip]',
+    '[class*=author] [class*=region]',
+    '[class*=source] [class*=ip]',
+    '[class*=source] [class*=region]'
+  ]);
   return {
     title, content, author, publishTime,
     likeCount: pickCount('(?:点赞|赞)'),
     commentCount: pickCount('评论'),
     shareCount: pickCount('分享'),
-    regionText: regionMatch ? regionMatch[1] : ''
+    regionText
   };
 }
 """
