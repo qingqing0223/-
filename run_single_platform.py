@@ -522,13 +522,13 @@ def main():
             240, max(90, int(cfg.get("toutiao_realtime_search_timeout_seconds", 180)))
         )
         cfg["toutiao_realtime_detail_max_items_per_cycle"] = min(
-            2, max(1, int(cfg.get("toutiao_realtime_detail_max_items_per_cycle", 2)))
+            4, max(1, int(cfg.get("toutiao_realtime_detail_max_items_per_cycle", 4)))
         )
         cfg["toutiao_realtime_detail_budget_seconds"] = min(
-            90, max(45, int(cfg.get("toutiao_realtime_detail_budget_seconds", 70)))
+            120, max(60, int(cfg.get("toutiao_realtime_detail_budget_seconds", 105)))
         )
         cfg["toutiao_realtime_candidate_timeout_seconds"] = min(
-            120, max(45, int(cfg.get("toutiao_realtime_candidate_timeout_seconds", 90)))
+            90, max(45, int(cfg.get("toutiao_realtime_candidate_timeout_seconds", 60)))
         )
         cfg["toutiao_realtime_max_comments_per_video"] = min(
             100, max(20, int(cfg.get("toutiao_realtime_max_comments_per_video", 100)))
