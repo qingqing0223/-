@@ -13,7 +13,7 @@ from monitor.result_summary import build_summary
 from pipeline.normalizer import normalize_record
 from monitor.ingest import _before_monitoring_start
 
-PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
+PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu")
 
 
 def load_json(path: Path, default=None):
