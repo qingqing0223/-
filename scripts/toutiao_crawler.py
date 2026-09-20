@@ -69,6 +69,12 @@ def to_int(value: Any) -> int:
         return 0
 
 
+def observed_int(value: Any) -> int | None:
+    """Return None when the public page did not expose the metric at all."""
+    text = clean_text(value)
+    return to_int(text) if text else None
+
+
 def canonical_url(raw: str) -> str:
     raw = unquote(clean_text(raw))
     match = URL_RE.search(raw)
@@ -424,6 +430,67 @@ async def extract_dom_comments(page: Page, content_id: str) -> list[dict]:
     return rows
 
 
+async def fetch_public_comment_api(page: Page, content_id: str, cap: int) -> list[dict]:
+    """Try Toutiao's public web comment endpoint using the active browser session.
+
+    This is a best-effort fallback only. It does not generate signatures, bypass
+    challenges, or retry through verification. If the endpoint is unavailable,
+    the crawler simply falls back to browser-rendered comments.
+    """
+    if not content_id or cap <= 0:
+        return []
+    rows: dict[str, dict] = {}
+    offset = 0
+    page_size = min(20, cap)
+    for _ in range(max(1, (cap + page_size - 1) // page_size)):
+        url = (
+            "https://www.toutiao.com/api/comment/list/"
+            f"?group_id={content_id}&item_id={content_id}"
+            f"&offset={offset}&count={page_size}"
+        )
+        try:
+            response = await page.context.request.get(
+                url,
+                headers={
+                    "accept": "application/json, text/plain, */*",
+                    "referer": canonical_url(page.url) or page.url,
+                },
+                timeout=12000,
+            )
+            if response.status in {401, 403, 418, 429}:
+                print(
+                    f"[toutiao] public comment endpoint unavailable status={response.status}; "
+                    "no bypass/retry escalation",
+                    flush=True,
+                )
+                break
+            if not response.ok:
+                break
+            payload = await response.json()
+        except Exception as exc:
+            print(
+                f"[toutiao] public comment endpoint warning: {type(exc).__name__}: {exc}",
+                flush=True,
+            )
+            break
+
+        batch = parse_comment_payload(payload, content_id)
+        before = len(rows)
+        for row in batch:
+            cid = clean_text(row.get("comment_id"))
+            if cid:
+                rows[cid] = row
+                if len(rows) >= cap:
+                    return list(rows.values())[:cap]
+
+        data = payload.get("data") if isinstance(payload, dict) else {}
+        has_more = bool(data.get("has_more")) if isinstance(data, dict) else False
+        if len(rows) == before or not has_more:
+            break
+        offset += page_size
+    return list(rows.values())[:cap]
+
+
 async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
     captured: dict[str, dict] = {}
     pending: set[asyncio.Task] = set()
@@ -448,6 +515,15 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
 
     page.on("response", on_response)
     try:
+        # The initial detail navigation happens before this helper is called, so
+        # some pages have already fired their comment XHRs. Reload once with the
+        # response listener attached to capture those public requests.
+        try:
+            await page.reload(wait_until="domcontentloaded", timeout=15000)
+            await settle(page)
+        except Exception as exc:
+            print(f"[toutiao] comment-capture reload warning: {type(exc).__name__}: {exc}", flush=True)
+
         for _ in range(10):
             for label in ("展开", "查看全部", "更多回复", "展开更多", "查看更多"):
                 try:
@@ -466,6 +542,9 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
                 break
         if pending:
             await asyncio.gather(*list(pending), return_exceptions=True)
+        if not captured:
+            for row in await fetch_public_comment_api(page, content_id, cap):
+                captured[row["comment_id"]] = row
         if not captured:
             for row in await extract_dom_comments(page, content_id):
                 captured[row["comment_id"]] = row
@@ -495,9 +574,9 @@ async def fetch_detail(context, url: str, source_keyword: str, timeout_ms: int, 
             "content_text": clean_text(extracted.get("content")),
             "author": clean_text(extracted.get("author")),
             "publish_time": clean_text(extracted.get("publishTime")),
-            "like_count": to_int(extracted.get("likeCount")),
-            "comment_count": to_int(extracted.get("commentCount")),
-            "share_count": to_int(extracted.get("shareCount")),
+            "like_count": observed_int(extracted.get("likeCount")),
+            "comment_count": observed_int(extracted.get("commentCount")),
+            "share_count": observed_int(extracted.get("shareCount")),
             "content_url": canonical_url(page.url or url) or url,
             "source_keyword": source_keyword,
             "ip_location": coarse_region(extracted.get("regionText")),
@@ -505,7 +584,10 @@ async def fetch_detail(context, url: str, source_keyword: str, timeout_ms: int, 
         comments = []
         if get_comments:
             comments = await capture_comments(page, cid, comment_cap)
-            if comments and content_row["comment_count"] < len(comments):
+            if comments and (
+                content_row["comment_count"] is None
+                or content_row["comment_count"] < len(comments)
+            ):
                 content_row["comment_count"] = len(comments)
             for row in comments:
                 row["source_keyword"] = source_keyword
