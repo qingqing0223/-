@@ -17,8 +17,8 @@ from monitor.crawler_runner import find_ingest_jsonl, run_platform
 from monitor.creator_runner import run_creator_platform
 from monitor.final_realtime_policy import install_final_realtime_policy
 from monitor.keyword_pack import apply_keyword_pack
-from monitor.unknown_comment_queue_policy import install_unknown_comment_count_fallback
 from monitor.zhihu_submission import export_zhihu_submission
+from monitor.zhihu_realtime_policy import install_zhihu_scope_aware_realtime_policy
 
 ROOT = Path(__file__).resolve().parent
 
@@ -181,7 +181,7 @@ def main() -> None:
     )
 
     install_final_realtime_policy("zhihu")
-    install_unknown_comment_count_fallback("zhihu")
+    install_zhihu_scope_aware_realtime_policy(cfg)
 
     while True:
         started = time.time()
