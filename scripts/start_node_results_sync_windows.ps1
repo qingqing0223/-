@@ -117,14 +117,17 @@ if ($Push) {
         Write-Host "GitHub push access preflight completed; sync loop will handle concurrent remote updates." -ForegroundColor Green
     }
 
-    # Keep Git Credential Manager interactive after preflight.
-    # On some Windows machines the dry-run can succeed while the later real push
-    # still needs one browser credential refresh. Disabling interactivity here
-    # causes an endless git_push_auth loop and prevents ks-main.json/dy01/etc.
-    # from ever reaching GitHub. After the first successful sign-in, GCM caches
-    # the credential so later five-minute pushes remain unattended.
-    Remove-Item Env:GCM_INTERACTIVE -ErrorAction SilentlyContinue
-    Remove-Item Env:GIT_TERMINAL_PROMPT -ErrorAction SilentlyContinue
+    # Authentication is interactive only during this one-time preflight.
+    # After a successful preflight, force the long-running five-minute sync loop
+    # to be non-interactive. Otherwise Git Credential Manager can reopen the
+    # browser on every pull/push retry, producing repeated "Connect to GitHub"
+    # dialogs even though collection itself is healthy.
+    #
+    # If the cached GitHub credential later expires, the publisher will report a
+    # git_*_auth failure in the terminal instead of repeatedly opening browser
+    # windows. The operator can then restart this sync once and sign in once.
+    $env:GCM_INTERACTIVE = "Never"
+    $env:GIT_TERMINAL_PROMPT = "0"
 } else {
     Write-Host "Git push disabled; summaries/diagnostics will only be generated locally." -ForegroundColor Yellow
 }
