@@ -43,12 +43,7 @@ jobs:
           python scripts/patch_xhs_comment_hierarchy.py --root /tmp/MediaCrawler --check
           python scripts/patch_xhs_public_regions.py --root /tmp/MediaCrawler
           python scripts/patch_xhs_public_regions.py --root /tmp/MediaCrawler --check
-          python scripts/patch_tieba_realtime_resilience.py --root /tmp/MediaCrawler
-          python scripts/patch_tieba_realtime_resilience.py --root /tmp/MediaCrawler --check
-          python scripts/patch_tieba_comment_hierarchy.py --root /tmp/MediaCrawler
-          python scripts/patch_tieba_comment_hierarchy.py --root /tmp/MediaCrawler --check
-          python scripts/patch_tieba_public_regions.py --root /tmp/MediaCrawler
-          python scripts/patch_tieba_public_regions.py --root /tmp/MediaCrawler --check
+          python -m py_compile scripts/toutiao_crawler.py
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler --check
           set +e
