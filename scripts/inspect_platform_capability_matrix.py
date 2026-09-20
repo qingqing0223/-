@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import re
 
-SUPPORTED = {"xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu"}
+SUPPORTED = {"xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu"}
 COMMENT_COUNT_KEYS = (
     "comment_count", "comments_count", "comment_num", "video_comment",
     "total_comments", "reply_count", "total_replay_num",
@@ -54,7 +54,7 @@ def nonzero_id(value) -> str:
 def content_id(row: dict) -> str:
     return str(first(
         row, "content_id", "aweme_id", "note_id", "video_id", "photo_id",
-        "dynamic_id", "tieba_id", "article_id", "answer_id", "oid", "id"
+        "dynamic_id", "toutiao_id", "article_id", "answer_id", "oid", "id"
     ) or "").strip()
 
 
