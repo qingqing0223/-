@@ -122,9 +122,11 @@ def to_suqi_record(row: dict) -> dict:
         "language": language,
         "attitude": _attitude_from_v2(v2_status, v2_type),
         "issue_category": TYPE_TO_ISSUE.get(v2_type, "") if v2_type else "",
-        "likes": row.get("likes") or 0,
-        "comments": row.get("comments") or 0,
-        "shares": row.get("shares") or 0,
+        # Kuaishou missing public counters stay null. A fabricated zero would be
+        # indistinguishable from an actual platform-displayed zero.
+        "likes": row.get("likes") if platform_code == "ks" else (row.get("likes") or 0),
+        "comments": row.get("comments") if platform_code == "ks" else (row.get("comments") or 0),
+        "shares": row.get("shares") if platform_code == "ks" else (row.get("shares") or 0),
         # Keep hierarchy metadata as first-class fields so the dashboard can build
         # real comment trees instead of parsing an opaque notes string.
         "record_type": row.get("record_type") or "",

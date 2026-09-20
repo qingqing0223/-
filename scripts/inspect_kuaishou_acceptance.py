@@ -315,6 +315,13 @@ def main() -> int:
     latest_within_target = bool(status.get("realtime_cycle_within_target", False))
     latest_detail_candidates = int(run.get("detail_recovery_candidates") or 0)
     latest_comment_rows = int(run.get("comment_row_count") or 0)
+    snapshot_path = root / "classified" / "kuaishou_engagement_snapshots.jsonl"
+    snapshot_rows = list(_iter_jsonl(snapshot_path) or []) if snapshot_path.exists() else []
+    account_snapshot_path = root / "classified" / "kuaishou_account_snapshots.jsonl"
+    account_snapshot_rows = list(_iter_jsonl(account_snapshot_path) or []) if account_snapshot_path.exists() else []
+    configured_incremental_interval = int(cfg.get("kuaishou_incremental_interval_seconds", 900) or 900)
+    configured_comment_interval = int(cfg.get("kuaishou_comment_incremental_interval_seconds", 900) or 900)
+    configured_snapshot_interval = int(cfg.get("kuaishou_engagement_snapshot_interval_seconds", 3600) or 3600)
 
     checks = {
         "content_collected": effective_content > 0,
@@ -337,7 +344,16 @@ def main() -> int:
         "realtime_unknown_count_fallback_available": fallback_present,
         "realtime_queue_policy_ready": queue_policy_ready,
         "realtime_mode_observed": latest_realtime_mode,
-        "realtime_cycle_within_300s": latest_realtime_mode and latest_within_target,
+        "incremental_discovery_interval_is_900s": configured_incremental_interval == 900,
+        "incremental_comment_interval_is_900s": configured_comment_interval == 900,
+        "realtime_cycle_within_900s": latest_realtime_mode and latest_within_target,
+        "engagement_snapshot_interval_is_3600s": configured_snapshot_interval == 3600,
+        "engagement_snapshots_key_content_only": all(
+            bool(row.get("is_key_monitor_content")) for row in snapshot_rows
+        ),
+        "engagement_snapshots_present": bool(snapshot_rows),
+        "account_daily_snapshot_implemented": bool(cfg.get("kuaishou_account_snapshot_implemented", False)),
+        "account_daily_snapshots_present": bool(account_snapshot_rows),
         "realtime_detail_queue_exercised": latest_realtime_mode and latest_detail_candidates > 0 and latest_comment_rows > 0,
     }
 
@@ -354,7 +370,9 @@ def main() -> int:
     realtime_live_verified = all([
         realtime_policy_ready,
         checks["realtime_mode_observed"],
-        checks["realtime_cycle_within_300s"],
+        checks["incremental_discovery_interval_is_900s"],
+        checks["incremental_comment_interval_is_900s"],
+        checks["realtime_cycle_within_900s"],
         checks["realtime_detail_queue_exercised"],
     ])
 
@@ -362,9 +380,9 @@ def main() -> int:
     if not checks["realtime_queue_policy_ready"]:
         blocking_gaps.append("no positive comment-count signal and no bounded unknown-count fallback is installed")
     if not checks["realtime_mode_observed"]:
-        blocking_gaps.append("the five-minute realtime path has not yet been live-tested after the Kuaishou queue fallback patch")
-    elif not checks["realtime_cycle_within_300s"]:
-        blocking_gaps.append("the latest realtime cycle exceeded the 300-second discovery target")
+        blocking_gaps.append("the 15-minute incremental discovery path has not yet been live-tested")
+    elif not checks["realtime_cycle_within_900s"]:
+        blocking_gaps.append("the latest realtime cycle exceeded the 900-second discovery target")
     if checks["realtime_mode_observed"] and not checks["realtime_detail_queue_exercised"]:
         blocking_gaps.append("the latest realtime cycle did not yet prove that the bounded detail queue produced comment rows")
 
@@ -377,6 +395,10 @@ def main() -> int:
         observations.append("no platform-displayed coarse IP-region value was present in the current persisted content JSONL")
     if checks["classification_degraded"]:
         observations.append("external attitude classifier is degraded; collected records are preserved as unclassified")
+    if not checks["engagement_snapshots_present"]:
+        observations.append("hourly key-content/comment engagement snapshots have no live persisted sample yet")
+    if not checks["account_daily_snapshot_implemented"]:
+        observations.append("daily account follower/following snapshots are NOT IMPLEMENTED and require follow-up work")
 
     result = {
         "ok": structural_ok,
@@ -413,6 +435,21 @@ def main() -> int:
             "content_regions": summary.get("content_regions") or {},
         },
         "pipeline": effective_pipeline,
+        "scheduled_metrics": {
+            "incremental_content_discovery_seconds": configured_incremental_interval,
+            "incremental_comment_discovery_seconds": configured_comment_interval,
+            "content_and_comment_snapshot_seconds": configured_snapshot_interval,
+            "engagement_snapshot_file": str(snapshot_path),
+            "engagement_snapshot_records": len(snapshot_rows),
+            "engagement_snapshot_scope": "verified_key_content_only",
+            "account_snapshot_seconds": int(cfg.get("kuaishou_account_snapshot_interval_seconds", 0) or 0),
+            "account_snapshot_file": str(account_snapshot_path),
+            "account_snapshot_records": len(account_snapshot_rows),
+            "account_snapshot_status": (
+                "implemented" if checks["account_daily_snapshot_implemented"]
+                else "not_implemented_requires_follow_up"
+            ),
+        },
         "classification": reprocess_classification,
         "checks": checks,
         "blocking_gaps": blocking_gaps,
@@ -432,7 +469,7 @@ def main() -> int:
                 "A zero count means the persisted response did not expose a usable coarse label; it must not be fabricated."
             ),
             "realtime_queue": (
-                "Five-minute realtime mode discovers content first and deep-crawls comments from a bounded queue. "
+                "Kuaishou discovers new content and comments every 15 minutes and appends verified key-content engagement snapshots hourly. "
                 "When Kuaishou omits a usable comment count, newly discovered videos can enter the queue through an explicit unknown-count fallback; the queue limit, batch size and refresh interval still apply."
             ),
         },

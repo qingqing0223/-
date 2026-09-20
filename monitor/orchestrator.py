@@ -14,6 +14,7 @@ from dashboard_adapter.suqi_pusher import deliver_with_outbox
 
 def load_config(path: Path) -> dict:
     cfg = json.loads(path.read_text(encoding="utf-8"))
+    cfg["_config_dir"] = str(path.resolve().parent)
     return apply_keyword_pack(cfg, path)
 
 
@@ -33,6 +34,10 @@ def run_one_cycle(cfg: dict) -> dict:
     enabled = [p for p in cfg["platforms"] if p.get("enabled", True)]
     workers = max(1, int(cfg.get("max_parallel_platforms", 1)))
     monitoring_start_time = str(cfg.get("monitoring_start_time") or "")
+    monitoring_end_time = str(cfg.get("monitoring_end_time") or "")
+    key_accounts_config = str(cfg.get("kuaishou_key_accounts_config") or "")
+    if key_accounts_config and not Path(key_accounts_config).is_absolute():
+        key_accounts_config = str(Path(cfg.get("_config_dir") or ".") / key_accounts_config)
 
     runs = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -98,6 +103,14 @@ def run_one_cycle(cfg: dict) -> dict:
                 classified_path,
                 int(cfg.get("classifier_concurrency", 4)),
                 monitoring_start_time=monitoring_start_time,
+                monitoring_end_time=monitoring_end_time,
+                engagement_snapshot_interval_seconds=int(
+                    cfg.get("kuaishou_engagement_snapshot_interval_seconds", 3600)
+                ),
+                account_snapshot_interval_seconds=int(
+                    cfg.get("kuaishou_account_snapshot_interval_seconds", 86400)
+                ),
+                key_accounts_config_path=key_accounts_config,
             )
             new_classified_rows.extend(summary.pop("_classified_rows", []))
             summary["ingest_comments"] = include_comments
@@ -154,6 +167,7 @@ def run_one_cycle(cfg: dict) -> dict:
         "event_id": cfg.get("event_id"),
         "event_name": cfg.get("event_name"),
         "monitoring_start_time": monitoring_start_time,
+        "monitoring_end_time": monitoring_end_time,
         "results_date": cfg.get("results_date"),
         "cycle_started_at": cycle_started_dt.isoformat(timespec="seconds"),
         "cycle_finished_at": cycle_finished_dt.isoformat(timespec="seconds"),

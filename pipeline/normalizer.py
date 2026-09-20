@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 
 from .language_detector import detect_language
@@ -10,6 +10,19 @@ def _first(d: dict, *keys):
         v = d.get(k)
         if v is not None and v != "":
             return v
+    return None
+
+
+def _first_nested(d: dict, parent_keys: tuple[str, ...], *keys):
+    value = _first(d, *keys)
+    if value is not None:
+        return value
+    for parent_key in parent_keys:
+        parent = d.get(parent_key)
+        if isinstance(parent, dict):
+            value = _first(parent, *keys)
+            if value is not None:
+                return value
     return None
 
 
@@ -35,7 +48,21 @@ def _to_int(v):
         return 0
 
 
-def _to_iso_time(v):
+def _to_optional_int(v):
+    """Parse a public counter without turning unavailable data into a false zero."""
+    if v is None or str(v).strip() == "":
+        return None
+    parsed = _to_int(v)
+    text = str(v).strip().replace(",", "").replace("，", "")
+    if parsed == 0 and text not in {"0", "0.0"}:
+        return None
+    return parsed
+
+
+BEIJING_TZ = timezone(timedelta(hours=8))
+
+
+def _to_iso_time(v, output_tz=None):
     if v is None or v == "":
         return ""
     if isinstance(v, (int, float)):
@@ -43,7 +70,8 @@ def _to_iso_time(v):
         if ts > 1e12:
             ts /= 1000.0
         try:
-            return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone().isoformat(timespec="seconds")
+            target_tz = output_tz or datetime.now().astimezone().tzinfo
+            return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(target_tz).isoformat(timespec="seconds")
         except Exception:
             return str(v)
     s = str(v).strip()
@@ -52,7 +80,8 @@ def _to_iso_time(v):
             ts = float(s)
             if ts > 1e12:
                 ts /= 1000.0
-            return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone().isoformat(timespec="seconds")
+            target_tz = output_tz or datetime.now().astimezone().tzinfo
+            return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(target_tz).isoformat(timespec="seconds")
         except Exception:
             pass
     return s
@@ -146,6 +175,7 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     ))
     root_comment_id = _nonzero_id(_first(raw, "root_comment_id", "root_id", "root_rpid"))
     sub_comment_count = _to_int(_first(raw, "sub_comment_count", "sub_comments_count", "reply_count"))
+    comment_reply_count_raw = _first(raw, "sub_comment_count", "sub_comments_count", "reply_count")
 
     platform = _first(raw, "platform", "source_platform", "source") or platform_hint
     platform = _str(platform).strip()
@@ -162,6 +192,25 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     author_id = _first(raw, "creator_hash", "user_id", "author_id", "uid", "sec_uid", "mid")
     author_avatar = _first(raw, "avatar", "avatar_url", "user_avatar", "head_url")
     author_profile_url = _first(raw, "user_url", "author_url", "profile_url", "creator_url")
+    if platform == "ks":
+        if isinstance(author, dict):
+            author = None
+        author = author or _first_nested(
+            raw, ("user", "user_info", "author", "creator"),
+            "name", "nickname", "user_name", "user_nickname"
+        )
+        author_id = author_id or _first_nested(
+            raw, ("user", "user_info", "author", "creator"),
+            "user_id", "author_id", "uid", "creator_id", "kwai_id"
+        )
+        author_avatar = author_avatar or _first_nested(
+            raw, ("user", "user_info", "author", "creator"),
+            "avatar", "avatar_url", "user_avatar", "head_url"
+        )
+        author_profile_url = author_profile_url or _first_nested(
+            raw, ("user", "user_info", "author", "creator"),
+            "user_url", "author_url", "profile_url", "creator_url"
+        )
     reply_to_author = _first(raw, "reply_to_nickname", "reply_user_name", "reply_to_user_name")
     source_keyword = _first(raw, "source_keyword", "keyword", "search_keyword")
 
@@ -177,10 +226,32 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         raw, "shares", "share_count", "shared_count", "repost_count", "forward_count",
         "video_share_count", "total_forwards"
     )
+    kuaishou_shares = _first(raw, "shares", "share_count", "shared_count", "video_share_count")
+    reposts = _first(raw, "repost_count", "forward_count", "total_forwards")
     views = _first(raw, "views", "view_count", "play_count", "video_play_count", "viewd_count")
     favorites = _first(raw, "favorites", "favorite_count", "video_favorite_count", "collected_count")
     danmaku = _first(raw, "danmaku", "danmaku_count", "video_danmaku")
     coins = _first(raw, "coins", "coin_count", "video_coin_count")
+    follower_count = _first_nested(
+        raw, ("user", "user_info", "author", "creator"),
+        "fans", "fans_count", "follower_count", "followers_count"
+    )
+    following_count = _first_nested(
+        raw, ("user", "user_info", "author", "creator"),
+        "following", "following_count", "follow_count"
+    )
+    account_type = _first_nested(
+        raw, ("user", "user_info", "author", "creator"),
+        "account_type", "user_type", "verification_type", "verified_type"
+    )
+    account_region = _first_nested(
+        raw, ("user", "user_info", "author", "creator"),
+        "account_region", "ip_location", "ip_region", "province", "region"
+    )
+    institution = _first_nested(
+        raw, ("user", "user_info", "author", "creator"),
+        "institution", "organization", "organisation", "agency"
+    )
 
     record_type = _detect_record_type(raw, platform, comment_id)
     if record_type == "comment":
@@ -225,6 +296,20 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         sample_id = hashlib.sha256(basis.encode("utf-8", "ignore")).hexdigest()[:24]
 
     now = datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    metric_parser = _to_optional_int if platform == "ks" else _to_int
+    metric_values = {
+        "likes": metric_parser(likes),
+        "comments": metric_parser(comments),
+        "shares": metric_parser(kuaishou_shares if platform == "ks" else shares),
+        "reposts": metric_parser(reposts),
+        "views": metric_parser(views),
+        "favorites": metric_parser(favorites),
+    }
+    metric_missing_reasons = {
+        name: "field_missing_or_unparseable"
+        for name, value in metric_values.items()
+        if value is None
+    }
     return {
         "sample_id": _str(sample_id),
         "dedupe_key": f"{platform}:{_str(sample_id)}",
@@ -235,6 +320,9 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "root_comment_id": root_comment_id,
         "comment_level": comment_level,
         "sub_comment_count": sub_comment_count,
+        "comment_reply_count": (
+            _to_optional_int(comment_reply_count_raw) if platform == "ks" else sub_comment_count
+        ),
         "record_type": record_type,
         "attitude_target": attitude_target,
         "analysis_basis": analysis_basis,
@@ -245,7 +333,7 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "asr_text": _str(asr_text).strip(),
         "ocr_text": _str(ocr_text).strip(),
         "source_keyword": _str(source_keyword),
-        "publish_time": _to_iso_time(publish_time),
+        "publish_time": _to_iso_time(publish_time, BEIJING_TZ if platform == "ks" else None),
         "first_seen_time": now,
         "ip_location": _str(region),
         "language": language_info["language"],
@@ -256,13 +344,20 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "author_id": _str(author_id),
         "author_avatar": _str(author_avatar),
         "author_profile_url": _str(author_profile_url),
+        "account_type": _str(account_type) or None,
+        "follower_count": _to_optional_int(follower_count) if platform == "ks" else _to_int(follower_count),
+        "following_count": _to_optional_int(following_count) if platform == "ks" else _to_int(following_count),
+        "account_region": _str(account_region) or None,
+        "institution": _str(institution) or None,
         "reply_to_author": _str(reply_to_author),
         "url": _str(url),
-        "likes": _to_int(likes),
-        "comments": _to_int(comments),
-        "shares": _to_int(shares),
-        "views": _to_int(views),
-        "favorites": _to_int(favorites),
+        "likes": metric_values["likes"],
+        "comments": metric_values["comments"],
+        "shares": metric_values["shares"],
+        "reposts": metric_values["reposts"],
+        "views": metric_values["views"],
+        "favorites": metric_values["favorites"],
+        "metric_missing_reasons": metric_missing_reasons,
         "danmaku": _to_int(danmaku),
         "coins": _to_int(coins),
         "source_file": source_file,

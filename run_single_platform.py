@@ -11,8 +11,20 @@ from monitor.orchestrator import load_config, run_forever, run_one_cycle
 PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "toutiao", "zhihu"}
 
 
+def _apply_kuaishou_cadence(cfg: dict, platform: str) -> dict:
+    if platform != "ks" or not bool(cfg.get("realtime_mode", False)):
+        return cfg
+    cfg["interval_seconds"] = max(
+        900, int(cfg.get("kuaishou_incremental_interval_seconds", 900))
+    )
+    cfg["realtime_comment_refresh_seconds"] = max(
+        900, int(cfg.get("kuaishou_comment_incremental_interval_seconds", 900))
+    )
+    return cfg
+
+
 def _install_kuaishou_unknown_comment_queue_fallback() -> None:
-    """Install the Kuaishou-specific five-minute realtime policy.
+    """Install the Kuaishou-specific bounded realtime policy.
 
     Kuaishou search JSONL currently exposes a ``comment_count`` field but may leave
     it at zero even when comments are retrievable. The fallback therefore lets
@@ -467,6 +479,11 @@ def main():
         _install_weibo_realtime_policy()
 
     cfg = load_config(Path(args.config))
+
+    if args.platform == "ks" and bool(cfg.get("realtime_mode", False)):
+        # The teacher's cadence applies to Kuaishou new-content discovery only.
+        # Keep the shared interval untouched for every other platform.
+        _apply_kuaishou_cadence(cfg, args.platform)
 
     if args.platform == "dy" and bool(cfg.get("realtime_mode", False)):
         # Keep Douyin's live loop on a start-to-start five-minute cadence.
