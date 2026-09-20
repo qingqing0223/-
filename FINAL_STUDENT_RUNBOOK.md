@@ -1,6 +1,6 @@
 # 学生端正式监测最终操作手册（冻结版）
 
-适用平台：小红书（xhs）、抖音（dy）、快手（ks）、B站（bili）、微博（wb）、百度贴吧（tieba）、知乎（zhihu）。
+适用平台：小红书（xhs）、抖音（dy）、快手（ks）、B站（bili）、微博（wb）、今日头条（toutiao）、知乎（zhihu）。
 
 > 本版作为 2026-09-16 起宣传周预热监测的学生端冻结版本。学生端后续不自行改代码、不自行安装未知包、不修改关键词和采集参数。平台官方登录、验证码、滑块或安全验证仍需人工完成，不绕过平台验证。
 
@@ -95,10 +95,10 @@ B站第二台：
 .\scripts\final_student_update_windows.ps1 -Platform wb -NodeId wb01 -Config .\config\monitoring.local.json -Start
 ```
 
-百度贴吧：
+今日头条：
 
 ```powershell
-.\scripts\final_student_update_windows.ps1 -Platform tieba -NodeId tieba01 -Config .\config\monitoring.local.json -Start
+.\scripts\final_student_update_windows.ps1 -Platform toutiao -NodeId toutiao01 -Config .\config\monitoring.local.json -Start
 ```
 
 知乎：
