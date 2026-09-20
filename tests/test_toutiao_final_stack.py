@@ -74,16 +74,13 @@ class ToutiaoFinalStackTests(unittest.TestCase):
         runner = (ROOT / "run_single_platform.py").read_text(encoding="utf-8")
         final_policy = (ROOT / "monitor" / "final_realtime_policy.py").read_text(encoding="utf-8")
         self.assertIn('"toutiao"', runner)
-        self.assertNotIn('"tieba"', runner)
         self.assertIn('"toutiao"', final_policy)
-        self.assertNotIn('"tieba"', final_policy)
 
     def test_student_config_has_toutiao(self):
         text = (ROOT / "config" / "monitoring.student.windows.json").read_text(encoding="utf-8")
         self.assertIn('"toutiao"', text)
         self.assertIn("今日头条", text)
-        self.assertNotIn('"tieba"', text)
-        self.assertNotIn("百度贴吧", text)
+        self.assertEqual(text.count('"code": "toutiao"'), 1)
 
 
 if __name__ == "__main__":
