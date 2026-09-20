@@ -158,6 +158,21 @@ class ToutiaoFinalStackTests(unittest.TestCase):
         self.assertNotIn('if "json" not in ctype and "javascript" not in ctype', text)
         self.assertIn("comment schema path=", text)
 
+    def test_detail_metrics_use_render_data_not_whole_body_comment_regex(self):
+        text = ADAPTER.read_text(encoding="utf-8")
+        self.assertIn("script#RENDER_DATA", text)
+        self.assertIn("commentCountSource", text)
+        self.assertIn("structuredCommentCount", text)
+        self.assertNotIn("commentCount: pickCount('评论')", text)
+        self.assertIn("authoritative current-article comment response reports total_number=0", text)
+
+    def test_realtime_toutiao_budget_can_sample_multiple_candidates(self):
+        runner = (ROOT / "run_single_platform.py").read_text(encoding="utf-8")
+        acceptance = (ROOT / "scripts" / "test_remaining_platform_realtime_5min_windows.ps1").read_text(encoding="utf-8")
+        self.assertIn('"toutiao_realtime_detail_max_items_per_cycle"] = min(\n            4,', runner)
+        self.assertIn('"toutiao" = @{ Budget = 120; Timeout = 60; CommentCap = 100 }', acceptance)
+        self.assertIn('"toutiao_realtime_detail_max_items_per_cycle" 4', acceptance)
+
     def test_active_runner_has_toutiao(self):
         runner = (ROOT / "run_single_platform.py").read_text(encoding="utf-8")
         final_policy = (ROOT / "monitor" / "final_realtime_policy.py").read_text(encoding="utf-8")
