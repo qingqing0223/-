@@ -19,13 +19,13 @@ if str(ROOT) not in sys.path:
 from monitor.result_summary import build_summary
 
 PLATFORMS = (
-    "xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu",
+    "xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu",
     "wechat_mp", "wechat_channels",
 )
 
 _ID_KEYS = (
     "comment_id", "parent_comment_id", "root_comment_id", "content_id",
-    "note_id", "aweme_id", "photo_id", "video_id", "bvid", "tieba_id",
+    "note_id", "aweme_id", "photo_id", "video_id", "bvid", "toutiao_id",
     "id", "rpid", "rootid",
 )
 _SAFE_VALUE_KEYS = (
@@ -433,7 +433,7 @@ def _parse_cycle_time(name: str):
         return None
 
 
-def _tieba_discussion_thread_stats(
+def _toutiao_discussion_thread_stats(
     roots: list[Path],
     monitoring_start_time: str,
     result_date: str,
@@ -488,7 +488,7 @@ def _tieba_discussion_thread_stats(
                             source_rows += 1
                             thread_id = str(
                                 row.get("note_id")
-                                or row.get("tieba_id")
+                                or row.get("toutiao_id")
                                 or row.get("content_id")
                                 or row.get("id")
                                 or ""
@@ -496,12 +496,12 @@ def _tieba_discussion_thread_stats(
                             if not thread_id:
                                 basis = "|".join(
                                     str(row.get(k) or "").strip()
-                                    for k in ("note_url", "tieba_link", "title")
+                                    for k in ("note_url", "toutiao_link", "title")
                                 )
                                 if not basis.strip("|"):
                                     continue
                                 thread_id = hashlib.sha256(
-                                    f"tieba-thread:{basis}".encode("utf-8", "ignore")
+                                    f"toutiao-thread:{basis}".encode("utf-8", "ignore")
                                 ).hexdigest()[:24]
                             old = first_seen_by_id.get(thread_id)
                             if old is None or cycle_dt < old:
@@ -522,7 +522,7 @@ def _tieba_discussion_thread_stats(
         "new_threads_on_result_date": new_on_result_date,
         "source_rows_scanned": source_rows,
         "record_type": "discussion_post",
-        "count_basis": "unique_tieba_threads_discovered_during_monitoring_window",
+        "count_basis": "unique_toutiao_threads_discovered_during_monitoring_window",
         "publish_time_note": (
             "thread original publish_time may predate monitoring_start_time; "
             "daily reporting treats these as discussion containers discovered/active during monitoring"
@@ -560,8 +560,8 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
     monitoring_start_time = str(cfg.get("monitoring_start_time") or "")
     result_date = _resolve_result_date(cfg)
     summary = build_summary(roots, monitoring_start_time=monitoring_start_time)
-    if platform == "tieba":
-        discussion = _tieba_discussion_thread_stats(
+    if platform == "toutiao":
+        discussion = _toutiao_discussion_thread_stats(
             roots,
             monitoring_start_time=monitoring_start_time,
             result_date=result_date,
