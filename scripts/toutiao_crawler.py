@@ -587,12 +587,20 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
         }:
             return
 
+        query = parse_qs(parsed_url.query)
+        response_content_id = clean_text(
+            (query.get("group_id") or query.get("item_id") or [""])[0]
+        )
+        matches_current = (not response_content_id) or response_content_id == content_id
         ctype = (response.headers.get("content-type") or "").lower()
         print(
             f"[toutiao] observed comment network response path={path} "
-            f"status={response.status} content_type={ctype or 'unknown'}",
+            f"status={response.status} content_type={ctype or 'unknown'} "
+            f"matches_current_content={'yes' if matches_current else 'no'}",
             flush=True,
         )
+        if path == "/article/v4/tab_comments/" and not matches_current:
+            return
 
         # Do not reject a successful comment response only because the server
         # labels JSON as text/plain or another generic content type.
@@ -620,6 +628,22 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
             response_parent = clean_text((parse_qs(parsed_url.query).get("id") or [""])[0])
             response_root = response_parent
 
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if isinstance(data, list):
+            data_len = len(data)
+        elif isinstance(data, dict):
+            nested_data = data.get("data")
+            data_len = len(nested_data) if isinstance(nested_data, list) else -1
+        else:
+            data_len = -1
+        total_number = (
+            payload.get("total_number")
+            if isinstance(payload, dict)
+            else None
+        )
+        if total_number in (None, "") and isinstance(data, dict):
+            total_number = data.get("total_number") or data.get("total_count")
+
         parsed_rows = parse_comment_payload(
             payload,
             content_id,
@@ -628,6 +652,7 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
         )
         print(
             f"[toutiao] comment network response path={path} parsed_rows={len(parsed_rows)} "
+            f"data_len={data_len} total_number={total_number if total_number not in (None, '') else 'unknown'} "
             f"parent_context={'yes' if response_parent else 'no'}",
             flush=True,
         )
