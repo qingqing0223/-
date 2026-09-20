@@ -14,7 +14,7 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
-PLATFORMS = {"xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu"}
+PLATFORMS = {"xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu"}
 
 
 def _read_config(path: Path) -> dict:
@@ -185,7 +185,7 @@ def _classified_before_start(row: dict, monitoring_start_time: str) -> bool:
 
 
 def _gpt_feed_row(row: dict, platform: str, kind: str) -> dict:
-    content_id = _first(row, "content_id", "video_id", "photo_id", "aweme_id", "note_id", "tieba_id", "id")
+    content_id = _first(row, "content_id", "video_id", "photo_id", "aweme_id", "note_id", "article_id", "group_id", "item_id", "id")
     comment_id = _first(row, "comment_id", "cid", "rpid")
     parent_id = _first(row, "parent_comment_id", "parent_id", "reply_comment_id", "reply_to_comment_id", "reply_to_id", "parent_rpid")
     root_id = _first(row, "root_comment_id", "root_id", "root_rpid")
