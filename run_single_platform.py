@@ -8,7 +8,7 @@ import time
 
 from monitor.orchestrator import load_config, run_forever, run_one_cycle
 
-PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "tieba", "zhihu"}
+PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "toutiao", "zhihu"}
 
 
 def _install_kuaishou_unknown_comment_queue_fallback() -> None:
@@ -514,31 +514,30 @@ def main():
             configured_classifier = 4
         cfg["classifier_concurrency"] = max(configured_classifier, 12)
 
-    if args.platform == "tieba" and bool(cfg.get("realtime_mode", False)):
-        cfg["tieba_realtime_discovery_max_notes_count"] = 10
-        cfg["tieba_realtime_items_per_keyword"] = max(
-            1, min(int(cfg.get("tieba_realtime_items_per_keyword", 4)), 10)
+    if args.platform == "toutiao" and bool(cfg.get("realtime_mode", False)):
+        cfg["toutiao_realtime_discovery_max_notes_count"] = min(
+            20, max(5, int(cfg.get("toutiao_realtime_discovery_max_notes_count", 12)))
         )
-        cfg["tieba_realtime_search_timeout_seconds"] = min(
-            150, max(60, int(cfg.get("tieba_realtime_search_timeout_seconds", 120)))
+        cfg["toutiao_realtime_search_timeout_seconds"] = min(
+            240, max(90, int(cfg.get("toutiao_realtime_search_timeout_seconds", 180)))
         )
-        cfg["tieba_realtime_detail_max_items_per_cycle"] = min(
-            2, max(1, int(cfg.get("tieba_realtime_detail_max_items_per_cycle", 2)))
+        cfg["toutiao_realtime_detail_max_items_per_cycle"] = min(
+            2, max(1, int(cfg.get("toutiao_realtime_detail_max_items_per_cycle", 2)))
         )
-        cfg["tieba_realtime_detail_budget_seconds"] = min(
-            60, max(30, int(cfg.get("tieba_realtime_detail_budget_seconds", 55)))
+        cfg["toutiao_realtime_detail_budget_seconds"] = min(
+            90, max(45, int(cfg.get("toutiao_realtime_detail_budget_seconds", 70)))
         )
-        cfg["tieba_realtime_candidate_timeout_seconds"] = min(
-            60, max(20, int(cfg.get("tieba_realtime_candidate_timeout_seconds", 45)))
+        cfg["toutiao_realtime_candidate_timeout_seconds"] = min(
+            120, max(45, int(cfg.get("toutiao_realtime_candidate_timeout_seconds", 90)))
         )
-        cfg["tieba_realtime_max_comments_per_video"] = min(
-            100, max(20, int(cfg.get("tieba_realtime_max_comments_per_video", 100)))
+        cfg["toutiao_realtime_max_comments_per_video"] = min(
+            100, max(20, int(cfg.get("toutiao_realtime_max_comments_per_video", 100)))
         )
-        cfg["tieba_realtime_subcomment_root_cap"] = min(
-            3, max(0, int(cfg.get("tieba_realtime_subcomment_root_cap", 3)))
+        cfg["network_error_cooldown_seconds"] = max(
+            600, int(cfg.get("network_error_cooldown_seconds", 300))
         )
-        cfg["tieba_realtime_subcomment_page_cap"] = min(
-            1, max(0, int(cfg.get("tieba_realtime_subcomment_page_cap", 1)))
+        cfg["overrun_cooldown_seconds"] = max(
+            120, int(cfg.get("overrun_cooldown_seconds", 60))
         )
         try:
             configured_classifier = int(cfg.get("classifier_concurrency", 4))
