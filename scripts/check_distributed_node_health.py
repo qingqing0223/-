@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-DEFAULT_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
+DEFAULT_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu")
 BAD_STATES = {"VERIFY_REQUIRED", "LOGIN_REQUIRED", "NETWORK_ERROR", "CRAWLER_FAILED", "RUNNER_ERROR"}
 
 
