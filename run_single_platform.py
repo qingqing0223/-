@@ -468,6 +468,9 @@ def main():
 
     cfg = load_config(Path(args.config))
 
+    if args.platform == "wb":
+        cfg["collection_only"] = True
+
     if args.platform == "dy" and bool(cfg.get("realtime_mode", False)):
         # Keep Douyin's live loop on a start-to-start five-minute cadence.
         # Historical exhaustive crawling remains a separate backfill job.
@@ -562,10 +565,10 @@ def main():
             2, max(1, int(cfg.get("wb_realtime_detail_max_items_per_cycle", 2)))
         )
         cfg["wb_realtime_detail_budget_seconds"] = min(
-            60, max(30, int(cfg.get("wb_realtime_detail_budget_seconds", 55)))
+            150, max(30, int(cfg.get("wb_realtime_detail_budget_seconds", 150)))
         )
         cfg["wb_realtime_candidate_timeout_seconds"] = min(
-            45, max(20, int(cfg.get("wb_realtime_candidate_timeout_seconds", 35)))
+            90, max(20, int(cfg.get("wb_realtime_candidate_timeout_seconds", 90)))
         )
         cfg["wb_realtime_max_comments_per_video"] = min(
             100, max(20, int(cfg.get("wb_realtime_max_comments_per_video", 100)))
@@ -600,6 +603,14 @@ def main():
     root = Path(cfg["data_root"])
     cfg["data_root"] = str(root.parent / f"{root.name}_{args.platform}")
     cfg["max_parallel_platforms"] = 1
+
+    if args.platform == "wb" and bool(cfg.get("realtime_mode", False)):
+        from monitor.weibo_scope_policy import install_weibo_monitoring_scope_queue_policy
+
+        install_weibo_monitoring_scope_queue_policy(
+            cfg["data_root"],
+            str(cfg.get("monitoring_start_time") or ""),
+        )
 
     if args.once:
         print(json.dumps(run_one_cycle(cfg), ensure_ascii=False, indent=2))

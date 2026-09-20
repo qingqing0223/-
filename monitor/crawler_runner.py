@@ -43,6 +43,40 @@ def _tail_text(*paths: Path, max_chars: int = 16000) -> str:
     return "\n".join(parts).lower()
 
 
+def _log_line_has_markers(
+    paths: tuple[Path, ...] | list[Path],
+    *markers: str,
+) -> bool:
+    """Scan complete logs for markers that may have fallen outside tail text."""
+    needles = tuple(
+        str(marker).lower()
+        for marker in markers
+        if str(marker)
+    )
+
+    if not needles:
+        return False
+
+    for path in paths:
+        try:
+            with path.open(
+                "r",
+                encoding="utf-8",
+                errors="replace",
+            ) as fh:
+                for line in fh:
+                    low = line.lower()
+                    if all(
+                        needle in low
+                        for needle in needles
+                    ):
+                        return True
+        except Exception:
+            continue
+
+    return False
+
+
 def _count_jsonl_rows(paths: list[Path]) -> int:
     total = 0
     for path in paths:
@@ -365,6 +399,19 @@ def _classify_state(
     # not a platform-wide network failure. Preserve the discovered content and
     # report a partial cycle; the candidate stays retryable in the deep queue.
     if "toutiao_realtime_detail_candidate_timeout" in text and content_row_count > 0:
+        return "PARTIAL_SUCCESS"
+
+    # WB search can time out after already persisting usable JSONL.
+    # Later detail/CDP output may push the marker outside _tail_text(),
+    # so check the complete logs before declaring NETWORK_ERROR.
+    if (
+        content_row_count > 0
+        and _log_line_has_markers(
+            (stdout_log, stderr_log),
+            "wb_realtime_search_timeout",
+            "partial_jsonl_preserved=yes",
+        )
+    ):
         return "PARTIAL_SUCCESS"
 
     if any(marker in text for marker in network_markers):

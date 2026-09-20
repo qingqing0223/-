@@ -159,7 +159,12 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "share_url", "detail_url"
     )
     author = _first(raw, "author", "nickname", "user_name", "user_nickname", "sec_user_name")
-    author_id = _first(raw, "creator_hash", "user_id", "author_id", "uid", "sec_uid", "mid")
+    if platform == "wb":
+        # Weibo collection keeps the platform-public user ID for Tech Design V3
+        # Tables 1, 2 and 5. Other platforms retain the existing identifier policy.
+        author_id = _first(raw, "user_id", "creator_hash", "author_id", "uid", "sec_uid", "mid")
+    else:
+        author_id = _first(raw, "creator_hash", "user_id", "author_id", "uid", "sec_uid", "mid")
     author_avatar = _first(raw, "avatar", "avatar_url", "user_avatar", "head_url")
     author_profile_url = _first(raw, "user_url", "author_url", "profile_url", "creator_url")
     reply_to_author = _first(raw, "reply_to_nickname", "reply_user_name", "reply_to_user_name")
@@ -183,6 +188,14 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     coins = _first(raw, "coins", "coin_count", "video_coin_count")
 
     record_type = _detect_record_type(raw, platform, comment_id)
+
+    # Weibo Table 1: preserve platform-provided original/repost evidence.
+    # Other platforms keep their previous behavior.
+    original_or_repost = ""
+    if platform == "wb" and record_type != "comment":
+        original_or_repost = _str(
+            _first(raw, "original_or_repost")
+        ).strip()
     if record_type == "comment":
         attitude_target = "audience_comment"
         if not root_comment_id:
@@ -245,6 +258,7 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "asr_text": _str(asr_text).strip(),
         "ocr_text": _str(ocr_text).strip(),
         "source_keyword": _str(source_keyword),
+        "original_or_repost": original_or_repost,
         "publish_time": _to_iso_time(publish_time),
         "first_seen_time": now,
         "ip_location": _str(region),

@@ -36,6 +36,7 @@ def run_one_cycle(cfg: dict) -> dict:
     enabled = [p for p in cfg["platforms"] if p.get("enabled", True)]
     workers = max(1, int(cfg.get("max_parallel_platforms", 1)))
     monitoring_start_time = str(cfg.get("monitoring_start_time") or "")
+    collection_only = bool(cfg.get("collection_only", False))
 
     runs = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -128,6 +129,7 @@ def run_one_cycle(cfg: dict) -> dict:
                 classified_path,
                 int(cfg.get("classifier_concurrency", 4)),
                 monitoring_start_time=monitoring_start_time,
+                classify=not collection_only,
             )
             new_classified_rows.extend(summary.pop("_classified_rows", []))
             summary["ingest_comments"] = include_comments
@@ -194,6 +196,7 @@ def run_one_cycle(cfg: dict) -> dict:
         "realtime_cycle_within_target": cycle_duration <= realtime_target,
         "keyword_count": len(cfg.get("keywords") or []),
         "keyword_pack_status": cfg.get("keyword_pack_status"),
+        "collection_only": collection_only,
         "platform_runs": [r.__dict__ for r in runs],
         "ingest": ingests,
         "dashboard_push": dashboard_push,

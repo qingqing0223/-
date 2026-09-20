@@ -34,6 +34,26 @@ def _clean(value) -> str:
     return "" if value is None else str(value).strip()
 
 
+def _wb_public_count(value):
+    """Normalize public Weibo count strings without estimating missing data."""
+    if value in (None, ""):
+        return None
+
+    text = str(value).strip().replace(",", "")
+    unit_10k = chr(0x4E07)
+
+    try:
+        if text.endswith(unit_10k):
+            return int(float(text[:-1]) * 10000)
+        if text.lower().endswith("w"):
+            return int(float(text[:-1]) * 10000)
+        if text.lower().endswith("k"):
+            return int(float(text[:-1]) * 1000)
+        return int(float(text))
+    except (TypeError, ValueError):
+        return None
+
+
 def _latest_classified_rows(path: Path) -> list[dict]:
     latest: dict[str, dict] = {}
     if not path.exists():
@@ -90,6 +110,164 @@ def _match_content(account: dict, rows: list[dict]) -> list[dict]:
     return matched
 
 
+def _load_key_account_catalog() -> dict[str, str]:
+    """Return exact account-name -> Tech Design V3 type mapping."""
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "config"
+        / "key_accounts.v3.catalog.json"
+    )
+
+    if not path.exists():
+        return {}
+
+    try:
+        data = json.loads(
+            path.read_text(encoding="utf-8")
+        )
+    except Exception:
+        return {}
+
+    mapping: dict[str, str] = {}
+
+    for category in data.get("categories") or []:
+        account_type = _clean(
+            category.get("account_type")
+        )
+
+        for name in category.get("accounts") or []:
+            name = _clean(name)
+
+            if name and account_type:
+                mapping[name] = account_type
+
+    return mapping
+
+
+def _discover_accounts(
+    platform: str,
+    rows: list[dict],
+) -> list[dict]:
+    """Discover actual publishing accounts from monitored posts."""
+    found: dict[str, dict] = {}
+
+    for row in rows:
+        if _clean(row.get("platform")) != platform:
+            continue
+
+        if _clean(row.get("record_type")) == "comment":
+            continue
+
+        account_id = _clean(row.get("author_id"))
+        account_name = _clean(row.get("author"))
+
+        if not account_id and not account_name:
+            continue
+
+        key = (
+            f"id:{account_id}"
+            if account_id
+            else f"name:{account_name}"
+        )
+
+        current = found.get(key)
+
+        if current is None:
+            found[key] = {
+                "platform": platform,
+                "creator_id": account_id,
+                "account_id": account_id,
+                "name": account_name,
+            }
+        elif (
+            not _clean(current.get("name"))
+            and account_name
+        ):
+            current["name"] = account_name
+
+    return list(found.values())
+
+
+def _merge_account_sources(
+    platform: str,
+    discovered: list[dict],
+    configured: list[dict],
+) -> list[dict]:
+    """Merge observed WB accounts with optional configured metadata."""
+    output: list[dict] = []
+    by_id: dict[str, dict] = {}
+    by_name: dict[str, dict] = {}
+
+    def upsert(item: dict) -> None:
+        if _clean(item.get("platform")) != platform:
+            return
+
+        account_id = (
+            _clean(item.get("creator_id"))
+            or _clean(item.get("account_id"))
+        )
+
+        name = (
+            _clean(item.get("name"))
+            or _clean(item.get("account_name"))
+        )
+
+        existing = None
+
+        if account_id:
+            existing = by_id.get(account_id)
+
+        if existing is None and name:
+            candidate = by_name.get(name)
+
+            if candidate is not None:
+                candidate_id = (
+                    _clean(candidate.get("creator_id"))
+                    or _clean(candidate.get("account_id"))
+                )
+
+                # Do not merge distinct known IDs merely because
+                # display names happen to be identical.
+                if (
+                    not account_id
+                    or not candidate_id
+                    or candidate_id == account_id
+                ):
+                    existing = candidate
+
+        if existing is None:
+            existing = dict(item)
+            output.append(existing)
+        else:
+            for key, value in item.items():
+                if value not in (None, ""):
+                    existing[key] = value
+
+        final_id = (
+            _clean(existing.get("creator_id"))
+            or _clean(existing.get("account_id"))
+        )
+
+        final_name = (
+            _clean(existing.get("name"))
+            or _clean(existing.get("account_name"))
+        )
+
+        if final_id:
+            by_id[final_id] = existing
+
+        if final_name:
+            by_name[final_name] = existing
+
+    for item in discovered:
+        upsert(item)
+
+    for item in configured:
+        upsert(item)
+
+    return output
+
+
 def build_table5_account_rows(
     platform: str,
     configured_accounts: list[dict],
@@ -102,10 +280,28 @@ def build_table5_account_rows(
     """
     latest_rows = _latest_classified_rows(classified_path)
     profiles = _load_profile_rows(raw_files)
+
+    # Preserve the existing configured-account behavior for every
+    # other platform. WB additionally includes every observed publisher.
+    accounts = configured_accounts
+    catalog: dict[str, str] = {}
+
+    if platform == "wb":
+        catalog = _load_key_account_catalog()
+        discovered = _discover_accounts(
+            platform,
+            latest_rows,
+        )
+        accounts = _merge_account_sources(
+            platform,
+            discovered,
+            configured_accounts,
+        )
+
     collected_at = datetime.now().astimezone().isoformat(timespec="seconds")
     output: list[dict] = []
 
-    for account in configured_accounts:
+    for account in accounts:
         if _clean(account.get("platform")) != platform:
             continue
         profile = _match_profile(account, profiles)
@@ -125,13 +321,21 @@ def build_table5_account_rows(
         account_name = (
             _clean(profile.get("account_name"))
             or _clean(account.get("name"))
+            or _clean(account.get("account_name"))
         )
         profile_url = (
             _clean(profile.get("profile_url"))
             or _clean(account.get("profile_url"))
         )
+        catalog_type = (
+            catalog.get(account_name, "")
+            if platform == "wb"
+            else ""
+        )
+
         account_type = (
-            _clean(account.get("account_type"))
+            catalog_type
+            or _clean(account.get("account_type"))
             or _clean(profile.get("account_type_hint"))
         )
         organization = (
@@ -144,9 +348,20 @@ def build_table5_account_rows(
         followers = profile.get("followers")
         if followers in ("", None):
             followers = account.get("followers")
+
         following = profile.get("following")
         if following in ("", None):
             following = account.get("following")
+
+        if platform == "wb":
+            followers = _wb_public_count(followers)
+            following = _wb_public_count(following)
+
+            # Only a numeric public WB ID can safely form this URL.
+            if account_id.isdigit():
+                profile_url = (
+                    f"https://m.weibo.cn/u/{account_id}"
+                )
 
         output.append({
             "account_id": account_id,
@@ -158,14 +373,24 @@ def build_table5_account_rows(
             "following": following if following not in ("", None) else None,
             "region": region,
             "organization": organization,
-            "is_key_account": bool(account.get("is_key_account", True)),
+            "is_key_account": (
+                bool(catalog_type)
+                or bool(account.get("is_key_account", False))
+            ) if platform == "wb" else bool(
+                account.get("is_key_account", True)
+            ),
             "related_post_count": len(posts),
-            "views": views,
+            "views": None if platform == "wb" else views,
             "likes": likes,
             "comments": comments,
             "shares": shares,
-            "favorites": favorites,
-            "total_interactions": likes + comments + shares + favorites,
+            "favorites": None if platform == "wb" else favorites,
+            "total_interactions": (
+                likes
+                + comments
+                + shares
+                + (0 if platform == "wb" else favorites)
+            ),
             "collected_at": collected_at,
             "public_metrics_only": True,
         })

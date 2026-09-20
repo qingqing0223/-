@@ -133,7 +133,7 @@ def _merge_regions_into_existing(output_jsonl: Path, region_by_key: dict[str, st
 
 def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path,
                         output_jsonl: Path, concurrency: int = 4,
-                        monitoring_start_time: str = "") -> dict:
+                        monitoring_start_time: str = "", classify: bool = True) -> dict:
     seen = load_seen(state_path)
     fresh = []
     filtered_before_start = 0
@@ -189,7 +189,8 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
 
     region_backfilled_records = _merge_regions_into_existing(output_jsonl, region_by_key)
 
-    classified = classify_records(fresh, concurrency=concurrency)
+    classification_enabled = bool(classify)
+    classified = classify_records(fresh, concurrency=concurrency) if classification_enabled else fresh
     append_jsonl(output_jsonl, classified)
     save_seen(state_path, seen)
 
@@ -235,6 +236,7 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "classified_comment_records": classified_comment_records,
         "classification_degraded_records": classification_degraded_records,
         "classification_degraded_comment_records": classification_degraded_comment_records,
+        "classification_enabled": classification_enabled,
         "classification_degraded": classification_degraded_records > 0,
         "classification_errors": classification_errors[:3],
         "region_records": region_records,
@@ -244,5 +246,5 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "minority_language_rate": round(minority_language_records / total, 4) if total else 0.0,
         "language_counts": dict(sorted(language_counts.items(), key=lambda item: (-item[1], item[0]))),
         "total_seen": len(seen),
-        "_classified_rows": classified,
+        "_classified_rows": classified if classification_enabled else [],
     }

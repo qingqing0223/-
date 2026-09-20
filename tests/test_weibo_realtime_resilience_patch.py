@@ -25,6 +25,29 @@ class WeiboRealtimeResiliencePatchTest(unittest.TestCase):
         self.assertIn("WB_REALTIME_SEARCH_TIMEOUT", text)
         self.assertIn("partial_jsonl_preserved=yes", text)
 
+    def test_weibo_search_timeout_with_preserved_data_is_partial_success(self):
+        import tempfile
+        from monitor.crawler_runner import _classify_state
+
+        with tempfile.TemporaryDirectory() as tmp:
+            stdout_log = Path(tmp) / "stdout.log"
+            stderr_log = Path(tmp) / "stderr.log"
+            stdout_log.write_text("", encoding="utf-8")
+            stderr_log.write_text(
+                "[monitor] WB_REALTIME_SEARCH_TIMEOUT timeout=100s; partial_jsonl_preserved=yes\n",
+                encoding="utf-8",
+            )
+
+            state = _classify_state(
+                124,
+                stdout_log,
+                stderr_log,
+                content_row_count=59,
+                comment_row_count=32,
+                comments_enabled=True,
+            )
+
+        self.assertEqual(state, "PARTIAL_SUCCESS")
     def test_final_policy_stops_after_verification(self):
         text = (ROOT / "monitor" / "final_realtime_policy.py").read_text(encoding="utf-8")
         self.assertIn("_REALTIME_ACCESS_GUARD_STOP", text)
@@ -33,6 +56,39 @@ class WeiboRealtimeResiliencePatchTest(unittest.TestCase):
         self.assertIn('"toutiao": "TOUTIAO"', text)
         self.assertIn("no_more_detail_requests_this_cycle=yes", text)
 
+
+    def test_weibo_search_timeout_survives_long_later_logs(self):
+        import tempfile
+        from monitor.crawler_runner import _classify_state
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            stdout = root / "stdout.log"
+            stderr = root / "stderr.log"
+
+            stdout.write_text(
+                "[monitor] WB_REALTIME_SEARCH_TIMEOUT timeout=100s; "
+                "partial_jsonl_preserved=yes\n"
+                + ("later detail output\n" * 3000),
+                encoding="utf-8",
+            )
+
+            stderr.write_text(
+                ("later CDP noise\n" * 2000)
+                + "MediaCrawler ERROR - CDP connection failed: HTTP 502\n",
+                encoding="utf-8",
+            )
+
+            state = _classify_state(
+                124,
+                stdout,
+                stderr,
+                content_row_count=45,
+                comment_row_count=1,
+                comments_enabled=True,
+            )
+
+            self.assertEqual(state, "PARTIAL_SUCCESS")
 
 if __name__ == "__main__":
     unittest.main()

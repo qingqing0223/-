@@ -16,7 +16,7 @@ DEFAULT_POLICIES = {
     "xhs": {"budget": 55, "candidate_timeout": 45, "comment_cap": 100},
     "dy": {"budget": 70, "candidate_timeout": 105, "comment_cap": 200},
     "bili": {"budget": 70, "candidate_timeout": 100, "comment_cap": 20},
-    "wb": {"budget": 50, "candidate_timeout": 40, "comment_cap": 100},
+    "wb": {"budget": 150, "candidate_timeout": 90, "comment_cap": 100},
     "toutiao": {"budget": 105, "candidate_timeout": 60, "comment_cap": 100},
     "zhihu": {"budget": 60, "candidate_timeout": 90, "comment_cap": 200},
 }

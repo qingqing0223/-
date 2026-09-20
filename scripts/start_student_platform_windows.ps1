@@ -144,8 +144,8 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "wb_realtime_discovery_max_notes_count" 10
     Set-ConfigProperty $cfgObj "wb_realtime_search_timeout_seconds" 100
     Set-ConfigProperty $cfgObj "wb_realtime_detail_max_items_per_cycle" 2
-    Set-ConfigProperty $cfgObj "wb_realtime_detail_budget_seconds" 55
-    Set-ConfigProperty $cfgObj "wb_realtime_candidate_timeout_seconds" 35
+    Set-ConfigProperty $cfgObj "wb_realtime_detail_budget_seconds" 150
+    Set-ConfigProperty $cfgObj "wb_realtime_candidate_timeout_seconds" 90
     Set-ConfigProperty $cfgObj "wb_realtime_max_comments_per_video" 100
     Set-ConfigProperty $cfgObj "toutiao_realtime_discovery_max_notes_count" 12
     Set-ConfigProperty $cfgObj "toutiao_realtime_search_timeout_seconds" 180
