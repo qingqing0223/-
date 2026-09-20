@@ -17,7 +17,7 @@ DEFAULT_POLICIES = {
     "dy": {"budget": 70, "candidate_timeout": 105, "comment_cap": 200},
     "bili": {"budget": 70, "candidate_timeout": 100, "comment_cap": 20},
     "wb": {"budget": 50, "candidate_timeout": 40, "comment_cap": 100},
-    "toutiao": {"budget": 70, "candidate_timeout": 90, "comment_cap": 100},
+    "toutiao": {"budget": 105, "candidate_timeout": 60, "comment_cap": 100},
     "zhihu": {"budget": 60, "candidate_timeout": 90, "comment_cap": 200},
 }
 
@@ -174,6 +174,7 @@ def install_final_realtime_policy(platform: str) -> None:
         started = time.monotonic()
         attempted: list[str] = []
         successful: list[str] = []
+        empty: list[str] = []
         failed: list[str] = []
         first_failure_rc: int | None = None
 
@@ -267,9 +268,29 @@ def install_final_realtime_policy(platform: str) -> None:
                     continue
 
             if proc.returncode == 0:
-                successful.append(identifier)
-                with stdout_log.open("a", encoding="utf-8") as out:
-                    out.write(f"[monitor] {platform.upper()}_REALTIME_DETAIL_CANDIDATE_SUCCESS\n")
+                comment_growth = False
+                if platform == "toutiao":
+                    after_snapshot = _snapshot_jsonl(output_dir)
+                    for path, size in after_snapshot.items():
+                        if "comment" not in path.name.lower():
+                            continue
+                        if size > int(snapshot.get(path, 0)):
+                            comment_growth = True
+                            break
+                else:
+                    comment_growth = True
+
+                if comment_growth:
+                    successful.append(identifier)
+                    with stdout_log.open("a", encoding="utf-8") as out:
+                        out.write(f"[monitor] {platform.upper()}_REALTIME_DETAIL_CANDIDATE_SUCCESS comments_persisted=yes\n")
+                else:
+                    empty.append(identifier)
+                    with stdout_log.open("a", encoding="utf-8") as out:
+                        out.write(
+                            f"[monitor] {platform.upper()}_REALTIME_DETAIL_CANDIDATE_EMPTY "
+                            "rc=0 comments_persisted=no; continuing_with_next_candidate=yes\n"
+                        )
             else:
                 _rollback_jsonl(output_dir, snapshot)
                 failed.append(identifier)
@@ -311,6 +332,7 @@ def install_final_realtime_policy(platform: str) -> None:
             "requested": list(candidates),
             "attempted": attempted,
             "successful": successful,
+            "empty": empty,
             "failed": failed,
         })
 
@@ -326,9 +348,12 @@ def install_final_realtime_policy(platform: str) -> None:
             requested = list(outcome.get("requested") or [])
             if requested == list(candidates):
                 successful = list(outcome.get("successful") or [])
+                empty = list(outcome.get("empty") or [])
                 failed = list(outcome.get("failed") or [])
                 if successful:
                     original_mark(queue, successful, True)
+                if empty:
+                    original_mark(queue, empty, False)
                 if failed:
                     original_mark(queue, failed, False)
                 # Unattempted candidates are deliberately untouched, so they stay
