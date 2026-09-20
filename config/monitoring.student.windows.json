@@ -43,7 +43,7 @@
     {"code": "ks", "name": "快手", "enabled": true},
     {"code": "bili", "name": "B站", "enabled": true},
     {"code": "wb", "name": "微博", "enabled": true},
-    {"code": "tieba", "name": "百度贴吧", "enabled": true},
+    {"code": "toutiao", "name": "今日头条", "enabled": true},
     {"code": "zhihu", "name": "知乎", "enabled": true}
   ],
   "keywords": [
