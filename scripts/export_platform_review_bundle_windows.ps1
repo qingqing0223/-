@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu","wechat_mp")]
+    [ValidateSet("xhs","dy","ks","bili","wb","toutiao","zhihu","wechat_mp")]
     [string]$Platform,
 
     [string]$Config = ".\config\monitoring.local.json",
@@ -44,7 +44,7 @@ $platformNames = @{
     ks = "快手"
     bili = "B站"
     wb = "微博"
-    tieba = "百度贴吧"
+    toutiao = "今日头条"
     zhihu = "知乎"
     wechat_mp = "微信公众号"
 }
