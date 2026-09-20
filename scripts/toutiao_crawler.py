@@ -365,6 +365,14 @@ async def extract_dom_comments(page: Page, content_id: str) -> list[dict]:
       ];
       const seen = new Set();
       const out = [];
+      const pickText = (el, selectors) => {
+        for (const selector of selectors) {
+          const node = el.querySelector(selector);
+          const value = node ? (node.innerText || node.textContent || '').trim() : '';
+          if (value) return value;
+        }
+        return '';
+      };
       for (const sel of selectors) {
         for (const el of document.querySelectorAll(sel)) {
           if (seen.has(el)) continue;
@@ -372,7 +380,19 @@ async def extract_dom_comments(page: Page, content_id: str) -> list[dict]:
           const id = el.getAttribute('data-comment-id') || el.getAttribute('data-id') || '';
           const text = (el.innerText || el.textContent || '').trim();
           if (!id || !text) continue;
-          out.push({id, text});
+          // Region must come from an explicit region/IP child element. Never infer
+          // a user's public location from arbitrary province words in comment text.
+          const regionText = pickText(el, [
+            '[class*=ip-location]', '[class*=ipLocation]', '[class*=ip]',
+            '[class*=region]', '[class*=location]'
+          ]);
+          const authorText = pickText(el, [
+            '[class*=user-name]', '[class*=username]', '[class*=author]', '[class*=name]'
+          ]);
+          const timeText = pickText(el, [
+            'time', '[class*=publish-time]', '[class*=time]', '[class*=date]'
+          ]);
+          out.push({id, text, regionText, authorText, timeText});
         }
       }
       return out;
@@ -397,7 +417,9 @@ async def extract_dom_comments(page: Page, content_id: str) -> list[dict]:
             "comment_level": 1,
             "sub_comment_count": 0,
             "content": text,
-            "ip_location": coarse_region(text),
+            "nickname": clean_text(item.get("authorText")),
+            "create_time": clean_text(item.get("timeText")),
+            "ip_location": coarse_region(item.get("regionText")),
         })
     return rows
 
