@@ -15,7 +15,7 @@ class UnknownCommentQueueFallbackTests(unittest.TestCase):
 
     def tearDown(self):
         crawler_runner._update_queue_from_content = self.original_update
-        for platform in ("xhs", "bili", "wb", "tieba", "zhihu"):
+        for platform in ("xhs", "bili", "wb", "toutiao", "zhihu"):
             marker = f"_promotion_week_unknown_comment_fallback_{platform}"
             if hasattr(crawler_runner, marker):
                 delattr(crawler_runner, marker)
@@ -35,7 +35,12 @@ class UnknownCommentQueueFallbackTests(unittest.TestCase):
             "xhs": {"note_id": "x1", "comment_count": 0},
             "bili": {"video_id": "b1", "comment_count": 0},
             "wb": {"note_id": "w1", "comment_count": 0},
-            "tieba": {"note_id": "t1", "total_replay_num": 0},
+            "toutiao": {
+                "article_id": "t1",
+                "content_id": "t1",
+                "content_url": "https://www.toutiao.com/article/1/",
+                "comment_count": 0,
+            },
             "zhihu": {"content_id": "z1", "comment_count": 0},
         }
         for platform, row in fixtures.items():
