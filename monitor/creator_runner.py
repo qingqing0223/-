@@ -19,19 +19,35 @@ def run_creator_platform(cfg: dict, platform: str, platform_name: str, creator_i
     if not creator_ids:
         raise ValueError("creator_ids is empty")
 
-    cmd = [
-        "uv", "run", "main.py",
-        "--platform", platform,
-        "--lt", cfg.get("login_type", "qrcode"),
-        "--type", "creator",
-        "--creator_id", ",".join(creator_ids),
-        "--crawler_max_notes_count", str(cfg.get("crawler_max_notes_count", 20)),
-        "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
-        "--get_comment", str(cfg.get("get_comment", "no")),
-        "--get_sub_comment", str(cfg.get("get_sub_comment", "no")),
-        "--save_data_option", cfg.get("save_data_option", "jsonl"),
-        "--save_data_path", str(output_dir),
-    ]
+    if platform == "toutiao":
+        repo_root = Path(__file__).resolve().parents[1]
+        profile_dir = Path(cfg["data_root"]) / "state" / "toutiao_browser_profile"
+        cmd = [
+            "uv", "run", "--project", str(cfg["media_crawler_root"]),
+            "python", str(repo_root / "scripts" / "toutiao_crawler.py"),
+            "--mode", "creator",
+            "--creator-id", ",".join(creator_ids),
+            "--save-data-path", str(output_dir),
+            "--profile-dir", str(profile_dir),
+            "--max-notes", str(cfg.get("crawler_max_notes_count", 20)),
+            "--get-comment", "no",
+        ]
+        cwd = repo_root
+    else:
+        cmd = [
+            "uv", "run", "main.py",
+            "--platform", platform,
+            "--lt", cfg.get("login_type", "qrcode"),
+            "--type", "creator",
+            "--creator_id", ",".join(creator_ids),
+            "--crawler_max_notes_count", str(cfg.get("crawler_max_notes_count", 20)),
+            "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
+            "--get_comment", str(cfg.get("get_comment", "no")),
+            "--get_sub_comment", str(cfg.get("get_sub_comment", "no")),
+            "--save_data_option", cfg.get("save_data_option", "jsonl"),
+            "--save_data_path", str(output_dir),
+        ]
+        cwd = cfg["media_crawler_root"]
 
     started_dt = datetime.now()
     started = time.time()
@@ -40,7 +56,7 @@ def run_creator_platform(cfg: dict, platform: str, platform_name: str, creator_i
     status = "unknown"
     try:
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
-            proc = subprocess.run(cmd, cwd=cfg["media_crawler_root"], stdout=out, stderr=err, text=True)
+            proc = subprocess.run(cmd, cwd=cwd, stdout=out, stderr=err, text=True)
         rc = proc.returncode
         status = "ok" if rc == 0 else "failed"
     except Exception as exc:
