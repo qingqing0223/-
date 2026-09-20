@@ -10,7 +10,7 @@ from pipeline.language_detector import is_minority_language
 
 
 PLATFORM_CODES = (
-    "xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu",
+    "xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu",
     "wechat_mp", "wechat_channels",
 )
 
