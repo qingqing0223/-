@@ -28,7 +28,9 @@ class WeiboRealtimeResiliencePatchTest(unittest.TestCase):
     def test_final_policy_stops_after_verification(self):
         text = (ROOT / "monitor" / "final_realtime_policy.py").read_text(encoding="utf-8")
         self.assertIn("_REALTIME_ACCESS_GUARD_STOP", text)
-        self.assertIn('guard_name = "WB" if platform == "wb" else "XHS"', text)
+        self.assertIn('"wb": "WB"', text)
+        self.assertIn('"xhs": "XHS"', text)
+        self.assertIn('"toutiao": "TOUTIAO"', text)
         self.assertIn("no_more_detail_requests_this_cycle=yes", text)
 
 
