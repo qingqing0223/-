@@ -14,7 +14,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 SUQI_ROOT = Path(r"E:\Real-time-situation-map\yuqing-v1\03_live_system")
-SUPPORTED_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
+SUPPORTED_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu")
+MEDIACRAWLER_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "zhihu")
 EXPECTED_EVENT_ID = "promotion_week_2026_preheat"
 EXPECTED_EVENT_NAME = "2026年民族团结进步宣传周预热阶段舆情监测"
 EXPECTED_MONITORING_START_TIME = "2026-09-16T00:00:00+08:00"
@@ -79,6 +80,14 @@ def _upgrade_local_full_matrix(path: Path) -> tuple[bool, str]:
             if cfg.get(key) != value:
                 cfg[key] = value
                 changed = True
+
+        platforms = list(cfg.get("platforms") or [])
+        for item in platforms:
+            if str(item.get("code") or "") == "tieba":
+                item["code"] = "toutiao"
+                item["name"] = "今日头条"
+                changed = True
+        cfg["platforms"] = platforms
 
         existing_keywords = list(cfg.get("keywords") or [])
         if existing_keywords != list(REQUIRED_KEYWORDS):
@@ -191,10 +200,22 @@ def _check_mediacrawler_platforms(root: Path) -> tuple[bool, str]:
         p.read_text(encoding="utf-8", errors="replace")
         for p in candidates if p.exists()
     )
-    missing = [code for code in SUPPORTED_PLATFORMS if code not in text]
+    missing = [code for code in MEDIACRAWLER_PLATFORMS if code not in text]
     if missing:
         return False, "local MediaCrawler code did not expose: " + ",".join(missing)
-    return True, "local MediaCrawler appears to expose all 7 platform codes"
+    return True, "local MediaCrawler exposes the 6 native platform codes; Toutiao uses the project Playwright adapter"
+
+
+def _check_toutiao_adapter() -> tuple[bool, str]:
+    path = ROOT / "scripts" / "toutiao_crawler.py"
+    if not path.exists():
+        return False, f"missing: {path}"
+    text = path.read_text(encoding="utf-8", errors="replace")
+    required = ("SEARCH_ENDPOINT", "capture_comments", "parent_comment_id", "ip_location", "TOUTIAO_VERIFY_REQUIRED")
+    missing = [needle for needle in required if needle not in text]
+    if missing:
+        return False, "Toutiao adapter missing capabilities: " + ",".join(missing)
+    return True, "Toutiao Playwright adapter present: search/detail/comments/nested hierarchy/public region/verification wait"
 
 
 def _check_mediacrawler_comment_cli(root: Path) -> tuple[bool, str]:
@@ -281,11 +302,13 @@ def main() -> int:
         runtime_cfg = _load_json(runtime_config)
         crawler_root = Path(runtime_cfg["media_crawler_root"])
         ok, detail = _check_mediacrawler_platforms(crawler_root)
-        add("local MediaCrawler seven-platform support", ok, detail)
+        add("local MediaCrawler native-platform support", ok, detail)
         ok, detail = _check_mediacrawler_comment_cli(crawler_root)
         add("local MediaCrawler final comment/deep-paging CLI support", ok, detail)
+        ok, detail = _check_toutiao_adapter()
+        add("Toutiao project adapter", ok, detail)
     except Exception as exc:
-        add("local MediaCrawler seven-platform support", False, f"{type(exc).__name__}: {exc}")
+        add("local MediaCrawler native-platform support", False, f"{type(exc).__name__}: {exc}")
         add("local MediaCrawler final comment/deep-paging CLI support", False, f"{type(exc).__name__}: {exc}")
 
     for module in (
