@@ -91,6 +91,45 @@ function Set-ConfigProperty($obj, [string]$name, $value) {
     }
 }
 
+# The acceptance script must be self-contained even when a student's local
+# config predates a newly activated platform. Ensure the selected platform is
+# present and enabled before writing the temporary acceptance config.
+$platformNames = @{
+    "xhs" = "小红书"
+    "bili" = "B站"
+    "wb" = "微博"
+    "toutiao" = "今日头条"
+    "zhihu" = "知乎"
+}
+$activeCodes = @("xhs","dy","ks","bili","wb","toutiao","zhihu")
+$platformList = @($cfg.platforms | Where-Object {
+    $_ -and ($activeCodes -contains [string]$_.code)
+})
+$selectedEntry = $platformList | Where-Object { [string]$_.code -eq $Platform } | Select-Object -First 1
+if (-not $selectedEntry) {
+    $platformList += [pscustomobject]@{
+        code = $Platform
+        name = [string]$platformNames[$Platform]
+        enabled = $true
+    }
+    Write-Host "Added missing platform '$Platform' to temporary acceptance config." -ForegroundColor Yellow
+} else {
+    $selectedEntry.enabled = $true
+}
+Set-ConfigProperty $cfg "platforms" $platformList
+
+# Keep the acceptance run on the canonical six campaign keywords even when a
+# machine-local config is older than the current repository defaults.
+$acceptanceKeywords = @(
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "促进民族团结进步，奋进伟大复兴征程",
+    "民族团结进步倡议",
+    "民族团结进步宣传周主场活动",
+    "石榴花开——铸牢中华民族共同体意识"
+)
+Set-ConfigProperty $cfg "keywords" $acceptanceKeywords
+
 $policy = @{
     "xhs"   = @{ Budget = 55; Timeout = 45;  CommentCap = 100 }
     "bili"  = @{ Budget = 70; Timeout = 100; CommentCap = 300 }
