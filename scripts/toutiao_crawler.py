@@ -266,7 +266,7 @@ def _comment_region(node: dict) -> str:
     candidates = [
         node.get("ip_location"), node.get("ip_region"), node.get("ip_label"),
         node.get("province"), node.get("region"), node.get("region_name"),
-        node.get("publish_loc"), node.get("user_location"),
+        node.get("publish_loc"), node.get("publish_loc_info"), node.get("user_location"),
         user.get("ip_location"), user.get("ip_region"), user.get("ip_label"),
         user.get("province"), user.get("region"), user.get("location"),
     ]
@@ -278,7 +278,7 @@ def _comment_region(node: dict) -> str:
 
 
 def _comment_id(node: dict) -> str:
-    for key in ("comment_id", "id", "cid", "dongtai_id"):
+    for key in ("comment_id", "id_str", "id", "cid", "dongtai_id"):
         value = node.get(key)
         if value not in (None, "", 0, "0"):
             return str(value)
@@ -295,12 +295,31 @@ def _comment_text(node: dict) -> str:
 
 def _comment_author(node: dict) -> tuple[str, str]:
     user = _comment_user(node)
-    name = user.get("name") or user.get("screen_name") or user.get("nickname") or node.get("user_name") or ""
-    uid = user.get("user_id") or user.get("id") or user.get("uid") or node.get("user_id") or ""
+    name = (
+        user.get("name")
+        or user.get("screen_name")
+        or user.get("nickname")
+        or node.get("user_name")
+        or node.get("name")
+        or ""
+    )
+    uid = (
+        user.get("user_id")
+        or user.get("id")
+        or user.get("uid")
+        or node.get("user_id")
+        or node.get("uid")
+        or ""
+    )
     return clean_text(name), clean_text(uid)
 
 
-def parse_comment_payload(payload: Any, content_id: str) -> list[dict]:
+def parse_comment_payload(
+    payload: Any,
+    content_id: str,
+    default_parent_id: str = "",
+    default_root_id: str = "",
+) -> list[dict]:
     rows: dict[str, dict] = {}
 
     def walk(value: Any, parent_id: str = "", root_id: str = "", in_reply: bool = False) -> None:
@@ -315,10 +334,19 @@ def parse_comment_payload(payload: Any, content_id: str) -> list[dict]:
         text = _comment_text(value)
         current_root = root_id
         if cid and text:
+            reply_to_comment = value.get("reply_to_comment")
+            reply_to_id = ""
+            if isinstance(reply_to_comment, dict):
+                reply_to_id = clean_text(
+                    reply_to_comment.get("id_str")
+                    or reply_to_comment.get("id")
+                    or reply_to_comment.get("comment_id")
+                )
             explicit_parent = clean_text(
                 value.get("parent_comment_id")
                 or value.get("parent_id")
                 or value.get("reply_to_comment_id")
+                or reply_to_id
                 or value.get("reply_id")
             )
             explicit_root = clean_text(
@@ -360,7 +388,12 @@ def parse_comment_payload(payload: Any, content_id: str) -> list[dict]:
                 # Descend into that wrapper while preserving the current hierarchy context.
                 walk(child, parent_id=parent_id, root_id=root_id, in_reply=in_reply)
 
-    walk(payload)
+    walk(
+        payload,
+        parent_id=clean_text(default_parent_id),
+        root_id=clean_text(default_root_id),
+        in_reply=bool(clean_text(default_parent_id)),
+    )
     return list(rows.values())
 
 
@@ -445,8 +478,8 @@ async def fetch_public_comment_api(page: Page, content_id: str, cap: int) -> lis
     page_size = min(20, cap)
     endpoint_templates = (
         (
-            "article_v2",
-            "https://www.toutiao.com/article/v2/tab_comments/"
+            "article_v4",
+            "https://www.toutiao.com/article/v4/tab_comments/"
             "?aid=24&app_name=toutiao_web&offset={offset}&count={count}"
             "&group_id={content_id}&item_id={content_id}",
         ),
@@ -557,7 +590,23 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
             payload = await response.json()
         except Exception:
             return
-        for row in parse_comment_payload(payload, content_id):
+
+        response_parent = ""
+        response_root = ""
+        try:
+            parsed = urlparse(response.url)
+            if "/2/comment/v4/reply_list/" in parsed.path:
+                response_parent = clean_text((parse_qs(parsed.query).get("id") or [""])[0])
+                response_root = response_parent
+        except Exception:
+            pass
+
+        for row in parse_comment_payload(
+            payload,
+            content_id,
+            default_parent_id=response_parent,
+            default_root_id=response_root,
+        ):
             captured[row["comment_id"]] = row
 
     def on_response(response: Response) -> None:
@@ -577,13 +626,30 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
             print(f"[toutiao] comment-capture reload warning: {type(exc).__name__}: {exc}", flush=True)
 
         for _ in range(10):
-            for label in ("展开", "查看全部", "更多回复", "展开更多", "查看更多"):
+            # Current Toutiao PC uses a comment drawer and explicit load-more
+            # buttons. Click those first so the site itself emits signed v4
+            # comment/reply requests; then keep generic text fallbacks.
+            for selector in ("button.side-drawer-btn", ".load-more-btn"):
+                try:
+                    locator = page.locator(selector)
+                    count = min(await locator.count(), 3)
+                    for idx in range(count):
+                        try:
+                            await locator.nth(idx).click(timeout=700)
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+            for label in (
+                "展开", "查看全部", "查看全部回复", "更多回复",
+                "展开更多", "查看更多", "查看更多评论", "查看更多回复"
+            ):
                 try:
                     locator = page.get_by_text(label, exact=False)
                     count = min(await locator.count(), 3)
                     for idx in range(count):
                         try:
-                            await locator.nth(idx).click(timeout=500)
+                            await locator.nth(idx).click(timeout=700)
                         except Exception:
                             pass
                 except Exception:
