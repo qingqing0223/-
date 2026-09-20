@@ -153,7 +153,7 @@ def inspect(config_path: Path, platform: str) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Inspect the latest raw cycle for public coarse IP-region persistence.")
-    ap.add_argument("--platform", required=True, choices=["xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu"])
+    ap.add_argument("--platform", required=True, choices=["xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu"])
     ap.add_argument("--config", default=".\\config\\monitoring.local.json")
     args = ap.parse_args()
     try:
