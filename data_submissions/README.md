@@ -9,7 +9,7 @@
 - `bilibili/`：B站
 - `weibo/`：微博
 - `xiaohongshu/`：小红书
-- `tieba/`：百度贴吧
+- `toutiao/`：今日头条
 - `zhihu/`：知乎
 - `wechat_mp/`：微信公众号
 
