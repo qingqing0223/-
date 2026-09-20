@@ -70,6 +70,18 @@ class ToutiaoFinalStackTests(unittest.TestCase):
         self.assertEqual(self.mod.coarse_region("来自：内蒙古"), "内蒙古")
         self.assertEqual(self.mod.coarse_region("127.0.0.1"), "")
 
+    def test_unknown_engagement_count_is_not_fabricated_zero(self):
+        self.assertIsNone(self.mod.observed_int(""))
+        self.assertIsNone(self.mod.observed_int(None))
+        self.assertEqual(self.mod.observed_int("0"), 0)
+        self.assertEqual(self.mod.observed_int("评论 12"), 12)
+
+    def test_comment_capture_has_network_reload_and_public_api_fallback(self):
+        text = ADAPTER.read_text(encoding="utf-8")
+        self.assertIn("page.reload(", text)
+        self.assertIn("/api/comment/list/", text)
+        self.assertIn("fetch_public_comment_api", text)
+
     def test_active_runner_has_toutiao(self):
         runner = (ROOT / "run_single_platform.py").read_text(encoding="utf-8")
         final_policy = (ROOT / "monitor" / "final_realtime_policy.py").read_text(encoding="utf-8")
