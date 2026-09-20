@@ -72,22 +72,14 @@ if ($Platform -eq "wb") {
 }
 
 if ($Platform -eq "toutiao") {
-    Write-Host "Applying/verifying Tieba bounded realtime patch..." -ForegroundColor Cyan
-    python .\scripts\patch_toutiao_realtime_resilience.py --root $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    python .\scripts\patch_toutiao_realtime_resilience.py --root $MediaCrawlerRoot --check
+    Write-Host "Verifying native Toutiao Playwright adapter..." -ForegroundColor Cyan
+    python -m py_compile .\scripts\toutiao_crawler.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    Write-Host "Applying/verifying Tieba comment hierarchy patch..." -ForegroundColor Cyan
-    python .\scripts\patch_toutiao_comment_hierarchy.py --root $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    python .\scripts\patch_toutiao_comment_hierarchy.py --root $MediaCrawlerRoot --check
+    uv run --project $MediaCrawlerRoot python -c "import playwright; print('Toutiao Playwright runtime OK')"
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    Write-Host "Verifying Tieba strict public-region persistence..." -ForegroundColor Cyan
-    python .\scripts\patch_toutiao_public_regions.py --root $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    python .\scripts\patch_toutiao_public_regions.py --root $MediaCrawlerRoot --check
+    python -m unittest tests.test_toutiao_final_stack -v
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
