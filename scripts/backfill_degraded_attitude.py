@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
 from pipeline.classifier import classify_records
 
 
-PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "tieba", "zhihu"}
+PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "toutiao", "zhihu"}
 
 
 def _load_json(path: Path) -> dict:
