@@ -355,7 +355,9 @@ def parse_comment_payload(payload: Any, content_id: str) -> list[dict]:
                     root_id=current_root or root_id,
                     in_reply=True,
                 )
-            elif low in {"comments", "comment_list", "data"}:
+            elif low in {"comments", "comment_list", "comment", "data"}:
+                # Some Toutiao web endpoints wrap each row as {"comment": {...}}.
+                # Descend into that wrapper while preserving the current hierarchy context.
                 walk(child, parent_id=parent_id, root_id=root_id, in_reply=in_reply)
 
     walk(payload)
@@ -431,64 +433,106 @@ async def extract_dom_comments(page: Page, content_id: str) -> list[dict]:
 
 
 async def fetch_public_comment_api(page: Page, content_id: str, cap: int) -> list[dict]:
-    """Try Toutiao's public web comment endpoint using the active browser session.
+    """Try public Toutiao web comment endpoints using the active browser session.
 
-    This is a best-effort fallback only. It does not generate signatures, bypass
-    challenges, or retry through verification. If the endpoint is unavailable,
-    the crawler simply falls back to browser-rendered comments.
+    This remains a best-effort public-web fallback. It does not synthesize
+    signatures, bypass login/security checks, or escalate retries after a
+    verification/rate-limit response.
     """
     if not content_id or cap <= 0:
         return []
-    rows: dict[str, dict] = {}
-    offset = 0
+
     page_size = min(20, cap)
-    for _ in range(max(1, (cap + page_size - 1) // page_size)):
-        url = (
+    endpoint_templates = (
+        (
+            "article_v2",
+            "https://www.toutiao.com/article/v2/tab_comments/"
+            "?aid=24&app_name=toutiao_web&offset={offset}&count={count}"
+            "&group_id={content_id}&item_id={content_id}",
+        ),
+        (
+            "legacy_comment_list",
             "https://www.toutiao.com/api/comment/list/"
-            f"?group_id={content_id}&item_id={content_id}"
-            f"&offset={offset}&count={page_size}"
-        )
-        try:
-            response = await page.context.request.get(
-                url,
-                headers={
-                    "accept": "application/json, text/plain, */*",
-                    "referer": canonical_url(page.url) or page.url,
-                },
-                timeout=12000,
+            "?group_id={content_id}&item_id={content_id}"
+            "&offset={offset}&count={count}",
+        ),
+    )
+
+    for endpoint_name, template in endpoint_templates:
+        rows: dict[str, dict] = {}
+        offset = 0
+        for _ in range(max(1, (cap + page_size - 1) // page_size)):
+            url = template.format(
+                content_id=content_id,
+                offset=offset,
+                count=page_size,
             )
-            if response.status in {401, 403, 418, 429}:
+            try:
+                response = await page.context.request.get(
+                    url,
+                    headers={
+                        "accept": "application/json, text/plain, */*",
+                        "referer": canonical_url(page.url) or page.url,
+                    },
+                    timeout=12000,
+                )
+                status = response.status
+                if status in {401, 403, 418, 429}:
+                    print(
+                        f"[toutiao] comment endpoint={endpoint_name} status={status}; "
+                        "stop this endpoint without bypass/retry escalation",
+                        flush=True,
+                    )
+                    break
+                if not response.ok:
+                    print(
+                        f"[toutiao] comment endpoint={endpoint_name} status={status}; unavailable",
+                        flush=True,
+                    )
+                    break
+                payload = await response.json()
+            except Exception as exc:
                 print(
-                    f"[toutiao] public comment endpoint unavailable status={response.status}; "
-                    "no bypass/retry escalation",
+                    f"[toutiao] comment endpoint={endpoint_name} warning: "
+                    f"{type(exc).__name__}: {exc}",
                     flush=True,
                 )
                 break
-            if not response.ok:
-                break
-            payload = await response.json()
-        except Exception as exc:
+
+            batch = parse_comment_payload(payload, content_id)
+            before = len(rows)
+            for row in batch:
+                cid = clean_text(row.get("comment_id"))
+                if cid:
+                    rows[cid] = row
+                    if len(rows) >= cap:
+                        print(
+                            f"[toutiao] comment endpoint={endpoint_name} parsed_rows={len(rows)} cap_reached=yes",
+                            flush=True,
+                        )
+                        return list(rows.values())[:cap]
+
+            data = payload.get("data") if isinstance(payload, dict) else None
+            has_more = False
+            if isinstance(data, dict):
+                has_more = bool(data.get("has_more"))
+            elif isinstance(payload, dict):
+                has_more = bool(payload.get("has_more"))
+
             print(
-                f"[toutiao] public comment endpoint warning: {type(exc).__name__}: {exc}",
+                f"[toutiao] comment endpoint={endpoint_name} offset={offset} "
+                f"parsed_batch={len(batch)} total_unique={len(rows)} has_more={has_more}",
                 flush=True,
             )
-            break
 
-        batch = parse_comment_payload(payload, content_id)
-        before = len(rows)
-        for row in batch:
-            cid = clean_text(row.get("comment_id"))
-            if cid:
-                rows[cid] = row
-                if len(rows) >= cap:
-                    return list(rows.values())[:cap]
+            if len(rows) == before or not has_more:
+                break
+            offset += page_size
 
-        data = payload.get("data") if isinstance(payload, dict) else {}
-        has_more = bool(data.get("has_more")) if isinstance(data, dict) else False
-        if len(rows) == before or not has_more:
-            break
-        offset += page_size
-    return list(rows.values())[:cap]
+        if rows:
+            return list(rows.values())[:cap]
+
+    return []
 
 
 async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
@@ -498,6 +542,14 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
     async def handle(response: Response) -> None:
         if "comment" not in response.url.lower():
             return
+        try:
+            parsed_url = urlparse(response.url)
+            print(
+                f"[toutiao] observed comment network response path={parsed_url.path} status={response.status}",
+                flush=True,
+            )
+        except Exception:
+            pass
         try:
             ctype = (response.headers.get("content-type") or "").lower()
             if "json" not in ctype and "javascript" not in ctype:
