@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-20T02:13:54+00:00",
+  "generated_at": "2026-09-20T02:16:59+00:00",
   "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
@@ -37,14 +37,14 @@
       "source_results_date": "2026-09-20",
       "aggregation_mode": "conservative_authoritative_snapshot_pending_fingerprints",
       "authoritative_node_id": "ks-main",
-      "latest_node_id": "ks01",
-      "unique_records": 151,
-      "comment_records": 68,
-      "root_comment_records": 68,
+      "latest_node_id": "ks-main",
+      "unique_records": 154,
+      "comment_records": 71,
+      "root_comment_records": 71,
       "reply_comment_records": 0,
       "region_records": 14,
       "comment_region_records": 7,
-      "latest_seen_time": "2026-09-20T09:32:16+08:00",
+      "latest_seen_time": "2026-09-20T10:12:09+08:00",
       "node_count": 2,
       "all_counting_nodes_have_fingerprints": false
     },
