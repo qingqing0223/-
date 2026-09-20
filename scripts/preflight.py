@@ -15,6 +15,10 @@ if str(ROOT) not in sys.path:
 
 SUQI_ROOT = Path(r"E:\Real-time-situation-map\yuqing-v1\03_live_system")
 SUPPORTED_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu")
+EXPECTED_EVENT_ID = "promotion_week_2026_preheat"
+EXPECTED_EVENT_NAME = "2026年民族团结进步宣传周预热阶段舆情监测"
+EXPECTED_MONITORING_START_TIME = "2026-09-16T00:00:00+08:00"
+
 REQUIRED_KEYWORDS = (
     "2026年民族团结进步宣传周",
     "首个民族团结进步宣传周",
@@ -64,6 +68,18 @@ def _upgrade_local_full_matrix(path: Path) -> tuple[bool, str]:
             if cfg.get(key) != value:
                 cfg[key] = value
                 changed = True
+        scope_values = {
+            "event_id": EXPECTED_EVENT_ID,
+            "event_name": EXPECTED_EVENT_NAME,
+            "monitoring_start_time": EXPECTED_MONITORING_START_TIME,
+            "results_date": "",
+            "results_date_mode": "auto",
+        }
+        for key, value in scope_values.items():
+            if cfg.get(key) != value:
+                cfg[key] = value
+                changed = True
+
         existing_keywords = list(cfg.get("keywords") or [])
         if existing_keywords != list(REQUIRED_KEYWORDS):
             cfg["keywords"] = list(REQUIRED_KEYWORDS)
@@ -124,6 +140,27 @@ def _check_keywords(path: Path) -> tuple[bool, str]:
         if missing:
             return False, "missing campaign keywords: " + " | ".join(missing)
         return True, "6/6 campaign keywords present"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
+
+
+def _check_monitoring_scope(path: Path) -> tuple[bool, str]:
+    try:
+        cfg = _load_json(path)
+        problems = []
+        if str(cfg.get("monitoring_start_time") or "") != EXPECTED_MONITORING_START_TIME:
+            problems.append(
+                f"monitoring_start_time={cfg.get('monitoring_start_time')!r} "
+                f"expected {EXPECTED_MONITORING_START_TIME!r}"
+            )
+        if bool(cfg.get("realtime_mode", False)):
+            if str(cfg.get("results_date_mode") or "").lower() != "auto":
+                problems.append("realtime results_date_mode must be 'auto'")
+            if str(cfg.get("results_date") or "").strip():
+                problems.append("realtime results_date must be empty so daily partitions roll over automatically")
+        if problems:
+            return False, "; ".join(problems)
+        return True, f"scope starts exactly at {EXPECTED_MONITORING_START_TIME}; realtime GitHub partition rolls daily"
     except Exception as exc:
         return False, f"{type(exc).__name__}: {exc}"
 
@@ -225,6 +262,8 @@ def main() -> int:
         add("runtime config full monitoring matrix", matrix_ok, upgrade_prefix + matrix_detail)
         kw_ok, kw_detail = _check_keywords(runtime_config)
         add("runtime config six campaign keywords", kw_ok, kw_detail)
+        scope_ok, scope_detail = _check_monitoring_scope(runtime_config)
+        add("runtime config monitoring scope", scope_ok, scope_detail)
 
     for rel in (
         "config/monitoring.windows.json",
