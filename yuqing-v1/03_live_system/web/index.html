@@ -94,11 +94,8 @@
     .map-ov.dim{font-size:9px;font-weight:400;color:rgba(206,232,246,.9)}
     .toggle{border:1px solid rgba(127,197,236,.34);background:rgba(24,68,100,.72);color:#cdeeff;border-radius:999px;padding:3px 9px;font:inherit;font-size:10px;line-height:1.2;cursor:pointer}
     .toggle.paused{color:var(--hot);border-color:rgba(255,207,102,.55);background:rgba(76,55,18,.65)}
-    .lang-box{display:grid;grid-template-rows:minmax(0,.76fr) minmax(0,1fr);gap:4px;flex:1;min-height:0;padding:4px 6px 6px}
+    .content-box{display:flex;flex:1;min-height:0;padding:4px 6px 6px}
     .risk-feed{padding:6px}
-    .lang-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;min-height:0}
-    .lang-card{border:1px solid rgba(127,197,236,.16);background:rgba(11,35,58,.68);border-radius:7px;padding:6px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
-    .lang-card.active{border-color:rgba(255,207,102,.56);background:rgba(56,45,20,.72)}.lang-card b{display:block;font-size:12px}.lang-card em{font-style:normal;font-size:11px;color:#ffcf66}.lang-card span{display:none}
     .phase-tag{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;min-width:0}
     .phase-tag b{color:var(--hot);font-weight:700}
     .kpi .sub{font-size:10px;color:var(--muted);margin-left:3px}
@@ -183,8 +180,8 @@
         <div id="riskFeed" class="feed risk-feed"></div>
       </section>
       <section class="panel">
-        <div class="panel-title"><h2>重点传播内容</h2><span id="languageTag"></span></div>
-        <div class="lang-box"><div id="languageCards" class="lang-cards"></div><div id="languageFeed" class="feed"></div></div>
+        <div class="panel-title"><h2>重点传播内容</h2><span id="contentTag"></span></div>
+        <div class="content-box"><div id="contentFeed" class="feed"></div></div>
       </section>
     </section>
   </div>
@@ -333,7 +330,7 @@
     // 面积很小或形状特殊的省级行政区：地图内置标签会互相压住，改用覆盖层精确定位
     const OVERLAY_LABEL_OFFSETS={"北京":[0,0],"天津":[0,0],"河北":[-4,28],"上海":[0,0],"香港":[0,0],"澳门":[-26,12]};
     let D=null;
-    const state={regionIndex:0,platformIndex:0,languageIndex:0,timelineIndex:0,timelineMode:"hour",attitudeMode:"support",regionFeedIndex:0,platformFeedIndex:0,languageFeedIndex:0,riskFeedIndex:0,paused:false};
+    const state={regionIndex:0,platformIndex:0,timelineIndex:0,timelineMode:"hour",attitudeMode:"support",regionFeedIndex:0,platformFeedIndex:0,riskFeedIndex:0,contentFeedIndex:0,paused:false};
     let charts={};
     let regionFocusRows=[];
 
@@ -459,7 +456,6 @@
     function focusRegionTotal(){return regionFocusRows.reduce((s,r)=>s+r.total,0)}
     function activeRegion(){return regionFocusRows[state.regionIndex]||regionFocusRows[0]||{}}
     function activePlatform(){const rows=platformRows();return rows[state.platformIndex]||rows[0]||{}}
-    function activeLanguage(){return languageRows()[state.languageIndex]||languageRows()[0]||{}}
     function timelineRows(){
       if(state.timelineMode==="hour"){
         const rows=D.trendHourly||D.live?.trendHourly||[];
@@ -497,16 +493,6 @@
       const all=rows.reduce((s,r)=>s+r.total,0)||1;
       rows.forEach(r=>r.share=Number((r.total/all*100).toFixed(2)));
       return rows;
-    }
-    function isMinorityLanguageName(name){
-      const text=String(name||"").trim();
-      if(!text)return false;
-      return !/中文|普通话|汉语|英文|英语|未知|未标注/.test(text);
-    }
-    function languageRows(){
-      return (D.languagePlatform||D.langSpotlight||[])
-        .map(x=>({name:String(x.name||x.lang||"").replace(/\/文/g,""),value:x.value||x.count||0,record:x.record||""}))
-        .filter(x=>isMinorityLanguageName(x.name));
     }
     function attitudeRows(row){
       return ATT_KEYS.map(([key,name],idx)=>({name,value:Number(row[key]||0),itemStyle:{color:COLORS[idx%COLORS.length]}})).filter(x=>x.value>0);
@@ -581,11 +567,6 @@
     function quotesByPlatform(platformName){
       return (D.quotes||[]).filter(q=>canonicalPlatformName(q.platform)===platformName);
     }
-    function quotesByLang(languageToken){
-      const token=String(languageToken||"").replace("（含原未标注语言）","").replace("/文","").replace("/普通话","").replace("中文","");
-      if(!token||!/[^普通话中文\s/]/.test(token))return [];
-      return (D.quotes||[]).filter(q=>String(q.language||"").includes(token)||String(q.text||"").includes(token));
-    }
     function latestDate(rows){
       return rows.map(q=>q.date).filter(Boolean).sort().pop()||"未标注";
     }
@@ -635,7 +616,6 @@
     function setFocusState(next){
       if(Number.isInteger(next.regionIndex))state.regionIndex=(next.regionIndex+regionFocusRows.length)%regionFocusRows.length;
       if(Number.isInteger(next.platformIndex))state.platformIndex=(next.platformIndex+platformRows().length)%platformRows().length;
-      if(Number.isInteger(next.languageIndex)&&languageRows().length)state.languageIndex=(next.languageIndex+languageRows().length)%languageRows().length;
       const timeline=timelineRows();
       if(Number.isInteger(next.timelineIndex)&&timeline.length)state.timelineIndex=(next.timelineIndex+timeline.length)%timeline.length;
       renderAll();
@@ -691,17 +671,18 @@
       renderFeed("riskFeed",rows,"暂无风险信息",2,"riskFeedIndex");
       $("riskTag").textContent=rows.length?`${rows.length} 条`:"待接入";
     }
-    function renderLanguagePanel(){
-      const rows=languageRows();
-      const active=activeLanguage();
-      $("languageCards").innerHTML=rows.slice(0,4).map((x,i)=>{
-        const idx=rows.findIndex(r=>r.name===x.name);
-        return `<div class="lang-card ${x.name===active.name?"active":""}" data-lang-index="${idx}"><b>${x.name}</b><em>${fmt(x.value)} 条</em></div>`;
-      }).join("")||`<div class="empty">暂无少语样本</div>`;
-      document.querySelectorAll(".lang-card").forEach(node=>node.onclick=()=>setFocusState({languageIndex:Number(node.dataset.langIndex)}));
-      const q=quotesByLang(active.name);
-      renderFeed("languageFeed",q,"当前语种暂无可展示样本",1,"languageFeedIndex");
-      $("languageTag").textContent="";
+    function renderContentPanel(){
+      const rows=(D.hotTop||[]).map(item=>({
+        platform:item.platform||"未标注平台",
+        account:item.account||"未标注发布者",
+        text:item.title||item.text||"",
+        date:item.date||"",
+        likes:item.likes||0,
+        comments:item.comments||0,
+        shares:item.shares||0
+      }));
+      renderFeed("contentFeed",rows,"暂无重点传播内容",1,"contentFeedIndex");
+      $("contentTag").textContent=rows.length?`${Math.min(rows.length,10)} 条`:"待接入";
     }
     function renderMap(){
       const r=activeRegion();
@@ -827,7 +808,7 @@
         $("timelineTag").textContent=t.date?`${t.date}｜${fmt(t.value)} 条｜当日累计`:"暂无数据";
       }
     }
-    function renderAll(){renderKpis();renderRegionPanel();renderPlatformPanel();renderLanguagePanel();renderRiskPanel();renderMap();renderBottomCharts()}
+    function renderAll(){renderKpis();renderRegionPanel();renderPlatformPanel();renderContentPanel();renderRiskPanel();renderMap();renderBottomCharts()}
     function barOption(rows,title,cfg={}){
       const max=Math.max(...rows.map(x=>x.value||0),1);
       return {grid:{left:cfg.left||80,right:cfg.right||20,top:cfg.top||14,bottom:cfg.bottom||8,containLabel:false},
@@ -969,11 +950,10 @@
       window.addEventListener("resize",()=>{try{renderNanhaiFrame();renderRipples()}catch(e){}});
     }
     function startRotation(){
-      // 地区改为固定 10 个重点地区，不再随机轮播；平台/语种/时点仅做高亮轮换
+      // 地区改为固定 10 个重点地区；平台和时点轮换，信息流按时间滚动
       setInterval(()=>{if(!state.paused)setFocusState({platformIndex:state.platformIndex+1})},9000);
-      setInterval(()=>{if(!state.paused)setFocusState({languageIndex:state.languageIndex+1})},11000);
       setInterval(()=>{if(!state.paused)setFocusState({timelineIndex:state.timelineIndex+1})},4000);
-      setInterval(()=>{if(!state.paused){state.regionFeedIndex++;state.platformFeedIndex++;state.languageFeedIndex++;state.riskFeedIndex++;renderAll()}},5000);
+      setInterval(()=>{if(!state.paused){state.regionFeedIndex++;state.platformFeedIndex++;state.contentFeedIndex++;state.riskFeedIndex++;renderAll()}},5000);
       $("pauseBtn").onclick=()=>{state.paused=!state.paused;$("pauseBtn").textContent=state.paused?"继续轮播":"暂停轮播";$("pauseBtn").classList.toggle("paused",state.paused)};
       document.querySelectorAll("[data-timeline-mode]").forEach(button=>button.onclick=()=>{
         state.timelineMode=button.dataset.timelineMode;
@@ -995,8 +975,6 @@
       buildRegionFocusRows();
       const bestRegion=regionFocusRows.reduce((best,r,i)=>r.total>(regionFocusRows[best]?.total||0)?i:best,0);
       if(regionFocusRows[bestRegion]&&regionFocusRows[bestRegion].total>0)state.regionIndex=bestRegion;
-      const firstMinorityLang=languageRows().findIndex(x=>x.name&&x.name!=="中文/普通话");
-      if(firstMinorityLang>=0)state.languageIndex=firstMinorityLang;
       renderPhaseTag();
       renderKpis();
       initCharts();
