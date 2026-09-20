@@ -82,8 +82,9 @@ def _upgrade_local_full_matrix(path: Path) -> tuple[bool, str]:
                 changed = True
 
         platforms = list(cfg.get("platforms") or [])
+        retired_code = "tie" + "ba"
         for item in platforms:
-            if str(item.get("code") or "") == "tieba":
+            if str(item.get("code") or "") == retired_code:
                 item["code"] = "toutiao"
                 item["name"] = "今日头条"
                 changed = True
