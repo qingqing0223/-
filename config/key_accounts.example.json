@@ -15,12 +15,85 @@
     "timeout_seconds": 15
   },
   "accounts": [
-    {"platform": "xhs", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填小红书 creator_id/主页标识；正式名单下来后启用"},
-    {"platform": "dy", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填抖音 creator_id/主页标识；正式名单下来后启用"},
-    {"platform": "ks", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填快手 creator_id/主页标识；正式名单下来后启用"},
-    {"platform": "bili", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填B站 creator_id/UP主主页标识；先做真实平台验收再正式启用"},
-    {"platform": "wb", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填微博 creator_id/主页标识；先做真实平台验收再正式启用"},
-    {"platform": "toutiao", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填贴吧 creator_id/主页标识；先做真实平台验收再正式启用"},
-    {"platform": "zhihu", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填知乎 creator_id/主页标识；先做真实平台验收再正式启用"}
-  ]
+    {
+      "platform": "xhs",
+      "name": "示例账号-请替换",
+      "creator_id": "",
+      "profile_url": "",
+      "account_type": "",
+      "organization": "",
+      "is_key_account": true,
+      "enabled": false,
+      "note": "填小红书 creator_id/主页标识；按Tech Design V3表5补齐账号类型、机构等元数据"
+    },
+    {
+      "platform": "dy",
+      "name": "示例账号-请替换",
+      "creator_id": "",
+      "profile_url": "",
+      "account_type": "",
+      "organization": "",
+      "is_key_account": true,
+      "enabled": false,
+      "note": "填抖音 creator_id/主页标识；按Tech Design V3表5补齐账号类型、机构等元数据"
+    },
+    {
+      "platform": "ks",
+      "name": "示例账号-请替换",
+      "creator_id": "",
+      "profile_url": "",
+      "account_type": "",
+      "organization": "",
+      "is_key_account": true,
+      "enabled": false,
+      "note": "填快手 creator_id/主页标识；按Tech Design V3表5补齐账号类型、机构等元数据"
+    },
+    {
+      "platform": "bili",
+      "name": "示例账号-请替换",
+      "creator_id": "",
+      "profile_url": "",
+      "account_type": "",
+      "organization": "",
+      "is_key_account": true,
+      "enabled": false,
+      "note": "填B站 creator_id/UP主主页标识；按Tech Design V3表5补齐账号类型、机构等元数据"
+    },
+    {
+      "platform": "wb",
+      "name": "示例账号-请替换",
+      "creator_id": "",
+      "profile_url": "",
+      "account_type": "",
+      "organization": "",
+      "is_key_account": true,
+      "enabled": false,
+      "note": "填微博 creator_id/主页标识；按Tech Design V3表5补齐账号类型、机构等元数据"
+    },
+    {
+      "platform": "toutiao",
+      "name": "示例账号-请替换",
+      "creator_id": "",
+      "profile_url": "",
+      "account_type": "",
+      "organization": "",
+      "is_key_account": true,
+      "enabled": false,
+      "note": "填今日头条 creator token/主页标识；按Tech Design V3表5补齐账号类型、机构等元数据"
+    },
+    {
+      "platform": "zhihu",
+      "name": "示例账号-请替换",
+      "creator_id": "",
+      "profile_url": "",
+      "account_type": "",
+      "organization": "",
+      "is_key_account": true,
+      "enabled": false,
+      "note": "填知乎 creator_id/主页标识；按Tech Design V3表5补齐账号类型、机构等元数据"
+    }
+  ],
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "key_account_catalog": "config/key_accounts.v3.catalog.json",
+  "account_snapshot_update_note": "Tech Design V3: 表5账号信息每日更新；当前测试阶段仍保持300秒轮询，正式15分钟周期待全链路验收后统一切换。"
 }
