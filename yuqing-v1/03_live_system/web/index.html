@@ -339,7 +339,11 @@
         return Promise.resolve(window.DASH_DATA);
       }
       return fetch("/api/bootstrap",{cache:"no-store"})
-        .then(r=>{if(!r.ok)throw new Error("API "+r.status);return r.json()});
+        .then(r=>{if(!r.ok)throw new Error("API "+r.status);return r.json()})
+        .catch(error=>{
+          if(window.DASH_DATA)return window.DASH_DATA;
+          throw error;
+        });
     }
     let liveItems=[];
     let refreshTimer=null;
