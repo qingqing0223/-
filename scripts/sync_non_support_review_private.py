@@ -16,7 +16,7 @@ from scripts.archive_raw_runs_to_git import (
     _write_non_support_review_sheet,
 )
 
-PLATFORMS = {"xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu"}
+PLATFORMS = {"xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu"}
 
 
 def sync_once(
