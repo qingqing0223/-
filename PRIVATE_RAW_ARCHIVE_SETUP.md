@@ -35,7 +35,7 @@ $env:PROMOTION_RAW_ARCHIVE_REPO="E:\PromotionWeekRawArchive"
 .\scripts\start_student_platform_windows.ps1 -Platform <平台代码> -NodeId <节点ID> -Config .\config\monitoring.local.json -PushGithub -ArchiveRaw -RawArchiveRepo "E:\PromotionWeekRawArchive" -PrivateRepoConfirmed
 ```
 
-平台代码：`xhs`、`dy`、`ks`、`bili`、`wb`、`tieba`、`zhihu`。
+平台代码：`xhs`、`dy`、`ks`、`bili`、`wb`、`toutiao`、`zhihu`。
 
 ## 私有仓库中保存什么
 
