@@ -151,6 +151,13 @@ class ToutiaoFinalStackTests(unittest.TestCase):
         self.assertIn("/api/comment/list/", text)
         self.assertIn("fetch_public_comment_api", text)
 
+    def test_signed_comment_response_is_not_rejected_by_content_type(self):
+        text = ADAPTER.read_text(encoding="utf-8")
+        self.assertIn("content_type=", text)
+        self.assertIn("await response.json()", text)
+        self.assertNotIn('if "json" not in ctype and "javascript" not in ctype', text)
+        self.assertIn("comment schema path=", text)
+
     def test_active_runner_has_toutiao(self):
         runner = (ROOT / "run_single_platform.py").read_text(encoding="utf-8")
         final_policy = (ROOT / "monitor" / "final_realtime_policy.py").read_text(encoding="utf-8")
