@@ -10,6 +10,9 @@ from .ingest import ingest_and_classify
 from .keyword_pack import apply_keyword_pack
 from pipeline.io_utils import write_json
 from dashboard_adapter.suqi_pusher import deliver_with_outbox
+from .zhihu_submission import export_zhihu_submission
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_config(path: Path) -> dict:
@@ -45,6 +48,33 @@ def run_one_cycle(cfg: dict) -> dict:
     include_comments = bool(cfg.get("ingest_comments", False))
     for run in runs:
         files = find_ingest_jsonl(Path(run.output_dir), include_comments=include_comments)
+
+        # The collection group owns only tables 1-5 for Zhihu.  Export those
+        # rows before any analysis-stage classifier is considered.
+        if run.platform == "zhihu" and files:
+            export = export_zhihu_submission(
+                files, cfg, ROOT, str(cfg.get("submission_node_id") or "zhihu01")
+            )
+        else:
+            export = None
+
+        if export is not None:
+            ingests.append({
+                "platform": "zhihu",
+                "monitoring_start_time": monitoring_start_time,
+                "new_records": export["accepted_rows"],
+                "classified_records": 0,
+                "classification": "not_run_collection_group_scope_only",
+                "ingest_comments": include_comments,
+                "input_files": [str(p) for p in files],
+                "raw_content_rows": run.content_row_count,
+                "raw_comment_rows": run.comment_row_count,
+                "partial_crawler_result": run.status != "ok",
+                "crawler_state": run.state,
+                "table_1_to_5_export": export,
+                "warning": "valid partial JSONL preserved" if run.status != "ok" else "",
+            })
+            continue
 
         if run.status != "ok" and not files:
             ingests.append({
@@ -105,6 +135,8 @@ def run_one_cycle(cfg: dict) -> dict:
             summary["raw_comment_rows"] = run.comment_row_count
             summary["partial_crawler_result"] = run.status != "ok"
             summary["crawler_state"] = run.state
+            if export:
+                summary["table_1_to_5_export"] = export
             if run.status != "ok":
                 summary["warning"] = (
                     "crawler did not finish cleanly; valid JSONL already written "

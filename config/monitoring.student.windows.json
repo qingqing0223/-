@@ -1,6 +1,7 @@
 {
   "event_id": "promotion_week_2026_preheat",
   "event_name": "2026年民族团结进步宣传周预热阶段舆情监测",
+  "submission_node_id": "zhihu01",
   "monitoring_start_time": "2026-09-16T00:00:00+08:00",
   "results_date": "",
   "results_date_mode": "auto",
@@ -32,6 +33,10 @@
   "save_data_option": "jsonl",
   "github_diagnostic_samples": true,
   "github_diagnostic_sample_rows_per_type": 5,
+  "zhihu_require_publish_time": true,
+  "zhihu_key_accounts_file": "config/zhihu_key_accounts.local.json",
+  "zhihu_key_account_discovery_max_notes_count": 5,
+  "key_account_catalog": "config/key_accounts.v3.catalog.json",
   "dashboard": {
     "enabled": false,
     "ingest_url": "",
