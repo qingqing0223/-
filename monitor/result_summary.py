@@ -258,6 +258,7 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
     platform_tri_class: dict[str, Counter] = {}
     account_stats: dict[str, dict] = {}
     comment_author_keys: set[str] = set()
+    spreading_account_keys: set[str] = set()
     latest_seen = ""
 
     comment_records = 0
@@ -318,10 +319,15 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
             author_key = str(row.get("author_id") or row.get("author") or "").strip()
             if author_key:
                 comment_author_keys.add(author_key)
+                spreading_account_keys.add(f"{platform}:{author_key}")
         else:
             if region:
                 content_region_counts[region] += 1
             public_author = str(row.get("author") or "").strip()
+            public_author_id = str(row.get("author_id") or "").strip()
+            public_author_key = public_author_id or public_author
+            if public_author_key:
+                spreading_account_keys.add(f"{platform}:{public_author_key}")
             if public_author:
                 stat = account_stats.setdefault(public_author, {
                     "account": public_author,
@@ -397,12 +403,34 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
     public_account_stats = public_account_stats[:account_limit]
 
     total = len(latest_rows)
+    content_records = max(0, total - comment_records)
     region_total = sum(region_counts.values())
     minority_total = sum(minority_language_counts.values())
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    interaction_total = (
+        int(engagement["likes"])
+        + int(engagement["comments"])
+        + int(engagement["shares"])
+        + int(engagement["favorites"])
+    )
+    generated_dt = datetime.fromisoformat(generated_at)
+    statistics_time = generated_dt.replace(minute=0, second=0, microsecond=0).isoformat(timespec="seconds")
+    overall_trend_current = {
+        "statistics_time": statistics_time,
+        "information_total": total,
+        "published_content_count": content_records,
+        "comment_reply_count": comment_records,
+        "spreading_account_count": len(spreading_account_keys),
+        "views": int(engagement["views"]),
+        "interaction_total": interaction_total,
+        "likes": int(engagement["likes"]),
+        "comments": int(engagement["comments"]),
+        "shares": int(engagement["shares"]),
+        "favorites": int(engagement["favorites"]),
+    }
 
     return {
-        "schema_version": 6,
+        "schema_version": 7,
         "generated_at": generated_at,
         "monitoring_start_time": monitoring_start_time,
         "latest_seen_time": latest_seen,
@@ -423,6 +451,8 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
             "comment_region_coverage_rate": round(comment_region_records / comment_records, 4) if comment_records else 0.0,
             "unique_comment_authors": len(comment_author_keys),
             "public_publisher_accounts": accounts_total,
+            "spreading_accounts": len(spreading_account_keys),
+            "published_content_records": content_records,
             "likes": engagement["likes"],
             "comments": engagement["comments"],
             "shares": engagement["shares"],
@@ -460,8 +490,36 @@ def build_summary(data_roots: Iterable[Path], monitoring_start_time: str = "") -
         "public_account_stats": public_account_stats,
         "public_account_stats_total": accounts_total,
         "public_account_stats_truncated": accounts_total > account_limit,
+        "overall_trend_current": overall_trend_current,
         "runtime": runtime,
     }
+
+
+def _upsert_hourly_overall_trend(day_root: Path, trend: dict) -> Path:
+    """Persist Tech Design V3 Table 9 as one replaceable snapshot per hour."""
+    trend_dir = day_root / "trend"
+    trend_dir.mkdir(parents=True, exist_ok=True)
+    path = trend_dir / "overall_hourly.jsonl"
+    key = str(trend.get("statistics_time") or "")
+    existing: list[dict] = []
+    if path.exists():
+        existing = list(_iter_jsonl(path) or [])
+    replaced = False
+    output: list[dict] = []
+    for row in existing:
+        if str(row.get("statistics_time") or "") == key:
+            if not replaced:
+                output.append(dict(trend))
+                replaced = True
+            continue
+        output.append(row)
+    if not replaced:
+        output.append(dict(trend))
+    output.sort(key=lambda row: str(row.get("statistics_time") or ""))
+    with path.open("w", encoding="utf-8") as f:
+        for row in output:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    return path
 
 
 def write_summary(repo_root: Path, summary: dict, result_date: str = "") -> dict:
@@ -475,4 +533,13 @@ def write_summary(repo_root: Path, summary: dict, result_date: str = "") -> dict
 
     snapshot = summary_dir / "summary.json"
     snapshot.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
-    return {"latest": str(latest), "summary": str(snapshot), "date_root": str(day_root)}
+    trend_path = _upsert_hourly_overall_trend(
+        day_root,
+        dict(summary.get("overall_trend_current") or {}),
+    )
+    return {
+        "latest": str(latest),
+        "summary": str(snapshot),
+        "overall_hourly_trend": str(trend_path),
+        "date_root": str(day_root),
+    }
