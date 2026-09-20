@@ -50,8 +50,7 @@
       "enabled": true
     },
     {
-      "code": "tieba",
-      "name": "百度贴吧",
+      "code": "toutiao", "name": "今日头条",
       "enabled": true
     },
     {
