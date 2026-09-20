@@ -150,48 +150,6 @@ def patch_bilibili(root: Path) -> None:
     )
 
 
-def patch_tieba(root: Path) -> None:
-    model = root / "model/m_baidu_tieba.py"
-    text = read(model)
-    anchor = '    publish_time: str = Field(default="", description="Publish time")\n'
-    if MARKER not in text:
-        if text.count(anchor) != 2:
-            raise RuntimeError(f"{model}: expected two publish_time anchors, found {text.count(anchor)}")
-        text = text.replace(anchor, anchor + f'    ip_location: str = Field(default="", description="Coarse public IP-location label")  # {MARKER}\n', 2)
-    write_py(model, text)
-
-    helper = root / "media_platform/tieba/help.py"
-    text = read(helper)
-    text = ensure_import(text, "from tools.user_hash import anonymize_user_id, mask_nickname\n", f"from tools.public_region import coarse_public_region  # {MARKER}\n", "tieba import")
-    text = once(text,
-        '                user_nickname=mask_nickname(user.get("show_nickname") or user.get("user_name") or ""),\n                tieba_name=tieba_name,\n',
-        '                user_nickname=mask_nickname(user.get("show_nickname") or user.get("user_name") or ""),\n                ip_location=coarse_public_region(item.get("ip_address") or item.get("ip_location") or item.get("ip_region") or user.get("ip_address") or user.get("ip_location") or user.get("ip_region")),\n                tieba_name=tieba_name,\n', "tieba api search note")
-    text = once(text,
-        '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            tieba_name=tieba_name,\n',
-        '            user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),\n            ip_location=coarse_public_region(first_floor.get("ip_address") or first_floor.get("ip_location") or first_floor.get("ip_region") or thread.get("ip_address") or thread.get("ip_location") or thread.get("ip_region") or author.get("ip_address") or author.get("ip_location") or author.get("ip_region")),\n            tieba_name=tieba_name,\n', "tieba api note")
-    text = once(text,
-        '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                tieba_id=tieba_id,\n',
-        '                user_nickname=mask_nickname(user.get("name_show") or user.get("name") or ""),\n                ip_location=coarse_public_region(item.get("ip_address") or item.get("ip_location") or item.get("ip_region") or user.get("ip_address") or user.get("ip_location") or user.get("ip_region")),\n                tieba_id=tieba_id,\n', "tieba api comment")
-    text = once(text, '            publish_time=publish_time,\n            total_replay_num=(\n', '            publish_time=publish_time,\n            ip_location=coarse_public_region(ip_location),\n            total_replay_num=(\n', "tieba html note")
-    text = once(text, '                publish_time=publish_time,\n                note_id=note_id,\n', '                publish_time=publish_time,\n                ip_location=coarse_public_region(ip_location),\n                note_id=note_id,\n', "tieba html comment")
-    text = once(text,
-        '                user_nickname=mask_nickname(str(comment_value.get("showname") or "")),\n                publish_time=self._selector_text(comment_ele, f".//span[{self._class_contains(\'lzl_time\')}]"),\n',
-        '                user_nickname=mask_nickname(str(comment_value.get("showname") or "")),\n                ip_location=coarse_public_region(comment_value.get("ip_address") or comment_value.get("ip_location") or comment_value.get("ip_region") or comment_value.get("region")),\n                publish_time=self._selector_text(comment_ele, f".//span[{self._class_contains(\'lzl_time\')}]"),\n', "tieba html sub-comment region")
-    write_py(helper, text)
-
-    store = root / "store/tieba/__init__.py"
-    text = read(store)
-    if "\nimport config\n" not in text:
-        text = once(text, "from typing import List\n\n", "from typing import List\n\nimport config\n\n", "tieba config import")
-    text = once(text,
-        '    save_note_item = note_item.model_dump()\n    save_note_item.update({"last_modify_ts": utils.get_current_timestamp()})\n',
-        '    save_note_item = note_item.model_dump()\n' + f'    if config.SAVE_DATA_OPTION != "jsonl":  # {MARKER}\n' + '        save_note_item.pop("ip_location", None)\n    save_note_item.update({"last_modify_ts": utils.get_current_timestamp()})\n', "tieba note guard")
-    text = once(text,
-        '    save_comment_item = comment_item.model_dump()\n    save_comment_item.update({"last_modify_ts": utils.get_current_timestamp()})\n',
-        '    save_comment_item = comment_item.model_dump()\n' + f'    if config.SAVE_DATA_OPTION != "jsonl":  # {MARKER}\n' + '        save_comment_item.pop("ip_location", None)\n    save_comment_item.update({"last_modify_ts": utils.get_current_timestamp()})\n', "tieba comment guard")
-    write_py(store, text)
-
-
 def patch_zhihu(root: Path) -> None:
     model = root / "model/m_zhihu.py"
     text = read(model)
@@ -221,8 +179,7 @@ def files(root: Path) -> dict[str, Path]:
     return {
         "dy": root / "store/douyin/__init__.py", "xhs": root / "store/xhs/__init__.py",
         "wb": root / "store/weibo/__init__.py", "ks": root / "store/kuaishou/__init__.py",
-        "bili": root / "store/bilibili/__init__.py", "tieba_model": root / "model/m_baidu_tieba.py",
-        "tieba_helper": root / "media_platform/tieba/help.py", "tieba_store": root / "store/tieba/__init__.py",
+        "bili": root / "store/bilibili/__init__.py", "tieba_model": root / "model/m_baidu_tieba.py", "tieba_store": root / "store/tieba/__init__.py",
         "zhihu_model": root / "model/m_zhihu.py", "zhihu_helper": root / "media_platform/zhihu/help.py",
         "zhihu_store": root / "store/zhihu/__init__.py",
     }
