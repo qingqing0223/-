@@ -12,15 +12,34 @@ $env:LIVE_SIM_ENABLED = "0"
 $env:LIVE_FILE_WATCH_ENABLED = "0"
 $env:LIVE_PORT = "$Port"
 
-$python = Get-Command python -ErrorAction SilentlyContinue
-if (-not $python) {
-    $python = Get-Command py -ErrorAction SilentlyContinue
+$pythonCommand = $null
+if ($env:LIVE_PYTHON -and (Test-Path -LiteralPath $env:LIVE_PYTHON)) {
+    $pythonCommand = (Resolve-Path -LiteralPath $env:LIVE_PYTHON).Path
 }
-if (-not $python) {
-    throw "Python was not found. Install Python 3 and make sure python.exe is on PATH."
+if (-not $pythonCommand) {
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if ($python) {
+        $pythonCommand = $python.Source
+    }
 }
-
-$pythonCommand = $python.Source
+if (-not $pythonCommand) {
+    $py = Get-Command py -ErrorAction SilentlyContinue
+    if ($py) {
+        $pythonCommand = $py.Source
+    }
+}
+if (-not $pythonCommand) {
+    $runtimeCandidates = @(
+        (Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"),
+        (Join-Path $env:USERPROFILE ".codex\runtimes\python\python.exe")
+    )
+    $pythonCommand = $runtimeCandidates |
+        Where-Object { Test-Path -LiteralPath $_ } |
+        Select-Object -First 1
+}
+if (-not $pythonCommand) {
+    throw "Python was not found. Install Python 3, set LIVE_PYTHON, or add python.exe to PATH."
+}
 Write-Host "Starting real-time dashboard..."
 Write-Host "Project: $ProjectDir"
 Write-Host "URL:     http://127.0.0.1:$Port/"

@@ -12,11 +12,15 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from . import generator
-
-
 class ReportServiceError(RuntimeError):
     pass
+
+
+def _generator():
+    """Load optional report dependencies only when a report operation runs."""
+    from . import generator
+
+    return generator
 
 
 class ReportService:
@@ -50,9 +54,11 @@ class ReportService:
                 str(Path(__file__).resolve().parent / "report_prompt.json"),
             )
         ).resolve()
-        self.model = os.getenv("REPORT_MODEL", generator.DEFAULT_MODEL).strip() or generator.DEFAULT_MODEL
+        default_model = "qwen3.8-max"
+        self.model = os.getenv("REPORT_MODEL", default_model).strip() or default_model
         self.endpoint = os.getenv(
-            "DASHSCOPE_CHAT_COMPLETIONS_URL", generator.DEFAULT_ENDPOINT
+            "DASHSCOPE_CHAT_COMPLETIONS_URL",
+            "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
         ).strip()
         self.allow_current = os.getenv("REPORT_ALLOW_CURRENT_DAY", "0") == "1"
         self.timezone = ZoneInfo(os.getenv("REPORT_TIMEZONE", "Asia/Shanghai"))
@@ -73,6 +79,7 @@ class ReportService:
 
     def available_dates(self) -> list[str]:
         dates = []
+        generator = _generator()
         for day in generator.discover_dates(self.results_root):
             if any((self.results_root / day.isoformat() / "nodes").glob("*/*.json")):
                 dates.append(day.isoformat())
@@ -80,6 +87,7 @@ class ReportService:
 
     def _source_files(self, target: date) -> list[Path]:
         files: set[Path] = set()
+        generator = _generator()
         for cutoff in (target - timedelta(days=1), target):
             for node in generator.latest_snapshots(self.results_root, cutoff).values():
                 source = str(node.get("_source_file") or "")
@@ -250,6 +258,7 @@ class ReportService:
                 self._jobs.pop(target.isoformat(), None)
 
     def _generate(self, target: date) -> None:
+        generator = _generator()
         api_key = os.getenv("DASHSCOPE_API_KEY", "").strip()
         if not api_key:
             raise ReportServiceError("服务端尚未配置 DASHSCOPE_API_KEY，无法调用 Qwen3.8 Max")
