@@ -54,7 +54,7 @@ def nonzero_id(value) -> str:
 def content_id(row: dict) -> str:
     return str(first(
         row, "content_id", "aweme_id", "note_id", "video_id", "photo_id",
-        "dynamic_id", "toutiao_id", "article_id", "answer_id", "oid", "id"
+        "dynamic_id", "article_id", "group_id", "item_id", "answer_id", "oid", "id"
     ) or "").strip()
 
 
