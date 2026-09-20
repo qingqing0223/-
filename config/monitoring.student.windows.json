@@ -1,6 +1,7 @@
 {
   "event_id": "promotion_week_2026_preheat",
   "event_name": "2026年民族团结进步宣传周预热阶段舆情监测",
+  "submission_node_id": "zhihu01",
   "monitoring_start_time": "2026-09-16T00:00:00+08:00",
   "results_date": "",
   "results_date_mode": "auto",

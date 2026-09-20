@@ -393,6 +393,38 @@ def _build_raw_diagnostics(cfg: dict, roots: list[Path], platform: str) -> list[
     limit = max(1, min(20, int(cfg.get("github_diagnostic_sample_rows_per_type", 5))))
     return [_latest_raw_diagnostics(root, platform, limit) for root in roots]
 
+
+def _collection_submission_summary(platform: str, node_id: str) -> dict:
+    """Expose counts/status for collection-only table exports without raw data."""
+    if platform != "zhihu":
+        return {}
+    root = ROOT / "data_submissions" / "zhihu" / _safe_name(node_id)
+    if not root.exists():
+        return {"available": False, "reason": "no_submission_directory"}
+    dates = sorted(path for path in root.iterdir() if path.is_dir())
+    if not dates:
+        return {"available": False, "reason": "no_submission_date"}
+    latest = dates[-1]
+    manifest_path = latest / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception:
+        manifest = {}
+    counts = {}
+    for name in (
+        "table1_content.jsonl", "table2_comments.jsonl", "table3_content_engagement.jsonl",
+        "table4_comment_engagement.jsonl", "table5_accounts.jsonl",
+    ):
+        counts[name] = _count_jsonl(latest / name)
+    return {
+        "available": True,
+        "date": latest.name,
+        "table_row_counts": counts,
+        "accepted_rows_this_cycle": int(manifest.get("accepted_rows") or 0),
+        "excluded_rows_this_cycle": int(manifest.get("excluded_rows") or 0),
+        "classification": str(manifest.get("classification") or ""),
+    }
+
 def _node_build_metadata(cfg: dict) -> dict:
     head = _run_git(["rev-parse", "HEAD"])
     branch = _run_git(["rev-parse", "--abbrev-ref", "HEAD"])
@@ -482,6 +514,7 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
             monitoring_start_time,
         ),
         "raw_diagnostics": _build_raw_diagnostics(cfg, roots, platform),
+        "collection_submission": _collection_submission_summary(platform, node_id),
     }
     out = ROOT / "results" / result_date / "nodes" / platform / f"{_safe_name(node_id)}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
