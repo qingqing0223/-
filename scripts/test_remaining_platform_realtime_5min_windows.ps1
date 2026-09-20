@@ -260,7 +260,11 @@ if ($inspectCode -eq 0) {
         "security verification",
         "ip_location",
         "ip_label",
-        "ip_region"
+        "ip_region",
+        "comment endpoint=",
+        "observed comment network response",
+        "[toutiao] detail complete",
+        "[toutiao] comment-capture reload warning"
     )
     foreach ($log in $latestLogs) {
         Write-Host "--- $($log.FullName) ---" -ForegroundColor DarkCyan
