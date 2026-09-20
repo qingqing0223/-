@@ -19,7 +19,6 @@ PLATFORM_NAMES = {
     "ks": "快手",
     "bili": "B站",
     "wb": "微博",
-    "tieba": "百度贴吧",
     "zhihu": "知乎",
 }
 
