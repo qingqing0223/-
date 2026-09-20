@@ -179,7 +179,7 @@ def files(root: Path) -> dict[str, Path]:
     return {
         "dy": root / "store/douyin/__init__.py", "xhs": root / "store/xhs/__init__.py",
         "wb": root / "store/weibo/__init__.py", "ks": root / "store/kuaishou/__init__.py",
-        "bili": root / "store/bilibili/__init__.py", "tieba_model": root / "model/m_baidu_tieba.py", "tieba_store": root / "store/tieba/__init__.py",
+        "bili": root / "store/bilibili/__init__.py",
         "zhihu_model": root / "model/m_zhihu.py", "zhihu_helper": root / "media_platform/zhihu/help.py",
         "zhihu_store": root / "store/zhihu/__init__.py",
     }
@@ -219,7 +219,7 @@ def apply(root: Path) -> dict:
     helper = root / "tools/public_region.py"
     helper.write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")
     ast.parse(read(helper), filename=str(helper))
-    for fn in (patch_douyin, patch_xhs, patch_weibo, patch_kuaishou, patch_bilibili, patch_tieba, patch_zhihu):
+    for fn in (patch_douyin, patch_xhs, patch_weibo, patch_kuaishou, patch_bilibili, patch_zhihu):
         fn(root)
     report = check(root)
     (root / ".promotion_week_public_region_patch.json").write_text(json.dumps({"version": PATCH_VERSION, "applied_at": datetime.now().astimezone().isoformat(timespec="seconds"), **report}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
