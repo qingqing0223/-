@@ -81,13 +81,16 @@ def _upgrade_local_full_matrix(path: Path) -> tuple[bool, str]:
                 cfg[key] = value
                 changed = True
 
-        platforms = list(cfg.get("platforms") or [])
-        retired_code = "tie" + "ba"
-        for item in platforms:
-            if str(item.get("code") or "") == retired_code:
-                item["code"] = "toutiao"
-                item["name"] = "今日头条"
-                changed = True
+        # Keep only active platform entries and ensure Toutiao is present.
+        configured_platforms = list(cfg.get("platforms") or [])
+        platforms = [
+            item for item in configured_platforms
+            if str(item.get("code") or "") in SUPPORTED_PLATFORMS
+        ]
+        if not any(str(item.get("code") or "") == "toutiao" for item in platforms):
+            platforms.append({"code": "toutiao", "name": "今日头条", "enabled": True})
+        if platforms != configured_platforms:
+            changed = True
         cfg["platforms"] = platforms
 
         existing_keywords = list(cfg.get("keywords") or [])
