@@ -29,13 +29,17 @@ class PublicRegionPatchContractTest(unittest.TestCase):
         self.assertIn("PROMOTION_WEEK_PUBLIC_REGION_PATCH_V4", text)
         for fn in (
             "patch_douyin", "patch_xhs", "patch_weibo", "patch_kuaishou",
-            "patch_bilibili", "patch_tieba", "patch_zhihu",
+            "patch_bilibili", "patch_zhihu",
         ):
             self.assertIn(f"def {fn}", text)
-        self.assertIn('"tieba api search note"', text)
-        self.assertIn('"tieba html sub-comment region"', text)
         self.assertIn('note_item.get("ipLocation")', text)
         self.assertIn('comment_item.get("ipRegion")', text)
+
+        toutiao = (ROOT / "scripts" / "toutiao_crawler.py").read_text(encoding="utf-8")
+        self.assertIn("TOUTIAO_VERIFY_REQUIRED", toutiao)
+        self.assertIn("capture_comments", toutiao)
+        self.assertIn("parent_comment_id", toutiao)
+        self.assertIn("ip_location", toutiao)
 
     def test_final_student_update_applies_generic_and_kuaishou_specific_patch(self):
         text = (ROOT / "scripts" / "final_student_update_windows.ps1").read_text(encoding="utf-8")
