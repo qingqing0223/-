@@ -108,9 +108,13 @@ def run_one_cycle(cfg: dict) -> dict:
                     cfg.get("kuaishou_engagement_snapshot_interval_seconds", 3600)
                 ),
                 account_snapshot_interval_seconds=int(
-                    cfg.get("kuaishou_account_snapshot_interval_seconds", 86400)
+                    cfg.get("kuaishou_account_snapshot_interval_seconds", 3600)
                 ),
                 key_accounts_config_path=key_accounts_config,
+                enable_classification=not (
+                    run.platform == "ks"
+                    and bool(cfg.get("kuaishou_skip_opinion_classification", True))
+                ),
             )
             new_classified_rows.extend(summary.pop("_classified_rows", []))
             summary["ingest_comments"] = include_comments

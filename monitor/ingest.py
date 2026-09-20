@@ -15,6 +15,15 @@ from .kuaishou_key_accounts import (
 
 COUNTRY_ONLY_REGION_LABELS = {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC", "CN"}
 BEIJING_TZ = timezone(timedelta(hours=8))
+KUAISHOU_TOPIC_ANCHORS = (
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "促进民族团结进步，奋进伟大复兴征程",
+    "促进民族团结进步,奋进伟大复兴征程",
+    "民族团结进步宣传周主场活动",
+    "石榴花开——铸牢中华民族共同体意识",
+    "石榴花开-铸牢中华民族共同体意识",
+)
 
 PROVINCE_ALIASES = [
     ("内蒙古", "内蒙古"), ("广西", "广西"), ("西藏", "西藏"), ("宁夏", "宁夏"), ("新疆", "新疆"),
@@ -125,6 +134,24 @@ def _snapshot_due(last_observed: str, observed_at: str, interval_seconds: int) -
     if last is None or current is None:
         return True
     return (current - last).total_seconds() >= interval_seconds
+
+
+def _kuaishou_topic_relevant(rec: dict) -> bool:
+    text = "\n".join(str(rec.get(key) or "") for key in (
+        "analysis_text", "content", "context", "tag_text", "asr_text", "ocr_text"
+    ))
+    return any(anchor in text for anchor in KUAISHOU_TOPIC_ANCHORS)
+
+
+def _merge_source_keywords(target: dict, incoming: dict) -> None:
+    values = []
+    for row in (target, incoming):
+        values.extend(row.get("source_keywords") or [])
+        if row.get("source_keyword"):
+            values.append(str(row["source_keyword"]))
+    merged = list(dict.fromkeys(value.strip() for value in values if str(value).strip()))
+    target["source_keywords"] = merged
+    target["source_keyword"] = "；".join(merged)
 
 
 def _append_kuaishou_engagement_snapshots(
@@ -331,13 +358,37 @@ def _merge_regions_into_existing(output_jsonl: Path, region_by_key: dict[str, st
     return updated
 
 
+def _merge_keywords_into_existing(output_jsonl: Path, keywords_by_key: dict[str, list[str]]) -> int:
+    if not keywords_by_key or not output_jsonl.exists():
+        return 0
+    rows = list(read_jsonl(output_jsonl))
+    updated = 0
+    for row in rows:
+        key = str(row.get("dedupe_key") or "").strip()
+        incoming = keywords_by_key.get(key, [])
+        if not key or not incoming:
+            continue
+        before = list(row.get("source_keywords") or [])
+        _merge_source_keywords(row, {"source_keywords": incoming})
+        if row.get("source_keywords") != before:
+            updated += 1
+    if updated:
+        tmp = output_jsonl.with_suffix(output_jsonl.suffix + ".keywords.tmp")
+        with tmp.open("w", encoding="utf-8") as handle:
+            for row in rows:
+                handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+        tmp.replace(output_jsonl)
+    return updated
+
+
 def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path,
                         output_jsonl: Path, concurrency: int = 4,
                         monitoring_start_time: str = "", monitoring_end_time: str = "",
                         engagement_snapshot_interval_seconds: int = 3600,
-                        account_snapshot_interval_seconds: int = 86400,
+                        account_snapshot_interval_seconds: int = 3600,
                         key_accounts_config_path: str = "",
-                        observed_at: str = "") -> dict:
+                        observed_at: str = "",
+                        enable_classification: bool = True) -> dict:
     seen = load_seen(state_path)
     fresh = []
     filtered_before_start = 0
@@ -357,6 +408,8 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     duplicate_skipped = 0
     duplicate_comment_skipped = 0
     duplicate_content_skipped = 0
+    filtered_topic_irrelevant = 0
+    prepared: list[dict] = []
 
     for path in jsonl_files:
         is_comment_file = "comment" in path.name.lower()
@@ -388,30 +441,69 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
                     else:
                         filtered_unparseable_publish_time += 1
                     continue
-            if platform == "ks":
-                snapshot_candidates.append(rec)
-            key = rec["dedupe_key"]
-            region = _canonical_public_region(rec.get("ip_location"))
-            if region:
-                region_by_key[key] = region
-            if key in seen:
-                duplicate_skipped += 1
-                if rec.get("record_type") == "comment":
-                    duplicate_comment_skipped += 1
-                else:
-                    duplicate_content_skipped += 1
+            prepared.append(rec)
+
+    if platform == "ks":
+        relevance_path = state_path.parent / "kuaishou_relevant_content_ids.json"
+        relevance_state = read_json(relevance_path, {"content_ids": []})
+        relevant_content_ids = set(map(str, relevance_state.get("content_ids", [])))
+        for rec in prepared:
+            if rec.get("record_type") != "comment" and _kuaishou_topic_relevant(rec):
+                content_key = str(rec.get("content_id") or rec.get("url") or "").strip()
+                if content_key:
+                    relevant_content_ids.add(content_key)
+        accepted = []
+        for rec in prepared:
+            content_key = str(rec.get("content_id") or rec.get("url") or "").strip()
+            if rec.get("record_type") == "comment":
+                is_relevant = bool(content_key and content_key in relevant_content_ids)
+            else:
+                is_relevant = _kuaishou_topic_relevant(rec)
+            if not is_relevant:
+                filtered_topic_irrelevant += 1
                 continue
-            seen.add(key)
-            if _before_monitoring_start(rec, monitoring_start_time):
-                filtered_before_start += 1
-                if rec.get("record_type") == "comment":
-                    filtered_before_start_comment_records += 1
-                else:
-                    filtered_before_start_content_records += 1
-                continue
-            if region:
-                rec["ip_location"] = region
-            fresh.append(rec)
+            accepted.append(rec)
+        prepared = accepted
+        write_json(relevance_path, {"content_ids": sorted(relevant_content_ids)})
+
+    consolidated: dict[str, dict] = {}
+    for rec in prepared:
+        key = rec["dedupe_key"]
+        if key in consolidated:
+            _merge_source_keywords(consolidated[key], rec)
+            duplicate_skipped += 1
+            if rec.get("record_type") == "comment":
+                duplicate_comment_skipped += 1
+            else:
+                duplicate_content_skipped += 1
+            continue
+        consolidated[key] = rec
+
+    for rec in consolidated.values():
+        if platform == "ks":
+            snapshot_candidates.append(rec)
+        key = rec["dedupe_key"]
+        region = _canonical_public_region(rec.get("ip_location"))
+        if region:
+            region_by_key[key] = region
+        if key in seen:
+            duplicate_skipped += 1
+            if rec.get("record_type") == "comment":
+                duplicate_comment_skipped += 1
+            else:
+                duplicate_content_skipped += 1
+            continue
+        seen.add(key)
+        if _before_monitoring_start(rec, monitoring_start_time):
+            filtered_before_start += 1
+            if rec.get("record_type") == "comment":
+                filtered_before_start_comment_records += 1
+            else:
+                filtered_before_start_content_records += 1
+            continue
+        if region:
+            rec["ip_location"] = region
+        fresh.append(rec)
 
     snapshot_summary = {}
     key_account_summary = {}
@@ -438,13 +530,21 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             snapshot_candidates,
             state_path.parent / "kuaishou_account_snapshot_state.json",
             output_jsonl.parent / "kuaishou_account_snapshots.jsonl",
-            max(86400, int(account_snapshot_interval_seconds)),
+            max(3600, int(account_snapshot_interval_seconds)),
             snapshot_time,
         )
 
     region_backfilled_records = _merge_regions_into_existing(output_jsonl, region_by_key)
+    keyword_hits_by_key = {
+        rec["dedupe_key"]: list(rec.get("source_keywords") or [])
+        for rec in consolidated.values()
+    }
+    keyword_backfilled_records = _merge_keywords_into_existing(output_jsonl, keyword_hits_by_key)
 
-    classified = classify_records(fresh, concurrency=concurrency)
+    # The Kuaishou collection deliverable is Tech Design V3 Tables 1-5 only.
+    # Keep the normalized output path for compatibility, but do not create
+    # sentiment/classification fields when classification is disabled.
+    classified = classify_records(fresh, concurrency=concurrency) if enable_classification else fresh
     append_jsonl(output_jsonl, classified)
     save_seen(state_path, seen)
 
@@ -488,6 +588,7 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "filtered_at_or_after_end": filtered_at_or_after_end,
         "filtered_missing_publish_time": filtered_missing_publish_time,
         "filtered_unparseable_publish_time": filtered_unparseable_publish_time,
+        "filtered_topic_irrelevant": filtered_topic_irrelevant,
         "duplicate_comment_skipped": duplicate_comment_skipped,
         "duplicate_content_skipped": duplicate_content_skipped,
         "classified_records": total,
@@ -496,9 +597,11 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "classification_degraded_comment_records": classification_degraded_comment_records,
         "classification_degraded": classification_degraded_records > 0,
         "classification_errors": classification_errors[:3],
+        "classification_enabled": bool(enable_classification),
         "region_records": region_records,
         "region_rate": round(region_records / total, 4) if total else 0.0,
         "region_backfilled_records": region_backfilled_records,
+        "keyword_backfilled_records": keyword_backfilled_records,
         "minority_language_records": minority_language_records,
         "minority_language_rate": round(minority_language_records / total, 4) if total else 0.0,
         "language_counts": dict(sorted(language_counts.items(), key=lambda item: (-item[1], item[0]))),

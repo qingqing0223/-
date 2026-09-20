@@ -322,11 +322,14 @@ def main() -> int:
     configured_incremental_interval = int(cfg.get("kuaishou_incremental_interval_seconds", 900) or 900)
     configured_comment_interval = int(cfg.get("kuaishou_comment_incremental_interval_seconds", 900) or 900)
     configured_snapshot_interval = int(cfg.get("kuaishou_engagement_snapshot_interval_seconds", 3600) or 3600)
+    configured_account_snapshot_interval = int(cfg.get("kuaishou_account_snapshot_interval_seconds", 3600) or 3600)
 
     checks = {
         "content_collected": effective_content > 0,
         "raw_comments_collected": effective_comments > 0,
-        "source_type_classification_present": bool(source_types),
+        "opinion_classification_skipped_for_collection_delivery": bool(
+            cfg.get("kuaishou_skip_opinion_classification", True)
+        ),
         "first_level_comments_present": first_level > 0,
         "nested_replies_present": nested > 0,
         "nested_parent_links_complete": parent_integrity == 1.0,
@@ -339,7 +342,6 @@ def main() -> int:
             or int(effective_ppt.get("content_public_ip_region_records") or 0) > 0
         ),
         "comment_ingest_enabled": bool(cfg.get("ingest_comments", False) or ingest.get("ingest_comments", False)),
-        "classification_degraded": bool(reprocess_classification.get("degraded", False) or effective_pipeline.get("classification_degraded", False)),
         "realtime_comment_count_signal_present": queue_signal,
         "realtime_unknown_count_fallback_available": fallback_present,
         "realtime_queue_policy_ready": queue_policy_ready,
@@ -352,15 +354,16 @@ def main() -> int:
             bool(row.get("is_key_monitor_content")) for row in snapshot_rows
         ),
         "engagement_snapshots_present": bool(snapshot_rows),
-        "account_daily_snapshot_implemented": bool(cfg.get("kuaishou_account_snapshot_implemented", False)),
-        "account_daily_snapshots_present": bool(account_snapshot_rows),
+        "account_snapshot_interval_is_3600s": configured_account_snapshot_interval == 3600,
+        "account_hourly_snapshot_implemented": bool(cfg.get("kuaishou_account_snapshot_implemented", False)),
+        "account_hourly_snapshots_present": bool(account_snapshot_rows),
         "realtime_detail_queue_exercised": latest_realtime_mode and latest_detail_candidates > 0 and latest_comment_rows > 0,
     }
 
     structural_ok = all([
         checks["content_collected"],
         checks["raw_comments_collected"],
-        checks["source_type_classification_present"],
+        checks["opinion_classification_skipped_for_collection_delivery"],
         checks["first_level_comments_present"],
         checks["nested_replies_present"],
         checks["nested_parent_links_complete"],
@@ -393,12 +396,10 @@ def main() -> int:
         observations.append("no platform-displayed coarse IP-region value was present in the current persisted comment JSONL")
     if not checks["content_public_ip_region_present"]:
         observations.append("no platform-displayed coarse IP-region value was present in the current persisted content JSONL")
-    if checks["classification_degraded"]:
-        observations.append("external attitude classifier is degraded; collected records are preserved as unclassified")
     if not checks["engagement_snapshots_present"]:
         observations.append("hourly key-content/comment engagement snapshots have no live persisted sample yet")
-    if not checks["account_daily_snapshot_implemented"]:
-        observations.append("daily account follower/following snapshots are NOT IMPLEMENTED and require follow-up work")
+    if not checks["account_hourly_snapshot_implemented"]:
+        observations.append("hourly account follower/following snapshots are NOT IMPLEMENTED and require follow-up work")
 
     result = {
         "ok": structural_ok,
@@ -446,7 +447,7 @@ def main() -> int:
             "account_snapshot_file": str(account_snapshot_path),
             "account_snapshot_records": len(account_snapshot_rows),
             "account_snapshot_status": (
-                "implemented" if checks["account_daily_snapshot_implemented"]
+                "implemented" if checks["account_hourly_snapshot_implemented"]
                 else "not_implemented_requires_follow_up"
             ),
         },

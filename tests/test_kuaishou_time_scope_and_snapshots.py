@@ -15,6 +15,26 @@ from run_single_platform import _apply_kuaishou_cadence
 
 
 class KuaishouTimeScopeAndSnapshotTests(unittest.TestCase):
+    def test_kuaishou_dedupe_merges_keywords_and_filters_generic_hits(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            raw = root / "search_contents.jsonl"
+            raw.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in [
+                {"photo_id": "same", "title": "2026年民族团结进步宣传周启动", "publish_time": "2026-09-16T01:00:00+08:00", "source_keyword": "关键词A"},
+                {"photo_id": "same", "title": "2026年民族团结进步宣传周启动", "publish_time": "2026-09-16T01:00:00+08:00", "source_keyword": "关键词B"},
+                {"photo_id": "generic", "title": "日常民族团结工作", "publish_time": "2026-09-16T01:00:00+08:00", "source_keyword": "民族团结"},
+            ]), encoding="utf-8")
+            result = ingest_and_classify(
+                "ks", [raw], root / "state" / "seen.json",
+                root / "classified" / "classified_results.jsonl",
+                monitoring_start_time="2026-09-16T00:00:00+08:00",
+                enable_classification=False,
+            )
+            rows = result["_classified_rows"]
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["source_keywords"], ["关键词A", "关键词B"])
+            self.assertEqual(result["filtered_topic_irrelevant"], 1)
+
     def test_cadence_override_is_kuaishou_only(self):
         shared = {"realtime_mode": True, "interval_seconds": 300}
         other = dict(shared)
@@ -84,12 +104,12 @@ class KuaishouTimeScopeAndSnapshotTests(unittest.TestCase):
                 }],
             }, ensure_ascii=False), encoding="utf-8")
             rows = [
-                {"photo_id": "valid", "title": "有效", "publish_time": "2026-09-16 00:00:00", "view_count": 10, "author_id": "account-1", "nickname": "重点账号", "fans_count": 100, "following_count": 5},
-                {"photo_id": "ordinary", "title": "普通账号内容", "publish_time": "2026-09-16 01:00:00", "view_count": 20, "author_id": "account-2", "nickname": "普通账号"},
-                {"photo_id": "old", "title": "过早", "publish_time": "2026-09-15T23:59:59+08:00"},
-                {"photo_id": "late", "title": "过晚", "publish_time": "2026-09-17T00:00:00+08:00"},
-                {"photo_id": "missing", "title": "缺时间"},
-                {"photo_id": "bad", "title": "坏时间", "publish_time": "昨天"},
+                {"photo_id": "valid", "title": "2026年民族团结进步宣传周 有效", "publish_time": "2026-09-16 00:00:00", "view_count": 10, "author_id": "account-1", "nickname": "重点账号", "fans_count": 100, "following_count": 5},
+                {"photo_id": "ordinary", "title": "2026年民族团结进步宣传周 普通账号内容", "publish_time": "2026-09-16 01:00:00", "view_count": 20, "author_id": "account-2", "nickname": "普通账号"},
+                {"photo_id": "old", "title": "2026年民族团结进步宣传周 过早", "publish_time": "2026-09-15T23:59:59+08:00"},
+                {"photo_id": "late", "title": "2026年民族团结进步宣传周 过晚", "publish_time": "2026-09-17T00:00:00+08:00"},
+                {"photo_id": "missing", "title": "2026年民族团结进步宣传周 缺时间"},
+                {"photo_id": "bad", "title": "2026年民族团结进步宣传周 坏时间", "publish_time": "昨天"},
             ]
             raw.write_text("".join(json.dumps(x, ensure_ascii=False) + "\n" for x in rows), encoding="utf-8")
             comments_raw.write_text(json.dumps({
@@ -108,6 +128,7 @@ class KuaishouTimeScopeAndSnapshotTests(unittest.TestCase):
                     monitoring_end_time="2026-09-17T00:00:00+08:00",
                     observed_at="2026-09-16T01:00:00+08:00",
                     key_accounts_config_path=str(registry_path),
+                    enable_classification=False,
                 )
                 second = ingest_and_classify(
                     "ks", [raw, comments_raw], state, classified,
@@ -115,6 +136,7 @@ class KuaishouTimeScopeAndSnapshotTests(unittest.TestCase):
                     monitoring_end_time="2026-09-17T00:00:00+08:00",
                     observed_at="2026-09-16T01:30:00+08:00",
                     key_accounts_config_path=str(registry_path),
+                    enable_classification=False,
                 )
                 third = ingest_and_classify(
                     "ks", [raw, comments_raw], state, classified,
@@ -122,9 +144,11 @@ class KuaishouTimeScopeAndSnapshotTests(unittest.TestCase):
                     monitoring_end_time="2026-09-17T00:00:00+08:00",
                     observed_at="2026-09-16T02:00:00+08:00",
                     key_accounts_config_path=str(registry_path),
+                    enable_classification=False,
                 )
 
             self.assertEqual(first["classified_records"], 3)
+            self.assertFalse(first["classification_enabled"])
             self.assertEqual(first["filtered_before_start"], 1)
             self.assertEqual(first["filtered_at_or_after_end"], 1)
             self.assertEqual(first["filtered_missing_publish_time"], 1)
@@ -145,7 +169,7 @@ class KuaishouTimeScopeAndSnapshotTests(unittest.TestCase):
             self.assertEqual(comment_snapshot["metrics"]["like_count"], 3)
             self.assertEqual(comment_snapshot["metrics"]["reply_count"], 2)
             accounts = list(read_jsonl(classified.parent / "kuaishou_account_snapshots.jsonl"))
-            self.assertEqual(len(accounts), 2)
+            self.assertEqual(len(accounts), 4)
             key_account = next(
                 row for row in accounts
                 if row["account_attributes"]["account_id"] == "account-1"

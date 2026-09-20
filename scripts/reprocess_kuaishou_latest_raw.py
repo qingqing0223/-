@@ -103,7 +103,9 @@ def main() -> int:
         state_path,
         output_path,
         concurrency=max(1, int(cfg.get("classifier_concurrency", 1))),
-        monitoring_start_time="",
+        monitoring_start_time=str(cfg.get("monitoring_start_time") or "2026-09-16T00:00:00+08:00"),
+        monitoring_end_time=str(cfg.get("monitoring_end_time") or ""),
+        enable_classification=False,
     )
     rows = summary.pop("_classified_rows", [])
 

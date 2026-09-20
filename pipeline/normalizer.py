@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 import hashlib
+from urllib.parse import urlsplit, urlunsplit
 
 from .language_detector import detect_language
 
@@ -28,6 +29,22 @@ def _first_nested(d: dict, parent_keys: tuple[str, ...], *keys):
 
 def _str(v):
     return "" if v is None else str(v)
+
+
+def _keyword_list(value) -> list[str]:
+    values = value if isinstance(value, list) else [value]
+    return list(dict.fromkeys(str(item).strip() for item in values if str(item or "").strip()))
+
+
+def _canonical_url(value) -> str:
+    text = _str(value).strip()
+    if not text:
+        return ""
+    try:
+        parts = urlsplit(text)
+        return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), parts.path.rstrip("/"), "", ""))
+    except Exception:
+        return text
 
 
 def _to_int(v):
@@ -291,6 +308,13 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "group_id", "item_id", "aweme_id", "note_id", "video_id", "photo_id",
         "dynamic_id", "id", "mid"
     )
+    if platform == "ks":
+        stable_id = _str(comment_id if record_type == "comment" else content_id).strip()
+        canonical_url = _canonical_url(url)
+        if stable_id:
+            sample_id = stable_id
+        elif canonical_url:
+            sample_id = hashlib.sha256(canonical_url.encode("utf-8", "ignore")).hexdigest()[:24]
     if sample_id is None:
         basis = f"{platform}|{source_file}|{content}|{context}|{publish_time}|{author}"
         sample_id = hashlib.sha256(basis.encode("utf-8", "ignore")).hexdigest()[:24]
@@ -333,6 +357,7 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "asr_text": _str(asr_text).strip(),
         "ocr_text": _str(ocr_text).strip(),
         "source_keyword": _str(source_keyword),
+        "source_keywords": _keyword_list(source_keyword),
         "publish_time": _to_iso_time(publish_time, BEIJING_TZ if platform == "ks" else None),
         "first_seen_time": now,
         "ip_location": _str(region),
