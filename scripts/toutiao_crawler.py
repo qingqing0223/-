@@ -844,6 +844,105 @@ async def capture_comments(page: Page, content_id: str, cap: int) -> list[dict]:
     return list(captured.values())[:cap]
 
 
+def profile_url_from_creator_id(value: str) -> str:
+    text = clean_text(value)
+    if not text:
+        return ""
+    if text.startswith("http://") or text.startswith("https://"):
+        return text
+    return f"https://www.toutiao.com/c/user/token/{text}/"
+
+
+PROFILE_JS = r"""
+() => {
+  let renderData = {};
+  try {
+    const node = document.querySelector('script#RENDER_DATA');
+    const raw = node ? (node.textContent || '') : '';
+    if (raw) {
+      try {
+        renderData = JSON.parse(decodeURIComponent(raw));
+      } catch (_) {
+        renderData = JSON.parse(raw);
+      }
+    }
+  } catch (_) {
+    renderData = {};
+  }
+  const data = renderData && typeof renderData.data === 'object' ? renderData.data : {};
+  const info = data && typeof data.profileUserInfo === 'object' ? data.profileUserInfo : {};
+  return {
+    accountId: info.userId || info.uid || '',
+    accountName: info.name || info.screenName || '',
+    followers: info.followersCount ?? info.fansCount ?? '',
+    following: info.followingCount ?? info.followingsCount ?? info.followCount ?? '',
+    regionText: info.ipLocation || '',
+    organization: info.organization || info.company || '',
+    authInfo: info.userAuthInfo || '',
+    mediaId: info.mediaId || '',
+    accountTypeHint: info.isPgc ? '媒体/机构账号' : ''
+  };
+}
+"""
+
+
+async def collect_profile_content(
+    page: Page,
+    creator_id: str,
+    limit: int,
+    timeout_ms: int,
+) -> tuple[dict, list[str]]:
+    profile_url = profile_url_from_creator_id(creator_id)
+    await open_checked(page, profile_url, timeout_ms)
+    try:
+        profile = await page.evaluate(PROFILE_JS)
+    except Exception:
+        profile = {}
+    if not isinstance(profile, dict):
+        profile = {}
+
+    urls: list[str] = []
+    seen: set[str] = set()
+    no_growth = 0
+    for _ in range(15):
+        hrefs = await page.locator("a[href]").evaluate_all(
+            "els => els.map(e => e.href || e.getAttribute('href') || '')"
+        )
+        before = len(urls)
+        for href in hrefs:
+            url = canonical_url(str(href))
+            if url and url not in seen:
+                seen.add(url)
+                urls.append(url)
+                if len(urls) >= limit:
+                    break
+        if len(urls) == before:
+            no_growth += 1
+        else:
+            no_growth = 0
+        if len(urls) >= limit or no_growth >= 4:
+            break
+        await page.mouse.wheel(0, 1800)
+        await page.wait_for_timeout(900)
+
+    snapshot = {
+        "platform": "toutiao",
+        "creator_id": clean_text(creator_id),
+        "account_id": clean_text(profile.get("accountId")) or clean_text(creator_id),
+        "account_name": clean_text(profile.get("accountName")),
+        "profile_url": page.url or profile_url,
+        "account_type_hint": clean_text(profile.get("accountTypeHint")),
+        "followers": observed_int(profile.get("followers")),
+        "following": observed_int(profile.get("following")),
+        "region": coarse_region(profile.get("regionText")),
+        "organization": clean_text(profile.get("organization")),
+        "auth_info": clean_text(profile.get("authInfo")),
+        "media_id": clean_text(profile.get("mediaId")),
+        "collected_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+    }
+    return snapshot, urls
+
+
 async def fetch_detail(context, url: str, source_keyword: str, timeout_ms: int, get_comments: bool, comment_cap: int):
     page = await context.new_page()
     try:
@@ -935,7 +1034,7 @@ async def run(args) -> int:
                         break
                 append_jsonl(jsonl_dir / f"search_contents_{date}.jsonl", all_content)
                 print(f"[toutiao] search complete content_rows={len(all_content)}", flush=True)
-            else:
+            elif args.mode == "detail":
                 urls = [canonical_url(x) or x for x in args.specified_ids if clean_text(x)]
                 content_rows: list[dict] = []
                 comment_rows: list[dict] = []
@@ -957,6 +1056,52 @@ async def run(args) -> int:
                     f"comment_rows={len(comment_rows)}",
                     flush=True,
                 )
+            else:
+                account_rows: list[dict] = []
+                content_rows: list[dict] = []
+                seen_urls: set[str] = set()
+                page = context.pages[0] if context.pages else await context.new_page()
+                per_creator = max(1, args.max_notes // max(1, len(args.creator_ids)))
+                for creator_id in args.creator_ids:
+                    try:
+                        account, urls = await collect_profile_content(
+                            page, creator_id, per_creator, args.timeout_ms
+                        )
+                        account_rows.append(account)
+                        print(
+                            f"[toutiao] creator={creator_id!r} discovered_content={len(urls)} "
+                            f"account_name={account.get('account_name')!r}",
+                            flush=True,
+                        )
+                        for url in urls:
+                            if url in seen_urls:
+                                continue
+                            seen_urls.add(url)
+                            content, _ = await fetch_detail(
+                                context, url, "", args.timeout_ms, False, args.max_comments
+                            )
+                            content["creator_id"] = creator_id
+                            content["author_id"] = account.get("account_id") or creator_id
+                            content["author_profile_url"] = account.get("profile_url") or profile_url_from_creator_id(creator_id)
+                            if not content.get("author"):
+                                content["author"] = account.get("account_name") or ""
+                            if content.get("content_text") or content.get("title"):
+                                content_rows.append(content)
+                    except VerifyRequired:
+                        raise
+                    except Exception as exc:
+                        print(
+                            f"[toutiao] creator warning creator={creator_id!r}: "
+                            f"{type(exc).__name__}: {exc}",
+                            flush=True,
+                        )
+                append_jsonl(jsonl_dir / f"creator_contents_{date}.jsonl", content_rows)
+                append_jsonl(jsonl_dir / f"account_info_{date}.jsonl", account_rows)
+                print(
+                    f"[toutiao] creator complete accounts={len(account_rows)} "
+                    f"content_rows={len(content_rows)}",
+                    flush=True,
+                )
         finally:
             await context.close()
     return 0
@@ -964,9 +1109,10 @@ async def run(args) -> int:
 
 def parse_args():
     ap = argparse.ArgumentParser(description="Bounded Toutiao public web crawler for the promotion-week monitor.")
-    ap.add_argument("--mode", choices=("search", "detail"), required=True)
+    ap.add_argument("--mode", choices=("search", "detail", "creator"), required=True)
     ap.add_argument("--keywords", default="")
     ap.add_argument("--specified-id", default="")
+    ap.add_argument("--creator-id", default="")
     ap.add_argument("--save-data-path", required=True)
     ap.add_argument("--profile-dir", required=True)
     ap.add_argument("--max-notes", type=int, default=20)
@@ -976,6 +1122,9 @@ def parse_args():
     ns = ap.parse_args()
     ns.keywords = [x.strip() for x in ns.keywords.split(",") if x.strip()]
     ns.specified_ids = [x.strip() for x in ns.specified_id.split(",") if x.strip()]
+    ns.creator_ids = [x.strip() for x in ns.creator_id.split(",") if x.strip()]
+    if ns.mode == "creator" and not ns.creator_ids:
+        ap.error("--creator-id is required for creator mode")
     return ns
 
 
