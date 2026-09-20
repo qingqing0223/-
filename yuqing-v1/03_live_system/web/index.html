@@ -39,7 +39,7 @@
     .report-select{width:100%;border:1px solid rgba(119,190,226,.3);border-radius:6px;background:#0b2133;color:#eff9ff;padding:8px 10px;font:inherit;font-size:12px;outline:none}.report-select:focus{border-color:var(--cyan)}
     .report-status{min-height:58px;border:1px solid rgba(119,190,226,.16);border-radius:7px;background:rgba(5,19,31,.54);padding:10px 12px;font-size:12px;line-height:1.6;color:#c9e6f4}.report-status strong{color:#fff}.report-status.warn{border-color:rgba(238,203,114,.38);color:#f4dfa4}.report-status.error{border-color:rgba(217,111,106,.5);color:#ffc0bc}
     .report-storage{font-size:10px;color:#7faabf;overflow-wrap:anywhere}.report-modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 16px 16px}.report-action,.report-cancel{border-radius:6px;padding:8px 15px;font:inherit;font-size:12px;cursor:pointer}.report-cancel{border:1px solid rgba(119,190,226,.26);background:rgba(12,37,55,.8);color:#badbec}.report-action{border:1px solid rgba(56,189,232,.62);background:#17658b;color:#fff;font-weight:700}.report-action:disabled{cursor:not-allowed;opacity:.46}
-    .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+    .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
     .kpi,.panel,.map-panel{border:1px solid var(--line);background:var(--panel);border-radius:8px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px rgba(0,0,0,.18);min-width:0;min-height:0}
     .kpi{display:flex;align-items:center;justify-content:center;gap:7px;padding:4px 8px;overflow:hidden}
@@ -61,12 +61,13 @@
     .timeline-switch{border:1px solid rgba(127,197,236,.34);background:rgba(24,68,100,.52);color:#b9dff2;padding:3px 7px;font:inherit;font-size:10px;line-height:1.1;cursor:pointer}
     .timeline-switch:first-child{border-radius:5px 0 0 5px}.timeline-switch:last-child{border-radius:0 5px 5px 0}
     .timeline-switch.active{background:rgba(56,189,232,.24);border-color:rgba(56,189,232,.78);color:#fff}
-    .chart{flex:1;min-height:0;width:100%}.split{display:grid;grid-template-rows:minmax(0,1fr) 32px;gap:4px;flex:1;min-height:0;padding:4px 5px 5px}
+    .chart{flex:1;min-height:0;width:100%}.split{display:grid;grid-template-rows:minmax(0,1fr) 0;gap:4px;flex:1;min-height:0;padding:4px 5px 5px}
     .platform-tip{position:absolute;z-index:20;display:none;width:198px;padding:8px;border-radius:6px;background:#f8fbff;color:#64717a;box-shadow:0 10px 24px rgba(0,0,0,.24);pointer-events:none}
     .platform-tip .tip-name{font-size:14px;font-weight:700;margin-bottom:6px;color:#5f6b73;white-space:normal;line-height:1.2}
     .platform-tip .tip-total{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.platform-tip b{font-size:20px;color:#5f6b73}
     .tip-bar{height:10px;border-radius:999px;overflow:hidden;background:#e7eef4;display:flex}.tip-bar span{height:100%}.tip-foot{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:#74808a;gap:6px}.tip-foot span{white-space:nowrap}
     .split>div{min-height:0;display:flex;flex-direction:column}.split>div:first-child .chart{min-height:150px}
+    .split>.mini-meta{display:none!important}
     /* 注意：必须比 .split>div 的 display:flex 权重更高，否则标签会竖排并被裁掉 */
     .split>.mini-meta{display:grid;flex-direction:row;grid-auto-flow:column;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:0 4px 2px}
     .split>.mini-meta.cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -114,6 +115,7 @@
     .kacct-row .num{text-align:right;font-size:11px;color:#d8f0ff;white-space:nowrap}
     .kacct-row .num.hot{color:var(--hot);font-weight:700}
     .kacct-empty{display:grid;place-items:center;flex:1;min-height:0;padding:8px;text-align:center;font-size:10px;color:var(--muted);line-height:1.7}
+    .attitude-toggle{display:flex;align-items:center;gap:3px;flex:0 0 auto}.attitude-toggle button{border:1px solid rgba(127,197,236,.34);background:rgba(24,68,100,.52);color:#b9dff2;padding:3px 7px;font:inherit;font-size:10px;line-height:1.1;cursor:pointer}.attitude-toggle button:first-child{border-radius:5px 0 0 5px}.attitude-toggle button:last-child{border-radius:0 5px 5px 0}.attitude-toggle button.active{background:rgba(56,189,232,.24);border-color:rgba(56,189,232,.78);color:#fff}
     @media(max-width:1500px){.screen{grid-template-rows:32px 34px minmax(0,1fr) 184px}.rail{grid-template-rows:minmax(0,1fr) 100px}.rail-left{width:260px;grid-template-rows:minmax(0,1fr) 205px}.rail-right{width:292px;grid-template-rows:minmax(0,1.15fr) minmax(0,.85fr)}.map-head{left:276px}.title{padding:0 22px}.title h1{font-size:20px}.title::before,.title::after{width:38px}.bottom{grid-template-columns:1.05fr .9fr 1fr 1fr 1.05fr}.split>div:first-child .chart{min-height:126px}.kpi span{font-size:11px}.kpi b{font-size:14px}}
   </style>
 </head>
@@ -121,7 +123,7 @@
   <div id="app" class="screen">
     <header class="topbar">
       <div class="phase-tag" id="phaseTag"></div>
-      <div class="title"><h1>民族团结进步宣传周舆情态势感知系统</h1></div>
+      <div class="title"><h1>民族团结进步宣传周舆情监测系统</h1></div>
       <div class="top-actions">
         <button id="reportOpenBtn" class="report-open" type="button">下载最新态势报告</button>
         <div class="live-status" id="liveStatus"><span class="dot"></span>连接中</div>
@@ -131,7 +133,7 @@
     <main class="main">
       <aside class="rail rail-left">
         <section class="panel">
-          <div class="panel-title"><h2><a href="region-detail.html" title="查看地区详情">重点地区舆情量</a></h2><button id="pauseBtn" class="toggle">暂停轮播</button></div>
+          <div class="panel-title"><h2><a href="region-detail.html" title="查看地区详情">地区数据统计</a></h2><button id="pauseBtn" class="toggle">暂停轮播</button></div>
           <div class="split">
             <div><div id="regionChart" class="chart"></div></div>
             <div id="regionMeta" class="mini-meta cols2"></div>
@@ -151,7 +153,7 @@
       </section>
       <aside class="rail rail-right">
         <section class="panel">
-          <div class="panel-title"><h2><a href="platform-detail.html" title="查看平台详情">平台舆情量分布</a></h2><span id="platformTag"></span></div>
+          <div class="panel-title"><h2><a href="platform-detail.html" title="查看平台详情">平台数据统计</a></h2><span id="platformTag"></span></div>
           <div class="split">
             <div><div id="platformChart" class="chart"></div><div id="platformTip" class="platform-tip"></div></div>
             <div id="platformMeta" class="mini-meta cols2"></div>
@@ -173,15 +175,15 @@
         <div id="attitudeChart" class="chart"></div>
       </section>
       <section class="panel">
-        <div class="panel-title"><h2>重点账号/大V传播监测</h2><span id="keyAccountTag"></span></div>
-        <div id="keyAccountList" class="kacct"></div>
+        <div class="panel-title"><h2>态度分类</h2><div class="attitude-toggle"><button class="active" data-attitude-mode="support">支持</button><button data-attitude-mode="neutral">中性</button><button data-attitude-mode="problem">问题</button></div></div>
+        <div id="attitudeClassChart" class="chart"></div>
       </section>
       <section class="panel">
         <div class="panel-title"><h2>风险信息</h2><span id="riskTag"></span></div>
         <div id="riskFeed" class="feed risk-feed"></div>
       </section>
       <section class="panel">
-        <div class="panel-title"><h2>少数民族语言聚焦</h2><span id="languageTag"></span></div>
+        <div class="panel-title"><h2>重点传播内容</h2><span id="languageTag"></span></div>
         <div class="lang-box"><div id="languageCards" class="lang-cards"></div><div id="languageFeed" class="feed"></div></div>
       </section>
     </section>
@@ -328,11 +330,10 @@
       "视频号":["视频号","channels"]
     };
     const PROVINCE_ALIASES={"内蒙古自治区":"内蒙古","广西壮族自治区":"广西","西藏自治区":"西藏","宁夏回族自治区":"宁夏","新疆维吾尔自治区":"新疆","香港特别行政区":"香港","澳门特别行政区":"澳门","台湾省":"台湾"};
-    const KEY_ACCOUNT_COLUMNS=["账号","平台","发帖","点赞","评论","转发"];
     // 面积很小或形状特殊的省级行政区：地图内置标签会互相压住，改用覆盖层精确定位
     const OVERLAY_LABEL_OFFSETS={"北京":[0,0],"天津":[0,0],"河北":[-4,28],"上海":[0,0],"香港":[0,0],"澳门":[-26,12]};
     let D=null;
-    const state={regionIndex:0,platformIndex:0,languageIndex:0,timelineIndex:0,timelineMode:"hour",paused:false};
+    const state={regionIndex:0,platformIndex:0,languageIndex:0,timelineIndex:0,timelineMode:"hour",attitudeMode:"support",regionFeedIndex:0,platformFeedIndex:0,languageFeedIndex:0,riskFeedIndex:0,paused:false};
     let charts={};
     let regionFocusRows=[];
 
@@ -349,7 +350,7 @@
       const el=$("liveStatus");
       if(!el)return;
       el.className="live-status "+(mode||"off");
-      el.innerHTML=`<span class="dot"></span>${escapeHtml(text||"")}`;
+      el.innerHTML=`<span class="dot"></span>${escapeHtml(formatDateText(text||""))}`;
     }
     function refreshFromServer(){
       if(refreshTimer)return;
@@ -374,7 +375,7 @@
         let msg;
         try{msg=JSON.parse(ev.data)}catch(e){return}
         if(!msg)return;
-        if(msg.type==="heartbeat"){setLiveStatus("on","实时在线 · "+msg.ts);return}
+        if(msg.type==="heartbeat"){setLiveStatus("on","实时在线 · "+formatDateText(msg.ts));return}
         if(msg.type==="incident"&&msg.incident){
           liveItems.unshift(msg.incident);
           if(liveItems.length>50)liveItems.pop();
@@ -437,7 +438,8 @@
         regionCount:Number(S.regionCount ?? T.detectedRegionCount ?? 0),
         platformCount:Number(S.platformCount ?? T.detectedPlatformCount ?? 0),
         platformCountAll:Number(S.platformCountAll ?? PLATFORM_ORDER.length),
-        keyAccountCount:Number(S.keyAccountCount ?? (D.keyAccounts||[]).length),
+        publishCount:Number(S.publishCount ?? S.contentCount ?? T.publishCount ?? T.contentCount ?? T.totalContents ?? D.publishCount ?? D.contentCount ?? 0),
+        commentCount:Number(S.commentCount ?? S.comments ?? T.commentCount ?? T.comments ?? D.commentCount ?? D.comments ?? 0),
         statsStart:String(S.statsStart || (D.phase&&D.phase.statsStart) || "")
       };
     }
@@ -512,7 +514,7 @@
     const ATTITUDE_CLASS_RULES={
       support:{name:"支持认可",aliases:["支持认可","支持","support"]},
       neutral:{name:"中性信息",aliases:["中性信息","中性/观点不明","不了解该法律","信息缺口","information_gap","咨询疑问","咨询/诉求","neutral","consultation"]},
-      problematic:{name:"非支持/非肯定",aliases:["非支持/非肯定","担忧影响","担忧","明确批评","批评","质疑","实施问题","公平争议","投诉维权","歧视偏见","concern","criticism","skepticism","implementation_issue","fairness_dispute","complaint_rights","discriminatory_expression"]}
+      problematic:{name:"问题",aliases:["问题","非支持/非肯定","担忧影响","担忧","明确批评","批评","质疑","实施问题","公平争议","投诉维权","歧视偏见","concern","criticism","skepticism","implementation_issue","fairness_dispute","complaint_rights","discriminatory_expression"]}
     };
     const PROBLEMATIC_ATTITUDES=[
       ["明确批评",["明确批评","批评","criticism"]],
@@ -596,8 +598,24 @@
     }
     function pickLatest(rows,count){
       return [...rows]
-        .sort((a,b)=>String(b.collectedAt||"").localeCompare(String(a.collectedAt||"")))
+        .sort((a,b)=>feedTimestamp(b).localeCompare(feedTimestamp(a)))
         .slice(0,Math.max(1,count||1));
+    }
+    function pickRolling(rows,count,key){
+      const sorted=[...rows].sort((a,b)=>feedTimestamp(b).localeCompare(feedTimestamp(a)));
+      if(!sorted.length)return [];
+      const size=Math.max(1,count||1);
+      const start=(state[key]||0)%sorted.length;
+      return Array.from({length:Math.min(size,sorted.length)},(_,i)=>sorted[(start+i)%sorted.length]);
+    }
+    function formatDateText(text){
+      return String(text||"").replace(/T/g," ").replace(/(\.\d+)?([+-]\d{2}:?\d{2}|Z)$/,"");
+    }
+    function feedTimestamp(row){
+      return String(row?.collectedAt||row?.collected_at||row?.createdAt||row?.created_at||row?.publishedAt||row?.published_at||row?.date||"");
+    }
+    function feedPublisher(row){
+      return row?.publisher||row?.author||row?.account||row?.nickname||row?.user||"未标注发布者";
     }
     function byTimeline(rows){
       const t=activeTimeline();
@@ -605,10 +623,11 @@
       const exact=rows.filter(q=>q.date===t.date);
       return exact.length?exact:rows;
     }
-    function renderFeed(id,rows,emptyText,count){
+    function renderFeed(id,rows,emptyText,count,rollKey){
       const box=$(id);
-      const items=pickLatest(byTimeline(rows),count);
-      box.innerHTML=items.length?items.map(q=>`<article class="feed-item"><div class="feed-head"><span>${q.collectedAt||q.date||"样本"}</span><span>${q.platform||"未标注平台"}</span><span>${q.region||q.group||"未标注地区"}</span></div><p>${escapeHtml(q.text||"")}</p></article>`).join(""):`<div class="empty">${emptyText}</div>`;
+      const source=byTimeline(rows);
+      const items=rollKey?pickRolling(source,count,rollKey):pickLatest(source,count);
+      box.innerHTML=items.length?items.map(q=>`<article class="feed-item"><div class="feed-head"><span>${escapeHtml(q.region||q.group||"未标注地区")}</span><span>${escapeHtml(q.platform||"未标注平台")}</span><span>${escapeHtml(feedPublisher(q))}</span><span>${escapeHtml(formatDateText(feedTimestamp(q))||"未标注时间")}</span></div><p>${escapeHtml(q.text||q.content||q.title||"")}</p></article>`).join(""):`<div class="empty">${emptyText}</div>`;
     }
     function escapeHtml(text){
       return String(text).replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
@@ -625,11 +644,10 @@
       const S=liveStats();
       const rows=[
         ["累计信息数",fmt(S.total),""],
-        ["实时新增信息数",fmt(S.recent10m),""],
-        ["可明确归属地区的公共意见",fmt(S.regionOpinions),""],
-        ["支持认可",fmt(S.support),S.supportRate.toFixed(1)+"%"],
-        ["检测地区数",fmt(S.regionCount),""],
-        ["检测平台数",fmt(S.platformCount),""]
+        ["累计发布内容数",fmt(S.publishCount),""],
+        ["累计评论数",fmt(S.commentCount),""],
+        ["监测平台数",fmt(S.platformCount),""],
+        ["监测地区数",fmt(S.regionCount),""]
       ];
       $("kpis").innerHTML=rows.map(([label,value,sub])=>`<div class="kpi"><span>${label}</span><b>${value}${sub?('<span class="sub">'+sub+'</span>'):""}</b></div>`).join("");
     }
@@ -637,50 +655,40 @@
       const rows=regionFocusRows;
       const r=activeRegion();
       const q=quotesByRegion(r.name);
-      const hourNew=rows.reduce((s,x)=>s+Number(x.hour||0),0);
-      $("regionMeta").innerHTML=[
-        ["累计舆情量",fmt(focusRegionTotal())],
-        ["每日新增舆情量",fmt(hourNew)]
-      ].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("");
+      $("regionMeta").innerHTML="";
       charts.region.setOption(focusRegionOption(rows,r.name),true);
-      renderFeed("regionFeed",q,"该地区暂无可展示样本",1);
+      renderFeed("regionFeed",q,"该地区暂无可展示样本",1,"regionFeedIndex");
       $("regionFeedTag").textContent=`${r.name}｜${q.length} 条`;
     }
     function renderPlatformPanel(){
       const rows=platformRows();
       const p=activePlatform();
-      const S=liveStats();
-      const hourNew=rows.reduce((s,x)=>s+Number(x.hour||0),0);
       charts.platform.setOption(stackedPlatformOption(rows,p.name),true);
       const q=quotesByPlatform(p.name);
-      $("platformMeta").innerHTML=[
-        ["累计舆情量",fmt(S.total)],
-        ["每日新增舆情量",fmt(hourNew)]
-      ].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("");
-      renderFeed("platformFeed",q,"该平台暂无可展示样本",1);
+      $("platformMeta").innerHTML="";
+      renderFeed("platformFeed",q,"该平台暂无可展示样本",1,"platformFeedIndex");
       $("platformTag").textContent="";
       $("platformFeedTag").textContent=`${p.name}｜${q.length} 条`;
     }
-    function renderKeyAccounts(){
-      const box=$("keyAccountList");
-      if(!box)return;
-      const rows=(D.keyAccounts||[]).slice(0,6);
-      const S=liveStats();
-      $("keyAccountTag").textContent=rows.length?(S.keyAccountCount||rows.length)+" 个账号":"待接入";
-      if(!rows.length){
-        box.innerHTML=`<div class="kacct-empty">等待重点账号（creator）监测数据接入<br>接口已预留 · 接入后自动展示账号、平台、发帖量与传播互动</div>`;
-        return;
-      }
-      const head=`<div class="kacct-head">${KEY_ACCOUNT_COLUMNS.map(c=>`<span>${c}</span>`).join("")}</div>`;
-      const body=rows.map(r=>`<div class="kacct-row"><div class="acct"><b>${escapeHtml(r.account||"未标注")}</b><span>${escapeHtml(String(r.latestText||"").slice(0,26)||r.latestAt||"")}</span></div><span class="plat">${escapeHtml(r.platform||"—")}</span><span class="num">${fmt(r.posts)}</span><span class="num hot">${fmt(r.likes)}</span><span class="num">${fmt(r.comments)}</span><span class="num">${fmt(r.shares)}</span></div>`).join("");
-      box.innerHTML=head+body;
+    function attitudeModeRows(){
+      const data=bottomAttitudeData();
+      if(state.attitudeMode==="support")return data.macro.filter(x=>/支持/.test(x.name));
+      if(state.attitudeMode==="neutral")return data.macro.filter(x=>/中性/.test(x.name));
+      return data.problematic.length?data.problematic:data.macro.filter(x=>!/支持|中性/.test(x.name));
+    }
+    function renderAttitudeClassPanel(){
+      if(!charts.attitudeClass)return;
+      const labels={support:"支持",neutral:"中性",problem:"问题"};
+      charts.attitudeClass.setOption(ringOption(attitudeModeRows(),labels[state.attitudeMode]),true);
     }
     function riskRows(){
-      return D.riskItems||[];
+      return [...(D.riskItems||[])]
+        .sort((a,b)=>Number(b.heat??b.riskHeat??b.score??0)-Number(a.heat??a.riskHeat??a.score??0))
+        .slice(0,10);
     }
     function renderRiskPanel(){
       const rows=riskRows();
-      renderFeed("riskFeed",rows,"暂无风险信息",2);
+      renderFeed("riskFeed",rows,"暂无风险信息",2,"riskFeedIndex");
       $("riskTag").textContent=rows.length?`${rows.length} 条`:"待接入";
     }
     function renderLanguagePanel(){
@@ -692,7 +700,7 @@
       }).join("")||`<div class="empty">暂无少语样本</div>`;
       document.querySelectorAll(".lang-card").forEach(node=>node.onclick=()=>setFocusState({languageIndex:Number(node.dataset.langIndex)}));
       const q=quotesByLang(active.name);
-      renderFeed("languageFeed",q,"当前语种暂无可展示样本",1);
+      renderFeed("languageFeed",q,"当前语种暂无可展示样本",1,"languageFeedIndex");
       $("languageTag").textContent="";
     }
     function renderMap(){
@@ -809,7 +817,7 @@
     function renderBottomCharts(){
       const attitudeData=bottomAttitudeData();
       charts.attitude.setOption(ringOption(attitudeData.macro,"支持率"),true);
-      renderKeyAccounts();
+      renderAttitudeClassPanel();
       renderRiskPanel();
       charts.timeline.setOption(timelineOption(),true);
       const t=activeTimeline();
@@ -934,6 +942,7 @@
       charts.map=echarts.init($("chinaMap"));
       charts.timeline=echarts.init($("timelineChart"));
       charts.attitude=echarts.init($("attitudeChart"));
+      charts.attitudeClass=echarts.init($("attitudeClassChart"));
       charts.region.on("click",p=>{const idx=regionFocusRows.findIndex(r=>r.name===p.name);if(idx>=0)setFocusState({regionIndex:idx})});
       charts.platform.on("click",p=>{const idx=platformRows().findIndex(x=>x.name===p.name);if(idx>=0)setFocusState({platformIndex:idx})});
       charts.platform.on("mouseover",p=>{
@@ -951,6 +960,11 @@
         if(idx>=0)setFocusState({regionIndex:idx});
       });
       charts.timeline.on("click",p=>{const idx=timelineRows().findIndex(x=>String(x.hour||x.date||"")===String(p.name||""));if(idx>=0)setFocusState({timelineIndex:idx})});
+      document.querySelectorAll("[data-attitude-mode]").forEach(button=>button.onclick=()=>{
+        state.attitudeMode=button.dataset.attitudeMode;
+        document.querySelectorAll("[data-attitude-mode]").forEach(node=>node.classList.toggle("active",node===button));
+        renderAttitudeClassPanel();
+      });
       window.addEventListener("resize",()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}));
       window.addEventListener("resize",()=>{try{renderNanhaiFrame();renderRipples()}catch(e){}});
     }
@@ -959,6 +973,7 @@
       setInterval(()=>{if(!state.paused)setFocusState({platformIndex:state.platformIndex+1})},9000);
       setInterval(()=>{if(!state.paused)setFocusState({languageIndex:state.languageIndex+1})},11000);
       setInterval(()=>{if(!state.paused)setFocusState({timelineIndex:state.timelineIndex+1})},4000);
+      setInterval(()=>{if(!state.paused){state.regionFeedIndex++;state.platformFeedIndex++;state.languageFeedIndex++;state.riskFeedIndex++;renderAll()}},5000);
       $("pauseBtn").onclick=()=>{state.paused=!state.paused;$("pauseBtn").textContent=state.paused?"继续轮播":"暂停轮播";$("pauseBtn").classList.toggle("paused",state.paused)};
       document.querySelectorAll("[data-timeline-mode]").forEach(button=>button.onclick=()=>{
         state.timelineMode=button.dataset.timelineMode;
@@ -972,9 +987,7 @@
     function renderPhaseTag(){
       const el=$("phaseTag");
       if(!el)return;
-      const P=D.phase||{},S=liveStats();
-      const start=String(P.statsStart||S.statsStart||"").replace("T"," ").slice(0,16);
-      el.innerHTML=`起始统计时间：<b>${escapeHtml(start||"—")}</b>`;
+      el.innerHTML=`起始统计时间：<b>2026年9月16日</b>`;
     }
     loadDashboardData().then(data=>{
       D=data;

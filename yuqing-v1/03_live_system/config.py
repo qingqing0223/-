@@ -89,7 +89,7 @@ FILE_WATCH_INTERVAL = int(os.getenv("LIVE_FILE_WATCH_INTERVAL", "10"))
 SEARCH_KEYWORDS = [
     k.strip() for k in os.getenv(
         "LIVE_SEARCH_KEYWORDS",
-        "民族团结进步促进法,民族团结,民族歧视,促进法 民族",
+        "2026年民族团结进步宣传周,首个民族团结进步宣传周,民族团结进步宣传周主场活动,民族团结进步宣传周",
     ).split(",") if k.strip()
 ]
 MAX_RESULTS = int(os.getenv("LIVE_MAX_RESULTS", "10"))
@@ -111,7 +111,7 @@ WEIBO_EXPORT_DIR = os.getenv("WEIBO_EXPORT_DIR", os.path.join(BASE_DIR, "data", 
 WEIBO_HOT_KEYWORDS = [
     k.strip() for k in os.getenv(
         "WEIBO_HOT_KEYWORDS",
-        "民族团结,民族,促进法,少数民族,民族地区,歧视",
+        "民族团结进步宣传周,宣传周,民族团结,少数民族,民族地区,歧视",
     ).split(",") if k.strip()
 ]
 WEIBO_HOT_COUNTED = os.getenv("WEIBO_HOT_COUNTED", "是").strip()
@@ -127,7 +127,7 @@ WEIBO_COOKIE = os.getenv("WEIBO_COOKIE", "").strip()
 DOUYIN_HOT_KEYWORDS = [
     k.strip() for k in os.getenv(
         "DOUYIN_HOT_KEYWORDS",
-        "民族团结,民族,促进法,少数民族,民族地区,歧视",
+        "民族团结进步宣传周,宣传周,民族团结,少数民族,民族地区,歧视",
     ).split(",") if k.strip()
 ]
 DOUYIN_HOT_COUNTED = os.getenv("DOUYIN_HOT_COUNTED", "是").strip()

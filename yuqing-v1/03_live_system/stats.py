@@ -27,6 +27,7 @@ QUOTE_LIMIT = 1500
 KEY_ACCOUNT_LIMIT = 30
 EXCLUDED_LIVE_ORIGINS = ("simulator", "demo")
 RISK_LIMIT = 80
+OLD_LAW_TERMS = ("民族团结进步促进法", "促进法")
 
 # 固定关注的 10 个重点地区：五个自治区 + 北京、上海、广州、武汉、哈尔滨
 # 省/自治区按省级字段匹配；广州/武汉/哈尔滨是城市，同时接受地区文本命中。
@@ -178,7 +179,7 @@ def _empty_base():
                 {"name": "支持认可", "value": 0},
                 {"name": "中性信息", "value": 0},
                 {"name": "参与建议", "value": 0},
-                {"name": "非支持/非肯定", "value": 0},
+                {"name": "问题", "value": 0},
             ],
             "detail": [
                 {"name": name, "value": 0}
@@ -199,6 +200,13 @@ def compute_live_stats():
     if STATS_START:
         sql += " AND collected_at>=?"
         params.append(STATS_START)
+    for term in OLD_LAW_TERMS:
+        sql += (
+            " AND COALESCE(text,'') NOT LIKE ?"
+            " AND COALESCE(notes,'') NOT LIKE ?"
+            " AND COALESCE(source,'') NOT LIKE ?"
+        )
+        params.extend([f"%{term}%", f"%{term}%", f"%{term}%"])
     sql += " ORDER BY id DESC"
     rows = db.query_all(sql, params)
 
@@ -590,7 +598,7 @@ def build_bootstrap():
     # 态度构成
     att_extra = {
         "支持认可": c["support"], "中性信息": c["neutral"], "参与建议": c["suggest"],
-        "非支持/非肯定": c["non_support"],
+        "问题": c["non_support"],
     }
     for item in base.setdefault("attitude", {}).get("macro", []):
         item["value"] = (item.get("value") or 0) + att_extra.get(item["name"], 0)
