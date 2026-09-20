@@ -6,7 +6,7 @@ from pathlib import Path
 from pipeline.classifier import classify_records
 from pipeline.io_utils import append_jsonl, read_jsonl, read_json, write_json
 from pipeline.normalizer import normalize_record
-from .ingest import _prepare_region_aliases
+from .ingest import _prepare_region_aliases, _before_monitoring_start
 
 
 CLASSIFICATION_FIELDS = (
@@ -34,6 +34,7 @@ def ingest_key_account_snapshot(
     state_path: Path,
     output_jsonl: Path,
     concurrency: int = 4,
+    monitoring_start_time: str = "",
 ) -> dict:
     """Classify new creator posts and refresh engagement for already-seen posts.
 
@@ -50,6 +51,8 @@ def ingest_key_account_snapshot(
         for raw in read_jsonl(path):
             rec = normalize_record(_prepare_region_aliases(raw), source_file=path.name, platform_hint=platform)
             if not rec:
+                continue
+            if _before_monitoring_start(rec, monitoring_start_time):
                 continue
             current[rec["dedupe_key"]] = rec
 
@@ -95,6 +98,7 @@ def ingest_key_account_snapshot(
 
     return {
         "platform": platform,
+        "monitoring_start_time": monitoring_start_time,
         "snapshot_records": len(current),
         "new_records": len(fresh_classified),
         "engagement_refresh_records": len(refreshed),
