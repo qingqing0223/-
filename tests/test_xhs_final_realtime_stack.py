@@ -45,7 +45,7 @@ class XhsFinalRealtimeStackTest(unittest.TestCase):
         self.assertIn("XHS_REALTIME_SEARCH_TIMEOUT", crawler)
         self.assertIn("PROMOTION_WEEK_XHS_REALTIME_DISCOVERY", crawler)
         self.assertIn("_REALTIME_ACCESS_GUARD_STOP", policy)
-        self.assertIn('platform in {"wb", "xhs"}', policy)
+        self.assertIn('platform in {"wb", "xhs", "toutiao"}', policy)
 
 
 if __name__ == "__main__":
