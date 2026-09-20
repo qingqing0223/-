@@ -352,7 +352,7 @@ def main() -> int:
     blocking = []
     for key in (
         "five_minute_realtime", "crawler_usable", "content_discovery", "comments_collected",
-        "first_level_comments", "parent_root_integrity", "comment_public_ip_region",
+        "first_level_comments", "parent_root_integrity",
         "source_type_reporting", "raw_jsonl", "dedupe_integrity", "detail_queue_exercised",
         "classifier_outage_preserves_collection",
     ):
@@ -366,7 +366,9 @@ def main() -> int:
         warnings.append("no_nested_reply_observed_in_current_sample")
     if content_region_count == 0 and unique_contents:
         warnings.append("content_public_ip_region_not_observed")
-    if 0 < comment_region_rate < 0.5:
+    if comment_count > 0 and comment_region_count == 0:
+        warnings.append("comment_public_ip_region_not_exposed_in_current_sample")
+    elif 0 < comment_region_rate < 0.5:
         warnings.append("comment_public_ip_region_coverage_below_50_percent")
     if classification_degraded:
         warnings.append("external_attitude_classifier_degraded_but_raw_records_preserved")
@@ -383,7 +385,10 @@ def main() -> int:
             "first_level_comments": "PASS" if checks["first_level_comments"] else "FAIL",
             "nested_replies": nested_status,
             "parent_root_hierarchy": "PASS" if hierarchy_ok else "FAIL",
-            "comment_public_ip_region": "PASS" if checks["comment_public_ip_region"] else "FAIL",
+            "comment_public_ip_region": (
+                "PASS" if checks["comment_public_ip_region"]
+                else ("WARN" if comment_count > 0 else "REVIEW")
+            ),
             "content_public_ip_region": "PASS" if content_region_count else "WARN",
             "source_type_reporting": "PASS" if checks["source_type_reporting"] else "FAIL",
             "raw_jsonl": "PASS" if checks["raw_jsonl"] else "FAIL",
@@ -448,7 +453,11 @@ def main() -> int:
         "checks": checks,
         "blocking_gaps": blocking,
         "warnings": warnings,
-        "privacy_note": "Only platform-displayed coarse IP-region labels are counted. Network IP addresses and precise coordinates are rejected.",
+        "privacy_note": (
+            "Only platform-displayed coarse IP-region labels are counted. Network IP addresses and precise "
+            "coordinates are rejected. A missing public region is reported as WARN/REVIEW rather than "
+            "fabricated, because platform-unavailable fields are allowed to remain empty."
+        ),
         "realtime_vs_history_note": "Realtime is a bounded five-minute discovery/deep-comment queue. Historical exhaustive backfill is separate and is the appropriate place to drive PASS/REVIEW/INCOMPLETE toward full completeness.",
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
