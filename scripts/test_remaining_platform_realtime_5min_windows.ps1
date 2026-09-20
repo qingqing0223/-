@@ -124,7 +124,7 @@ $policy = @{
     "xhs"   = @{ Budget = 55; Timeout = 45;  CommentCap = 100 }
     "bili"  = @{ Budget = 70; Timeout = 100; CommentCap = 300 }
     "wb"    = @{ Budget = 50; Timeout = 40;  CommentCap = 100 }
-    "toutiao" = @{ Budget = 105; Timeout = 60; CommentCap = 100 }
+    "toutiao" = @{ Budget = 120; Timeout = 60; CommentCap = 100 }
     "zhihu" = @{ Budget = 60; Timeout = 90;  CommentCap = 200 }
 }
 $p = $policy[$Platform]
@@ -181,8 +181,8 @@ if ($Platform -eq "toutiao") {
     Set-ConfigProperty $cfg "toutiao_realtime_discovery_max_notes_count" 10
     Set-ConfigProperty $cfg "toutiao_realtime_items_per_keyword" 4
     Set-ConfigProperty $cfg "toutiao_realtime_search_timeout_seconds" 120
-    Set-ConfigProperty $cfg "toutiao_realtime_detail_max_items_per_cycle" 2
-    Set-ConfigProperty $cfg "toutiao_realtime_detail_budget_seconds" 105
+    Set-ConfigProperty $cfg "toutiao_realtime_detail_max_items_per_cycle" 4
+    Set-ConfigProperty $cfg "toutiao_realtime_detail_budget_seconds" 120
     Set-ConfigProperty $cfg "toutiao_realtime_candidate_timeout_seconds" 60
     Set-ConfigProperty $cfg "toutiao_realtime_max_comments_per_video" 100
     Set-ConfigProperty $cfg "toutiao_realtime_subcomment_root_cap" 3
