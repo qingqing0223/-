@@ -14,7 +14,7 @@ if str(ROOT) not in sys.path:
 from pipeline.normalizer import normalize_record
 
 
-PLATFORMS = {"xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu", "wechat_mp", "wechat_channels"}
+PLATFORMS = {"xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu", "wechat_mp", "wechat_channels"}
 PROVINCE_ALIASES = [
     ("内蒙古", "内蒙古"), ("广西", "广西"), ("西藏", "西藏"), ("宁夏", "宁夏"), ("新疆", "新疆"),
     ("香港", "香港"), ("澳门", "澳门"), ("北京", "北京"), ("天津", "天津"), ("上海", "上海"),
