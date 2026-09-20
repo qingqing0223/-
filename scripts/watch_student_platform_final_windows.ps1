@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","wb","ks","bili","tieba","zhihu")]
+    [ValidateSet("xhs","dy","wb","ks","bili","toutiao","zhihu")]
     [string]$Platform,
 
     [string]$Config = ".\config\monitoring.local.json",
