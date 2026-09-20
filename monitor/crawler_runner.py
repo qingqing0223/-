@@ -109,8 +109,11 @@ def _detail_identifier(platform: str, row: dict) -> str:
         return str(row.get("video_url") or row.get("video_id") or row.get("bvid") or "").strip()
     if platform == "wb":
         return str(row.get("note_id") or row.get("id") or row.get("note_url") or "").strip()
-    if platform == "tieba":
-        return str(row.get("note_id") or row.get("tieba_id") or row.get("note_url") or "").strip()
+    if platform == "toutiao":
+        return str(
+            row.get("content_url") or row.get("url") or row.get("article_id")
+            or row.get("content_id") or ""
+        ).strip()
     if platform == "zhihu":
         return str(row.get("content_url") or row.get("content_id") or row.get("url") or row.get("id") or "").strip()
     return ""
@@ -231,24 +234,40 @@ def _run_detail_comment_recovery(
     last_rc = 0
     for start in range(0, len(candidates), batch_size):
         batch = candidates[start:start + batch_size]
-        cmd = [
-            "uv", "run", "main.py",
-            "--platform", platform,
-            "--lt", cfg.get("login_type", "qrcode"),
-            "--type", "detail",
-            "--specified_id", ",".join(batch),
-            "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
-            "--get_comment", "yes",
-            "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
-            "--save_data_option", cfg.get("save_data_option", "jsonl"),
-            "--save_data_path", str(output_dir),
-        ]
         max_comments = _effective_comment_limit(cfg)
-        if max_comments is not None:
-            cmd.extend(["--max_comments_count_singlenotes", str(max_comments)])
+        if platform == "toutiao":
+            repo_root = Path(__file__).resolve().parents[1]
+            profile_dir = Path(cfg["data_root"]) / "state" / "toutiao_browser_profile"
+            cmd = [
+                "uv", "run", "--project", str(cfg["media_crawler_root"]),
+                "python", str(repo_root / "scripts" / "toutiao_crawler.py"),
+                "--mode", "detail",
+                "--specified-id", ",".join(batch),
+                "--save-data-path", str(output_dir),
+                "--profile-dir", str(profile_dir),
+                "--get-comment", "yes",
+                "--max-comments", str(max_comments or 100),
+            ]
+            detail_cwd = repo_root
+        else:
+            cmd = [
+                "uv", "run", "main.py",
+                "--platform", platform,
+                "--lt", cfg.get("login_type", "qrcode"),
+                "--type", "detail",
+                "--specified_id", ",".join(batch),
+                "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
+                "--get_comment", "yes",
+                "--get_sub_comment", str(cfg.get("get_sub_comment", "yes")),
+                "--save_data_option", cfg.get("save_data_option", "jsonl"),
+                "--save_data_path", str(output_dir),
+            ]
+            if max_comments is not None:
+                cmd.extend(["--max_comments_count_singlenotes", str(max_comments)])
+            detail_cwd = cfg["media_crawler_root"]
         with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
             out.write(f"\n[monitor] DETAIL_COMMENT_RECOVERY batch={batches + 1} items={len(batch)}\n")
-            proc = subprocess.run(cmd, cwd=cfg["media_crawler_root"], stdout=out, stderr=err, text=True)
+            proc = subprocess.run(cmd, cwd=detail_cwd, stdout=out, stderr=err, text=True)
         batches += 1
         last_rc = proc.returncode
         if last_rc != 0:
@@ -332,7 +351,7 @@ def _classify_state(
         return "SOFT_EMPTY"
 
     if (
-        ("xhs_realtime_search_timeout" in text or "tieba_realtime_search_timeout" in text)
+        ("xhs_realtime_search_timeout" in text or "toutiao_realtime_search_timeout" in text)
         and content_row_count > 0
     ):
         return "PARTIAL_SUCCESS"
@@ -400,19 +419,35 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         except Exception:
             search_concurrency = platform_search_default
 
-    cmd = [
-        "uv", "run", "main.py",
-        "--platform", code,
-        "--lt", cfg.get("login_type", "qrcode"),
-        "--type", "search",
-        "--keywords", ",".join(cfg["keywords"]),
-        "--crawler_max_notes_count", str(notes_limit),
-        "--max_concurrency_num", str(search_concurrency),
-        "--get_comment", search_get_comment,
-        "--get_sub_comment", search_get_sub_comment,
-        "--save_data_option", cfg.get("save_data_option", "jsonl"),
-        "--save_data_path", str(output_dir),
-    ]
+    if code == "toutiao":
+        repo_root = Path(__file__).resolve().parents[1]
+        profile_dir = Path(cfg["data_root"]) / "state" / "toutiao_browser_profile"
+        cmd = [
+            "uv", "run", "--project", str(cfg["media_crawler_root"]),
+            "python", str(repo_root / "scripts" / "toutiao_crawler.py"),
+            "--mode", "search",
+            "--keywords", ",".join(cfg["keywords"]),
+            "--save-data-path", str(output_dir),
+            "--profile-dir", str(profile_dir),
+            "--max-notes", str(notes_limit),
+            "--get-comment", "no",
+        ]
+        search_cwd = repo_root
+    else:
+        cmd = [
+            "uv", "run", "main.py",
+            "--platform", code,
+            "--lt", cfg.get("login_type", "qrcode"),
+            "--type", "search",
+            "--keywords", ",".join(cfg["keywords"]),
+            "--crawler_max_notes_count", str(notes_limit),
+            "--max_concurrency_num", str(search_concurrency),
+            "--get_comment", search_get_comment,
+            "--get_sub_comment", search_get_sub_comment,
+            "--save_data_option", cfg.get("save_data_option", "jsonl"),
+            "--save_data_path", str(output_dir),
+        ]
+        search_cwd = cfg["media_crawler_root"]
 
     if not realtime_mode:
         max_comments = _effective_comment_limit(cfg)
@@ -429,7 +464,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     deep_queue_pending = 0
     try:
         search_env = None
-        if realtime_mode and code in {"bili", "wb", "xhs", "tieba"}:
+        if realtime_mode and code in {"bili", "wb", "xhs"}:
             search_env = os.environ.copy()
             if code == "bili":
                 try:
@@ -462,18 +497,6 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 search_env["PROMOTION_WEEK_XHS_REALTIME_ITEMS_PER_KEYWORD"] = str(
                     xhs_items_per_keyword
                 )
-            elif code == "tieba":
-                search_env["PROMOTION_WEEK_TIEBA_REALTIME_DISCOVERY"] = "1"
-                try:
-                    tieba_items_per_keyword = max(
-                        1,
-                        min(int(cfg.get("tieba_realtime_items_per_keyword", 4)), 10),
-                    )
-                except Exception:
-                    tieba_items_per_keyword = 4
-                search_env["PROMOTION_WEEK_TIEBA_REALTIME_ITEMS_PER_KEYWORD"] = str(
-                    tieba_items_per_keyword
-                )
 
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             search_timeout = None
@@ -493,18 +516,18 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                     ))
                 except Exception:
                     search_timeout = 120
-            elif realtime_mode and code == "tieba":
+            elif realtime_mode and code == "toutiao":
                 try:
-                    search_timeout = max(60, min(
-                        int(cfg.get("tieba_realtime_search_timeout_seconds", 120)),
-                        150,
+                    search_timeout = max(90, min(
+                        int(cfg.get("toutiao_realtime_search_timeout_seconds", 180)),
+                        240,
                     ))
                 except Exception:
-                    search_timeout = 120
+                    search_timeout = 180
             try:
                 proc = subprocess.run(
                     cmd,
-                    cwd=cfg["media_crawler_root"],
+                    cwd=search_cwd,
                     stdout=out,
                     stderr=err,
                     text=True,
@@ -522,7 +545,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 timeout_marker = {
                     "wb": "WB_REALTIME_SEARCH_TIMEOUT",
                     "xhs": "XHS_REALTIME_SEARCH_TIMEOUT",
-                    "tieba": "TIEBA_REALTIME_SEARCH_TIMEOUT",
+                    "toutiao": "TOUTIAO_REALTIME_SEARCH_TIMEOUT",
                 }.get(code, "REALTIME_SEARCH_TIMEOUT")
                 err.write(
                     f"\n[monitor] {timeout_marker} timeout={search_timeout}s; "
