@@ -10,6 +10,7 @@ from dashboard_adapter.suqi_pusher import deliver_with_outbox
 from monitor.creator_runner import run_creator_platform
 from monitor.crawler_runner import find_content_jsonl
 from monitor.key_account_ingest import ingest_key_account_snapshot
+from monitor.account_info import build_table5_account_rows, write_table5_account_snapshots
 from pipeline.io_utils import write_json
 
 
@@ -94,6 +95,18 @@ def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
         )
         push_rows = summary.pop("push_rows")
 
+        raw_account_files = sorted(
+            p for p in Path(run.output_dir).rglob("*.jsonl")
+            if "account_info" in p.name.lower()
+        )
+        account_rows = build_table5_account_rows(
+            platform,
+            items,
+            classified_path,
+            raw_files=raw_account_files,
+        )
+        account_snapshot = write_table5_account_snapshots(root, account_rows)
+
         dashboard_cfg = cfg.get("dashboard") or {}
         dashboard_result = {"enabled": bool(dashboard_cfg.get("enabled", False)), "sent": 0, "ok": None}
         if dashboard_result["enabled"]:
@@ -105,7 +118,12 @@ def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
             )
             dashboard_result["enabled"] = True
 
-        item.update({"ok": True, "ingest": summary, "dashboard_push": dashboard_result})
+        item.update({
+            "ok": True,
+            "ingest": summary,
+            "account_info": account_snapshot,
+            "dashboard_push": dashboard_result,
+        })
         results.append(item)
 
         write_json(root / "status" / "latest_status.json", {
@@ -113,6 +131,7 @@ def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
             "mode": "key_account_creator",
             "platform_runs": [run.__dict__],
             "ingest": [summary],
+            "account_info": account_snapshot,
             "dashboard_push": dashboard_result,
         })
 
