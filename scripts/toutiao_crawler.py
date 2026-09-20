@@ -10,8 +10,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, quote_plus, unquote, urlparse
 
-from playwright.async_api import Error as PlaywrightError
-from playwright.async_api import Page, Response, async_playwright
 
 SEARCH_ENDPOINT = "https://so.toutiao.com/search"
 URL_RE = re.compile(r"https?://(?:www\.)?toutiao\.com/(?:(article|video)/(\d+)|a(\d+))")
@@ -158,7 +156,7 @@ async def settle(page: Page) -> None:
 async def open_checked(page: Page, url: str, timeout_ms: int) -> None:
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-    except PlaywrightError as exc:
+    except Exception as exc:
         print(f"[toutiao] navigation warning: {type(exc).__name__}: {exc}", flush=True)
     await settle(page)
     if not await wait_manual_verification(page):
@@ -336,7 +334,14 @@ def parse_comment_payload(payload: Any, content_id: str) -> list[dict]:
             low = str(key).lower()
             if low in {"reply_list", "replies", "sub_comments", "subcomments", "children"}:
                 walk(child, parent_id=cid or parent_id, root_id=current_root or root_id, in_reply=True)
-            elif low in {"comments", "comment_list", "data", "reply_data"}:
+            elif low == "reply_data":
+                walk(
+                    child,
+                    parent_id=cid or parent_id,
+                    root_id=current_root or root_id,
+                    in_reply=True,
+                )
+            elif low in {"comments", "comment_list", "data"}:
                 walk(child, parent_id=parent_id, root_id=root_id, in_reply=in_reply)
 
     walk(payload)
@@ -485,6 +490,8 @@ async def run(args) -> int:
     profile_dir = Path(args.profile_dir).resolve()
     profile_dir.mkdir(parents=True, exist_ok=True)
     date = now_date()
+
+    from playwright.async_api import async_playwright
 
     async with async_playwright() as playwright:
         context = await playwright.chromium.launch_persistent_context(
