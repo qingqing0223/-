@@ -25,7 +25,7 @@ PLATFORMS = (
 
 _ID_KEYS = (
     "comment_id", "parent_comment_id", "root_comment_id", "content_id",
-    "note_id", "aweme_id", "photo_id", "video_id", "bvid", "toutiao_id",
+    "note_id", "aweme_id", "photo_id", "video_id", "bvid", "article_id", "group_id", "item_id",
     "id", "rpid", "rootid",
 )
 _SAFE_VALUE_KEYS = (
@@ -433,103 +433,6 @@ def _parse_cycle_time(name: str):
         return None
 
 
-def _toutiao_discussion_thread_stats(
-    roots: list[Path],
-    monitoring_start_time: str,
-    result_date: str,
-) -> dict:
-    """Count unique Tieba discussion threads discovered during the monitoring window.
-
-    Tieba search results can legitimately point to older threads that receive fresh
-    replies during the current event.  Those thread containers are useful reporting
-    units even when their original publish_time predates monitoring_start_time, so
-    we count them by *discovery time* from raw_runs rather than by original post time.
-    This does not alter the classified-record totals; it exposes a separate reporting
-    view so daily reports can include "讨论区帖子" without mislabeling historical
-    publish timestamps as new publication events.
-    """
-    start = None
-    text = str(monitoring_start_time or "").strip()
-    if text:
-        try:
-            start = datetime.fromisoformat(text.replace("Z", "+00:00"))
-        except Exception:
-            start = None
-
-    first_seen_by_id: dict[str, datetime] = {}
-    source_rows = 0
-    for root in roots:
-        raw_root = root / "raw_runs"
-        if not raw_root.exists():
-            continue
-        for cycle in sorted((p for p in raw_root.iterdir() if p.is_dir()), key=lambda p: p.name):
-            cycle_dt = _parse_cycle_time(cycle.name)
-            if cycle_dt is None:
-                continue
-            if start is not None:
-                cmp_start = start
-                if cmp_start.tzinfo is None:
-                    cmp_start = cmp_start.replace(tzinfo=cycle_dt.tzinfo)
-                if cycle_dt < cmp_start:
-                    continue
-            for path in cycle.rglob("search_contents_*.jsonl"):
-                try:
-                    with path.open("r", encoding="utf-8-sig", errors="replace") as fh:
-                        for line in fh:
-                            line = line.strip()
-                            if not line:
-                                continue
-                            try:
-                                row = json.loads(line)
-                            except Exception:
-                                continue
-                            if not isinstance(row, dict):
-                                continue
-                            source_rows += 1
-                            thread_id = str(
-                                row.get("note_id")
-                                or row.get("toutiao_id")
-                                or row.get("content_id")
-                                or row.get("id")
-                                or ""
-                            ).strip()
-                            if not thread_id:
-                                basis = "|".join(
-                                    str(row.get(k) or "").strip()
-                                    for k in ("note_url", "toutiao_link", "title")
-                                )
-                                if not basis.strip("|"):
-                                    continue
-                                thread_id = hashlib.sha256(
-                                    f"toutiao-thread:{basis}".encode("utf-8", "ignore")
-                                ).hexdigest()[:24]
-                            old = first_seen_by_id.get(thread_id)
-                            if old is None or cycle_dt < old:
-                                first_seen_by_id[thread_id] = cycle_dt
-                except Exception:
-                    continue
-
-    try:
-        target_day = datetime.fromisoformat(result_date).date()
-    except Exception:
-        target_day = None
-    new_on_result_date = sum(
-        1 for dt in first_seen_by_id.values()
-        if target_day is not None and dt.date() == target_day
-    )
-    return {
-        "unique_threads": len(first_seen_by_id),
-        "new_threads_on_result_date": new_on_result_date,
-        "source_rows_scanned": source_rows,
-        "record_type": "discussion_post",
-        "count_basis": "unique_toutiao_threads_discovered_during_monitoring_window",
-        "publish_time_note": (
-            "thread original publish_time may predate monitoring_start_time; "
-            "daily reporting treats these as discussion containers discovered/active during monitoring"
-        ),
-    }
-
-
 def _resolve_result_date(cfg: dict) -> str:
     """Resolve the GitHub result partition for long-running realtime monitors.
 
@@ -560,27 +463,6 @@ def generate_shard(config_path: Path, platform: str, node_id: str) -> tuple[Path
     monitoring_start_time = str(cfg.get("monitoring_start_time") or "")
     result_date = _resolve_result_date(cfg)
     summary = build_summary(roots, monitoring_start_time=monitoring_start_time)
-    if platform == "toutiao":
-        discussion = _toutiao_discussion_thread_stats(
-            roots,
-            monitoring_start_time=monitoring_start_time,
-            result_date=result_date,
-        )
-        summary["discussion_thread_stats"] = discussion
-        discussion_posts = int(discussion.get("unique_threads") or 0)
-        comment_records = int((summary.get("totals") or {}).get("comment_records") or 0)
-        summary["reporting_record_types"] = {
-            "discussion_post": discussion_posts,
-            "comment": comment_records,
-        }
-        summary["reporting_totals"] = {
-            "unique_records": discussion_posts + comment_records,
-            "published_content_records": discussion_posts,
-            "comment_records": comment_records,
-            "new_discussion_posts_on_result_date": int(
-                discussion.get("new_threads_on_result_date") or 0
-            ),
-        }
     payload = {
         "schema_version": 5,
         "event_id": cfg.get("event_id"),
