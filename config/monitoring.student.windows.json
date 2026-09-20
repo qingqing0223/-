@@ -33,6 +33,9 @@
   "save_data_option": "jsonl",
   "github_diagnostic_samples": true,
   "github_diagnostic_sample_rows_per_type": 5,
+  "zhihu_require_publish_time": true,
+  "zhihu_key_accounts_file": "config/zhihu_key_accounts.local.json",
+  "key_account_catalog": "config/key_accounts.v3.catalog.json",
   "dashboard": {
     "enabled": false,
     "ingest_url": "",
