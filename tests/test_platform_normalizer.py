@@ -69,24 +69,27 @@ class PlatformNormalizerTests(unittest.TestCase):
         row = normalize_record(raw, platform_hint="zhihu")
         self.assertEqual(row["record_type"], "video")
 
-    def test_tieba_note_fields(self):
+    def test_toutiao_article_fields(self):
         raw = {
-            "note_id": "9988",
-            "title": "宣传周讨论帖",
-            "desc": "贴吧帖子正文摘要",
-            "note_url": "https://tieba.baidu.com/p/9988",
+            "article_id": "9988",
+            "content_id": "9988",
+            "content_type": "article",
+            "title": "宣传周相关报道",
+            "content_text": "今日头条文章正文摘要",
+            "content_url": "https://www.toutiao.com/article/9988/",
             "publish_time": "2026-09-16 09:00:00",
-            "user_nickname": "示例吧友",
-            "tieba_name": "示例吧",
-            "total_replay_num": 23,
+            "author": "示例头条号",
+            "comment_count": 23,
+            "like_count": 12,
             "source_keyword": "民族团结进步宣传周",
         }
-        row = normalize_record(raw, source_file="search_contents.jsonl", platform_hint="tieba")
+        row = normalize_record(raw, source_file="search_contents.jsonl", platform_hint="toutiao")
         self.assertIsNotNone(row)
         self.assertEqual(row["record_type"], "post")
         self.assertEqual(row["sample_id"], "9988")
         self.assertEqual(row["comments"], 23)
-        self.assertEqual(row["url"], raw["note_url"])
+        self.assertEqual(row["likes"], 12)
+        self.assertEqual(row["url"], raw["content_url"])
 
     def test_comment_hierarchy_and_public_author_fields(self):
         raw = {
