@@ -13,7 +13,7 @@ PLATFORM_LABELS = {
     "dy": "抖音",
     "ks": "快手",
     "bili": "B站",
-    "tieba": "百度贴吧",
+    "toutiao": "今日头条",
     "zhihu": "知乎",
     "wechat_mp": "微信公众号",
     "wechat_channels": "微信视频号",
