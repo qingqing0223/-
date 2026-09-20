@@ -65,6 +65,27 @@ class ToutiaoFinalStackTests(unittest.TestCase):
         self.assertEqual(rows["child-1"]["comment_level"], 2)
         self.assertEqual(rows["child-1"]["ip_location"], "北京")
 
+    def test_comment_payload_supports_article_v2_comment_wrapper(self):
+        payload = {
+            "data": [
+                {
+                    "comment": {
+                        "id": "root-v2",
+                        "text": "一级评论V2",
+                        "digg_count": 3,
+                        "reply_count": 0,
+                        "user": {"user_id": "uv2", "name": "用户V2"},
+                    }
+                }
+            ],
+            "has_more": False,
+        }
+        rows = {row["comment_id"]: row for row in self.mod.parse_comment_payload(payload, "article-v2")}
+        self.assertIn("root-v2", rows)
+        self.assertEqual(rows["root-v2"]["parent_comment_id"], "")
+        self.assertEqual(rows["root-v2"]["root_comment_id"], "root-v2")
+        self.assertEqual(rows["root-v2"]["content"], "一级评论V2")
+
     def test_region_rejects_non_province_noise(self):
         self.assertEqual(self.mod.coarse_region("IP属地：广东"), "广东")
         self.assertEqual(self.mod.coarse_region("来自：内蒙古"), "内蒙古")
@@ -79,6 +100,7 @@ class ToutiaoFinalStackTests(unittest.TestCase):
     def test_comment_capture_has_network_reload_and_public_api_fallback(self):
         text = ADAPTER.read_text(encoding="utf-8")
         self.assertIn("page.reload(", text)
+        self.assertIn("/article/v2/tab_comments/", text)
         self.assertIn("/api/comment/list/", text)
         self.assertIn("fetch_public_comment_api", text)
 
