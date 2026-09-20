@@ -35,6 +35,7 @@
   "github_diagnostic_sample_rows_per_type": 5,
   "zhihu_require_publish_time": true,
   "zhihu_key_accounts_file": "config/zhihu_key_accounts.local.json",
+  "zhihu_key_account_discovery_max_notes_count": 5,
   "key_account_catalog": "config/key_accounts.v3.catalog.json",
   "dashboard": {
     "enabled": false,
