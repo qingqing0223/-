@@ -19,6 +19,7 @@ from monitor.final_realtime_policy import install_final_realtime_policy
 from monitor.keyword_pack import apply_keyword_pack
 from monitor.zhihu_submission import export_zhihu_submission
 from monitor.zhihu_realtime_policy import install_zhihu_scope_aware_realtime_policy
+from monitor.zhihu_key_account_search import build_key_account_search_config
 
 ROOT = Path(__file__).resolve().parent
 
@@ -88,11 +89,35 @@ def run_one_cycle(cfg: dict, config_path: Path, node_id: str) -> dict:
     cycle_root.mkdir(parents=True, exist_ok=True)
 
     platform_cfg = _zhihu_platform_cfg(cfg)
+
+    # Pass A: the six formal campaign keywords.
     keyword_run = run_platform(cfg, platform_cfg, cycle_root)
     raw_files = find_ingest_jsonl(
         Path(keyword_run.output_dir),
         include_comments=True,
     )
+
+    # Pass B: explicitly query every catalogued priority account name. This does
+    # not guess creator IDs; it searches public Zhihu results by the documented
+    # names, while the installed strict-scope policy still allows comment-detail
+    # work only for content that truly matches the formal campaign scope.
+    key_account_search_cfg, key_account_search_terms = (
+        build_key_account_search_config(cfg, ROOT)
+    )
+    key_account_search_run = None
+    if key_account_search_terms:
+        key_account_search_run = run_platform(
+            key_account_search_cfg,
+            platform_cfg,
+            cycle_root,
+        )
+        raw_files.extend(
+            find_ingest_jsonl(
+                Path(key_account_search_run.output_dir),
+                include_comments=True,
+            )
+        )
+        raw_files = sorted(dict.fromkeys(raw_files))
 
     key_accounts = _load_verified_key_accounts(cfg, config_path)
     creator_run = None
@@ -134,6 +159,12 @@ def run_one_cycle(cfg: dict, config_path: Path, node_id: str) -> dict:
             timespec="seconds"
         ),
         "keyword_run": keyword_run.__dict__,
+        "key_account_search_run": (
+            key_account_search_run.__dict__
+            if key_account_search_run else None
+        ),
+        "key_account_search_terms": key_account_search_terms,
+        "key_account_search_term_count": len(key_account_search_terms),
         "key_account_creator_run": (
             creator_run.__dict__ if creator_run else None
         ),
