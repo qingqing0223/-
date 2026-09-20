@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("xhs","dy","ks","bili","wb","tieba","zhihu")]
+    [ValidateSet("xhs","dy","ks","bili","wb","toutiao","zhihu")]
     [string]$Platform,
 
     [string]$Keyword = ""
