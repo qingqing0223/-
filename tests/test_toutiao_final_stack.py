@@ -65,26 +65,72 @@ class ToutiaoFinalStackTests(unittest.TestCase):
         self.assertEqual(rows["child-1"]["comment_level"], 2)
         self.assertEqual(rows["child-1"]["ip_location"], "北京")
 
-    def test_comment_payload_supports_article_v2_comment_wrapper(self):
+    def test_comment_payload_supports_current_article_v4_wrapper(self):
         payload = {
             "data": [
                 {
                     "comment": {
-                        "id": "root-v2",
-                        "text": "一级评论V2",
+                        "id_str": "root-v4",
+                        "text": "一级评论V4",
                         "digg_count": 3,
-                        "reply_count": 0,
-                        "user": {"user_id": "uv2", "name": "用户V2"},
+                        "reply_count": 1,
+                        "user_id": "uv4",
+                        "user_name": "用户V4",
+                        "publish_loc_info": "IP属地：广东",
+                        "reply_list": [
+                            {
+                                "id_str": "child-v4",
+                                "text": "楼中楼V4",
+                                "user": {"user_id": "child-u", "name": "回复用户"},
+                                "publish_loc_info": "北京",
+                                "reply_to_comment": {"id_str": "root-v4"},
+                            }
+                        ],
                     }
                 }
             ],
             "has_more": False,
         }
-        rows = {row["comment_id"]: row for row in self.mod.parse_comment_payload(payload, "article-v2")}
-        self.assertIn("root-v2", rows)
-        self.assertEqual(rows["root-v2"]["parent_comment_id"], "")
-        self.assertEqual(rows["root-v2"]["root_comment_id"], "root-v2")
-        self.assertEqual(rows["root-v2"]["content"], "一级评论V2")
+        rows = {row["comment_id"]: row for row in self.mod.parse_comment_payload(payload, "article-v4")}
+        self.assertIn("root-v4", rows)
+        self.assertEqual(rows["root-v4"]["parent_comment_id"], "")
+        self.assertEqual(rows["root-v4"]["root_comment_id"], "root-v4")
+        self.assertEqual(rows["root-v4"]["content"], "一级评论V4")
+        self.assertEqual(rows["root-v4"]["nickname"], "用户V4")
+        self.assertEqual(rows["root-v4"]["user_id"], "uv4")
+        self.assertEqual(rows["root-v4"]["ip_location"], "广东")
+        self.assertEqual(rows["child-v4"]["parent_comment_id"], "root-v4")
+        self.assertEqual(rows["child-v4"]["root_comment_id"], "root-v4")
+        self.assertEqual(rows["child-v4"]["comment_level"], 2)
+        self.assertEqual(rows["child-v4"]["ip_location"], "北京")
+
+    def test_reply_endpoint_default_parent_reconstructs_hierarchy(self):
+        payload = {
+            "data": {
+                "data": [
+                    {
+                        "id_str": "reply-2",
+                        "text": "展开后回复",
+                        "publish_loc_info": "IP属地：上海",
+                        "user": {"user_id": "u2", "name": "乙"},
+                    }
+                ],
+                "has_more": False,
+            }
+        }
+        rows = {
+            row["comment_id"]: row
+            for row in self.mod.parse_comment_payload(
+                payload,
+                "article-10",
+                default_parent_id="root-10",
+                default_root_id="root-10",
+            )
+        }
+        self.assertEqual(rows["reply-2"]["parent_comment_id"], "root-10")
+        self.assertEqual(rows["reply-2"]["root_comment_id"], "root-10")
+        self.assertEqual(rows["reply-2"]["comment_level"], 2)
+        self.assertEqual(rows["reply-2"]["ip_location"], "上海")
 
     def test_region_rejects_non_province_noise(self):
         self.assertEqual(self.mod.coarse_region("IP属地：广东"), "广东")
@@ -100,7 +146,8 @@ class ToutiaoFinalStackTests(unittest.TestCase):
     def test_comment_capture_has_network_reload_and_public_api_fallback(self):
         text = ADAPTER.read_text(encoding="utf-8")
         self.assertIn("page.reload(", text)
-        self.assertIn("/article/v2/tab_comments/", text)
+        self.assertIn("/article/v4/tab_comments/", text)
+        self.assertIn("/2/comment/v4/reply_list/", text)
         self.assertIn("/api/comment/list/", text)
         self.assertIn("fetch_public_comment_api", text)
 
