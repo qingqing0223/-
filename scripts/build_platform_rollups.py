@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # Canonical path contract: results/<date>/platforms/<platform>.json
 # Consumers should read these rollups instead of selecting a node shard directly.
 PLATFORMS = (
-    "xhs", "dy", "ks", "bili", "wb", "tieba", "zhihu",
+    "xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu",
     "wechat_mp", "wechat_channels",
 )
 
