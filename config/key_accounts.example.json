@@ -20,7 +20,7 @@
     {"platform": "ks", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填快手 creator_id/主页标识；正式名单下来后启用"},
     {"platform": "bili", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填B站 creator_id/UP主主页标识；先做真实平台验收再正式启用"},
     {"platform": "wb", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填微博 creator_id/主页标识；先做真实平台验收再正式启用"},
-    {"platform": "tieba", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填贴吧 creator_id/主页标识；先做真实平台验收再正式启用"},
+    {"platform": "toutiao", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填贴吧 creator_id/主页标识；先做真实平台验收再正式启用"},
     {"platform": "zhihu", "name": "示例账号-请替换", "creator_id": "", "enabled": false, "note": "填知乎 creator_id/主页标识；先做真实平台验收再正式启用"}
   ]
 }
