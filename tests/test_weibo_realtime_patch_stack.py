@@ -24,7 +24,7 @@ class WeiboRealtimePatchStackTest(unittest.TestCase):
 
     def test_public_region_contract(self):
         text = (ROOT / "scripts" / "patch_weibo_public_regions.py").read_text(encoding="utf-8")
-        self.assertIn("PROMOTION_WEEK_WB_PUBLIC_REGION_V1", text)
+        self.assertIn("PROMOTION_WEEK_WB_PUBLIC_REGION_V2", text)
         self.assertIn("def _wb_find_coarse_public_region", text)
         self.assertIn('"region_name"', text)
         self.assertNotIn('"_WB_PUBLIC_REGION_KEYS = {"location"', text)
@@ -34,6 +34,7 @@ class WeiboRealtimePatchStackTest(unittest.TestCase):
         self.assertIn("patch_weibo_realtime_resilience.py", text)
         self.assertIn("patch_weibo_comment_hierarchy.py", text)
         self.assertIn("patch_weibo_public_regions.py", text)
+        self.assertIn("patch_weibo_public_identity.py", text)
 
     def test_runner_has_weibo_realtime_bounds(self):
         runner = (ROOT / "run_single_platform.py").read_text(encoding="utf-8")
