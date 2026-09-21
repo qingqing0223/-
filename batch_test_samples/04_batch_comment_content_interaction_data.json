@@ -1,0 +1,402 @@
+[
+  {
+    "corresponding_published_content_id": "batch-test-post-001",
+    "comment_id": "batch-test-comment-001",
+    "platform_name": "微信公众号",
+    "statistical_time": "2026-09-21T08:31:00+08:00",
+    "comment_reply_count": 1,
+    "comment_like_count": 11
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-002",
+    "comment_id": "batch-test-comment-002",
+    "platform_name": "微信视频号",
+    "statistical_time": "2026-09-21T08:32:00+08:00",
+    "comment_reply_count": 2,
+    "comment_like_count": 12
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-003",
+    "comment_id": "batch-test-comment-003",
+    "platform_name": "微博",
+    "statistical_time": "2026-09-21T08:33:00+08:00",
+    "comment_reply_count": 3,
+    "comment_like_count": 13
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-004",
+    "comment_id": "batch-test-comment-004",
+    "platform_name": "抖音",
+    "statistical_time": "2026-09-21T08:34:00+08:00",
+    "comment_reply_count": 4,
+    "comment_like_count": 14
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-005",
+    "comment_id": "batch-test-comment-005",
+    "platform_name": "快手",
+    "statistical_time": "2026-09-21T08:35:00+08:00",
+    "comment_reply_count": 5,
+    "comment_like_count": 15
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-006",
+    "comment_id": "batch-test-comment-006",
+    "platform_name": "小红书",
+    "statistical_time": "2026-09-21T08:36:00+08:00",
+    "comment_reply_count": 6,
+    "comment_like_count": 16
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-007",
+    "comment_id": "batch-test-comment-007",
+    "platform_name": "哔哩哔哩",
+    "statistical_time": "2026-09-21T08:37:00+08:00",
+    "comment_reply_count": 0,
+    "comment_like_count": 17
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-008",
+    "comment_id": "batch-test-comment-008",
+    "platform_name": "今日头条",
+    "statistical_time": "2026-09-21T08:38:00+08:00",
+    "comment_reply_count": 1,
+    "comment_like_count": 18
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-009",
+    "comment_id": "batch-test-comment-009",
+    "platform_name": "知乎",
+    "statistical_time": "2026-09-21T08:39:00+08:00",
+    "comment_reply_count": 2,
+    "comment_like_count": 19
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-010",
+    "comment_id": "batch-test-comment-010",
+    "platform_name": "微信公众号",
+    "statistical_time": "2026-09-21T08:40:00+08:00",
+    "comment_reply_count": 3,
+    "comment_like_count": 20
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-011",
+    "comment_id": "batch-test-comment-011",
+    "platform_name": "微信视频号",
+    "statistical_time": "2026-09-21T08:41:00+08:00",
+    "comment_reply_count": 4,
+    "comment_like_count": 21
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-012",
+    "comment_id": "batch-test-comment-012",
+    "platform_name": "微博",
+    "statistical_time": "2026-09-21T08:42:00+08:00",
+    "comment_reply_count": 5,
+    "comment_like_count": 22
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-013",
+    "comment_id": "batch-test-comment-013",
+    "platform_name": "抖音",
+    "statistical_time": "2026-09-21T08:43:00+08:00",
+    "comment_reply_count": 6,
+    "comment_like_count": 23
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-014",
+    "comment_id": "batch-test-comment-014",
+    "platform_name": "快手",
+    "statistical_time": "2026-09-21T08:44:00+08:00",
+    "comment_reply_count": 0,
+    "comment_like_count": 24
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-015",
+    "comment_id": "batch-test-comment-015",
+    "platform_name": "小红书",
+    "statistical_time": "2026-09-21T08:45:00+08:00",
+    "comment_reply_count": 1,
+    "comment_like_count": 25
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-016",
+    "comment_id": "batch-test-comment-016",
+    "platform_name": "哔哩哔哩",
+    "statistical_time": "2026-09-21T08:46:00+08:00",
+    "comment_reply_count": 2,
+    "comment_like_count": 26
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-017",
+    "comment_id": "batch-test-comment-017",
+    "platform_name": "今日头条",
+    "statistical_time": "2026-09-21T08:47:00+08:00",
+    "comment_reply_count": 3,
+    "comment_like_count": 27
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-018",
+    "comment_id": "batch-test-comment-018",
+    "platform_name": "知乎",
+    "statistical_time": "2026-09-21T08:48:00+08:00",
+    "comment_reply_count": 4,
+    "comment_like_count": 28
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-019",
+    "comment_id": "batch-test-comment-019",
+    "platform_name": "微信公众号",
+    "statistical_time": "2026-09-21T08:49:00+08:00",
+    "comment_reply_count": 5,
+    "comment_like_count": 29
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-020",
+    "comment_id": "batch-test-comment-020",
+    "platform_name": "微信视频号",
+    "statistical_time": "2026-09-21T08:50:00+08:00",
+    "comment_reply_count": 6,
+    "comment_like_count": 30
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-021",
+    "comment_id": "batch-test-comment-021",
+    "platform_name": "微博",
+    "statistical_time": "2026-09-21T08:51:00+08:00",
+    "comment_reply_count": 0,
+    "comment_like_count": 31
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-022",
+    "comment_id": "batch-test-comment-022",
+    "platform_name": "抖音",
+    "statistical_time": "2026-09-21T08:52:00+08:00",
+    "comment_reply_count": 1,
+    "comment_like_count": 32
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-023",
+    "comment_id": "batch-test-comment-023",
+    "platform_name": "快手",
+    "statistical_time": "2026-09-21T08:53:00+08:00",
+    "comment_reply_count": 2,
+    "comment_like_count": 33
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-024",
+    "comment_id": "batch-test-comment-024",
+    "platform_name": "小红书",
+    "statistical_time": "2026-09-21T08:54:00+08:00",
+    "comment_reply_count": 3,
+    "comment_like_count": 34
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-025",
+    "comment_id": "batch-test-comment-025",
+    "platform_name": "哔哩哔哩",
+    "statistical_time": "2026-09-21T08:55:00+08:00",
+    "comment_reply_count": 4,
+    "comment_like_count": 35
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-026",
+    "comment_id": "batch-test-comment-026",
+    "platform_name": "今日头条",
+    "statistical_time": "2026-09-21T08:56:00+08:00",
+    "comment_reply_count": 5,
+    "comment_like_count": 36
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-027",
+    "comment_id": "batch-test-comment-027",
+    "platform_name": "知乎",
+    "statistical_time": "2026-09-21T08:57:00+08:00",
+    "comment_reply_count": 6,
+    "comment_like_count": 37
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-028",
+    "comment_id": "batch-test-comment-028",
+    "platform_name": "微信公众号",
+    "statistical_time": "2026-09-21T08:58:00+08:00",
+    "comment_reply_count": 0,
+    "comment_like_count": 38
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-029",
+    "comment_id": "batch-test-comment-029",
+    "platform_name": "微信视频号",
+    "statistical_time": "2026-09-21T08:59:00+08:00",
+    "comment_reply_count": 1,
+    "comment_like_count": 39
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-030",
+    "comment_id": "batch-test-comment-030",
+    "platform_name": "微博",
+    "statistical_time": "2026-09-21T09:00:00+08:00",
+    "comment_reply_count": 2,
+    "comment_like_count": 40
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-031",
+    "comment_id": "batch-test-comment-031",
+    "platform_name": "抖音",
+    "statistical_time": "2026-09-21T09:01:00+08:00",
+    "comment_reply_count": 3,
+    "comment_like_count": 41
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-032",
+    "comment_id": "batch-test-comment-032",
+    "platform_name": "快手",
+    "statistical_time": "2026-09-21T09:02:00+08:00",
+    "comment_reply_count": 4,
+    "comment_like_count": 42
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-033",
+    "comment_id": "batch-test-comment-033",
+    "platform_name": "小红书",
+    "statistical_time": "2026-09-21T09:03:00+08:00",
+    "comment_reply_count": 5,
+    "comment_like_count": 43
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-034",
+    "comment_id": "batch-test-comment-034",
+    "platform_name": "哔哩哔哩",
+    "statistical_time": "2026-09-21T09:04:00+08:00",
+    "comment_reply_count": 6,
+    "comment_like_count": 44
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-035",
+    "comment_id": "batch-test-comment-035",
+    "platform_name": "今日头条",
+    "statistical_time": "2026-09-21T09:05:00+08:00",
+    "comment_reply_count": 0,
+    "comment_like_count": 45
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-036",
+    "comment_id": "batch-test-comment-036",
+    "platform_name": "知乎",
+    "statistical_time": "2026-09-21T09:06:00+08:00",
+    "comment_reply_count": 1,
+    "comment_like_count": 46
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-037",
+    "comment_id": "batch-test-comment-037",
+    "platform_name": "微信公众号",
+    "statistical_time": "2026-09-21T09:07:00+08:00",
+    "comment_reply_count": 2,
+    "comment_like_count": 47
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-038",
+    "comment_id": "batch-test-comment-038",
+    "platform_name": "微信视频号",
+    "statistical_time": "2026-09-21T09:08:00+08:00",
+    "comment_reply_count": 3,
+    "comment_like_count": 48
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-039",
+    "comment_id": "batch-test-comment-039",
+    "platform_name": "微博",
+    "statistical_time": "2026-09-21T09:09:00+08:00",
+    "comment_reply_count": 4,
+    "comment_like_count": 49
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-040",
+    "comment_id": "batch-test-comment-040",
+    "platform_name": "抖音",
+    "statistical_time": "2026-09-21T09:10:00+08:00",
+    "comment_reply_count": 5,
+    "comment_like_count": 50
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-041",
+    "comment_id": "batch-test-comment-041",
+    "platform_name": "快手",
+    "statistical_time": "2026-09-21T09:11:00+08:00",
+    "comment_reply_count": 6,
+    "comment_like_count": 51
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-042",
+    "comment_id": "batch-test-comment-042",
+    "platform_name": "小红书",
+    "statistical_time": "2026-09-21T09:12:00+08:00",
+    "comment_reply_count": 0,
+    "comment_like_count": 52
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-043",
+    "comment_id": "batch-test-comment-043",
+    "platform_name": "哔哩哔哩",
+    "statistical_time": "2026-09-21T09:13:00+08:00",
+    "comment_reply_count": 1,
+    "comment_like_count": 53
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-044",
+    "comment_id": "batch-test-comment-044",
+    "platform_name": "今日头条",
+    "statistical_time": "2026-09-21T09:14:00+08:00",
+    "comment_reply_count": 2,
+    "comment_like_count": 54
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-045",
+    "comment_id": "batch-test-comment-045",
+    "platform_name": "知乎",
+    "statistical_time": "2026-09-21T09:15:00+08:00",
+    "comment_reply_count": 3,
+    "comment_like_count": 55
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-046",
+    "comment_id": "batch-test-comment-046",
+    "platform_name": "微信公众号",
+    "statistical_time": "2026-09-21T09:16:00+08:00",
+    "comment_reply_count": 4,
+    "comment_like_count": 56
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-047",
+    "comment_id": "batch-test-comment-047",
+    "platform_name": "微信视频号",
+    "statistical_time": "2026-09-21T09:17:00+08:00",
+    "comment_reply_count": 5,
+    "comment_like_count": 57
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-048",
+    "comment_id": "batch-test-comment-048",
+    "platform_name": "微博",
+    "statistical_time": "2026-09-21T09:18:00+08:00",
+    "comment_reply_count": 6,
+    "comment_like_count": 58
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-049",
+    "comment_id": "batch-test-comment-049",
+    "platform_name": "抖音",
+    "statistical_time": "2026-09-21T09:19:00+08:00",
+    "comment_reply_count": 0,
+    "comment_like_count": 59
+  },
+  {
+    "corresponding_published_content_id": "batch-test-post-050",
+    "comment_id": "batch-test-comment-050",
+    "platform_name": "快手",
+    "statistical_time": "2026-09-21T09:20:00+08:00",
+    "comment_reply_count": 1,
+    "comment_like_count": 60
+  }
+]

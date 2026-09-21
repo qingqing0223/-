@@ -12,6 +12,8 @@ data/raw_runs/
 data/status/
 yuqing-v1/03_live_system/data/generated_reports/
 browser_data/
+data/wechat_mp/
+data/wechat_mp_tools/
 cookies/
 *.log
 .DS_Store
@@ -20,3 +22,4 @@ config/monitoring.wechat.local.json
 config/wechat_channels_screen.local.json
 config/key_accounts.json
 config/zhihu_key_accounts.local.json
+config/poms.wechat_mp.local.json

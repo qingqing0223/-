@@ -11,8 +11,6 @@ ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from dashboard_adapter.suqi_pusher import deliver_with_outbox
-from monitor.ingest import ingest_and_classify
 from pipeline.io_utils import write_json
 from wechat.common import append_jsonl
 
@@ -42,6 +40,11 @@ def _collector(platform: str):
 
 
 def run_one_cycle(cfg: dict, platform: str) -> dict:
+    if platform == "wechat_mp":
+        from wechat.mp_pipeline import run_one_cycle as run_mp_cycle
+        return run_mp_cycle(cfg)
+    from dashboard_adapter.suqi_pusher import deliver_with_outbox
+    from monitor.ingest import ingest_and_classify
     started = time.time()
     root = platform_root(cfg, platform)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -149,6 +152,9 @@ def run_one_cycle(cfg: dict, platform: str) -> dict:
 
 
 def run_forever(cfg: dict, platform: str) -> None:
+    if platform == "wechat_mp":
+        from wechat.mp_pipeline import run_forever as run_mp_forever
+        return run_mp_forever(cfg)
     interval_key = "wechat_mp_interval_seconds" if platform == "wechat_mp" else "wechat_channels_interval_seconds"
     interval = max(300, int(cfg.get(interval_key, cfg.get("interval_seconds", 900))))
     while True:
@@ -179,9 +185,12 @@ def main():
     parser.add_argument("--platform", required=True, choices=WECHAT_PLATFORMS)
     parser.add_argument("--config", default=str(ROOT / "config" / "monitoring.wechat.windows.json"))
     parser.add_argument("--once", action="store_true")
+    parser.add_argument("--node-id", help="WeChat MP submission node name")
     args = parser.parse_args()
 
     cfg = load_config(Path(args.config).resolve())
+    if args.node_id and args.platform == "wechat_mp":
+        cfg["wechat_mp_node_id"] = args.node_id
     if args.once:
         result = run_one_cycle(cfg, args.platform)
         print(json.dumps(result, ensure_ascii=False, indent=2))

@@ -1,0 +1,6 @@
+{
+  "delete_mode": "entire_table",
+  "table_name": "public_opinion_classification_result_details",
+  "data": null,
+  "confirmation": "DELETE_ENTIRE_TABLE_TEST_DATA"
+}

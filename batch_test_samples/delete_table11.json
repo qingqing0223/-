@@ -1,0 +1,6 @@
+{
+  "delete_mode": "entire_table",
+  "table_name": "public_opinion_attitude_statistics_by_platform",
+  "data": null,
+  "confirmation": "DELETE_ENTIRE_TABLE_TEST_DATA"
+}

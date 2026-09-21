@@ -1,0 +1,6 @@
+{
+  "delete_mode": "entire_table",
+  "table_name": "comment_content_interaction_data",
+  "data": null,
+  "confirmation": "DELETE_ENTIRE_TABLE_TEST_DATA"
+}

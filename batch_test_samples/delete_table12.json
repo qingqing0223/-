@@ -1,0 +1,6 @@
+{
+  "delete_mode": "entire_table",
+  "table_name": "problematic_data_type_statistics",
+  "data": null,
+  "confirmation": "DELETE_ENTIRE_TABLE_TEST_DATA"
+}

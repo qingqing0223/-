@@ -1,0 +1,45 @@
+{
+  "platform": "wechat_mp",
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "exported_at": "2026-09-20T19:40:31+08:00",
+  "valid_articles": 30,
+  "accounts": 30,
+  "table_counts": [
+    30,
+    0,
+    30,
+    0,
+    30
+  ],
+  "collector": {
+    "status": "VERIFY_REQUIRED",
+    "per_keyword": {},
+    "per_keyword_pages": {},
+    "per_keyword_status": {
+      "2026年民族团结进步宣传周": "VERIFY_REQUIRED"
+    },
+    "blocked_keyword": "2026年民族团结进步宣传周",
+    "errors": [],
+    "scope_audit": {
+      "total_unique": 37,
+      "exclusion_reasons": {
+        "缺少本次2026年民族团结进步宣传周的明确上下文，待核验": 7
+      }
+    },
+    "keyword_coverage": {
+      "2026年民族团结进步宣传周": "VERIFY_REQUIRED",
+      "首个民族团结进步宣传周": "NOT_SEARCHED",
+      "促进民族团结进步，奋进伟大复兴征程": "NOT_SEARCHED",
+      "民族团结进步倡议": "NOT_SEARCHED",
+      "民族团结进步宣传周主场活动": "NOT_SEARCHED",
+      "石榴花开——铸牢中华民族共同体意识": "NOT_SEARCHED"
+    }
+  },
+  "limitations": "平台公开数据源暂不提供/当前未获取：完整评论、楼中楼、IP属地、可靠完整互动量、帐号ID、粉丝量及关注量。未知值留空。",
+  "content_note": "正文列为公开搜索结果摘要，非完整文章。发布时间来自卡片时间区；缺失或不在监测范围的记录仅在工作目录审计文件中保存。",
+  "identity_note": "优先真实公众号canonical URL；否则规范化标题+帐号（可靠绝对日期用于区分重发）。回退标识可能无法区分同账号同名文章。",
+  "account_metrics_note": "相关发文量为本节点已采集有效文章数。互动汇总仅在该帐号全部已采集文章均有对应可靠指标时计算，不代表帐号全量。",
+  "csv_note": "CSV不含单元格类型；Excel请用配套XLSX，或导入CSV时将ID列指定为文本。危险公式前缀已转义。",
+  "content_export_at": "2026-09-20T19:40:31+08:00",
+  "metrics_export_at": "2026-09-20T19:40:31+08:00"
+}
