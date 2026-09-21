@@ -29,7 +29,6 @@
   </main>
   <script src="assets/echarts.min.js"></script>
   <script src="assets/data.js"></script>
-  <script src="assets/poms-live.js"></script>
   <script>
     const $=id=>document.getElementById(id);
     const fmt=n=>Number(n||0).toLocaleString("zh-CN");
@@ -40,7 +39,7 @@
       const total=Number(d.topStats?.totalOpinions||rows.reduce((s,r)=>s+Number(r.total||0),0));
       const support=rows.reduce((s,r)=>s+Number(r.support||0),0);
       const nonSupport=rows.reduce((s,r)=>s+Number(r.nonSupport||0),0);
-      const sourceLabel=d?.source?.mode==="poms-live"?"POMS 实时接口":(d?.source?.mode==="poms-snapshot"?"POMS 后端快照":(d===window.DASH_DATA?"本地 data.js（静态模式）":"/api/bootstrap"));
+      const sourceLabel=d?.source?.mode==="poms-snapshot"?"POMS 后端快照":(d===window.DASH_DATA?"本地 data.js（静态模式）":"/api/bootstrap");
       $("updated").textContent=`数据来源：${sourceLabel} · 更新时间：${d.generatedAt||"实时"}`;
       $("cards").innerHTML=[
         ["平台数量",rows.length],["平台舆情总量",total],["支持认可",support],["非正向态度",nonSupport]
@@ -54,7 +53,7 @@
     function loadDetailData(){
       if(location.protocol==="file:")return Promise.resolve(window.DASH_DATA);
       const snapshot=()=>fetch(`assets/poms-dashboard.json?t=${Date.now()}`,{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("POMS 快照 "+r.status);return r.json()});
-      if(window.POMS_LIVE)return window.POMS_LIVE.load().catch(()=>snapshot().catch(()=>window.DASH_DATA));
+      if(location.hostname.endsWith(".github.io"))return snapshot().catch(()=>window.DASH_DATA);
       return fetch("/api/bootstrap",{cache:"no-store"})
         .then(r=>{if(!r.ok)throw new Error("API "+r.status);return r.json()})
         .catch(()=>snapshot().catch(()=>window.DASH_DATA));
