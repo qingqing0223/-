@@ -1,0 +1,28 @@
+{
+  "event_id": "promotion_week_2026_0921",
+  "event_name": "2026-09-21 微信公众号09:00—17:00监测",
+  "monitoring_start_time": "2026-09-21T09:00:00+08:00",
+  "monitoring_end_time": "2026-09-21T17:00:00+08:00",
+  "wechat_mp_submission_date": "2026-09-21",
+  "wechat_mp_node_id": "wechatmp02",
+  "wechat_mp_work_root": "data/wechat_mp/2026-09-21_wechatmp02",
+  "wechat_mp_submission_root": "data_submissions/wechat_mp",
+  "wechat_mp_source": "sogou_weixin_public_search",
+  "wechat_mp_browser_channel": "chrome",
+  "wechat_mp_manual_verify_wait_seconds": -1,
+  "wechat_mp_keyword_delay_seconds": 5,
+  "wechat_mp_search_until_exhausted": true,
+  "wechat_mp_max_pages": 1000,
+  "wechat_mp_max_results_per_keyword": 100000,
+  "wechat_mp_resolve_article_urls": true,
+  "wechat_mp_interval_seconds": 300,
+  "wechat_mp_content_export_seconds": 900,
+  "wechat_mp_interaction_export_seconds": 3600,
+  "wechat_mp_key_accounts": "config/key_accounts.wechat_mp.json",
+  "keywords": [
+    "民族团结进步倡议",
+    "2026年民族宣传周主场活动",
+    "民族团结进步宣传周主题宣传片",
+    "促进民族团结进步，奋进伟大复兴征程"
+  ]
+}

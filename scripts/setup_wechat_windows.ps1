@@ -1,11 +1,29 @@
 param(
     [string]$PyWechatRoot = "",
-    [string]$LocalConfig = ".\config\monitoring.wechat.local.json"
+    [string]$LocalConfig = ".\config\monitoring.wechat.local.json",
+    [ValidateSet("wechat_mp", "wechat_channels", "all")]
+    [string]$Platform = "all"
 )
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path "$PSScriptRoot\..").Path
 Set-Location $RepoRoot
+
+if ($Platform -eq "wechat_mp") {
+    $PythonExe = if (Test-Path ".\.venv\Scripts\python.exe") { (Resolve-Path ".\.venv\Scripts\python.exe").Path } else { (Get-Command python -ErrorAction Stop).Source }
+    if (Get-Command uv -ErrorAction SilentlyContinue) {
+        uv pip install --python $PythonExe -r .\requirements-wechat-mp.txt
+    } else {
+        & $PythonExe -m pip install -r .\requirements-wechat-mp.txt
+    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    if (-not (Test-Path $LocalConfig)) {
+        Copy-Item -LiteralPath ".\config\monitoring.wechat.windows.json" -Destination $LocalConfig
+    }
+    Write-Host "WeChat MP collection setup completed. Chrome and Node.js with @oai/artifact-tool are required."
+    Write-Host "No API key or classifier is needed. Complete official verification manually when prompted."
+    exit 0
+}
 
 $drive = Split-Path -Qualifier $RepoRoot
 if (-not $drive) {

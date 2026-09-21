@@ -1,0 +1,5 @@
+{
+  "note": "Uses documented /api/v1/tables/<English table name>/batch paths and X-API-Key. Set environment variables locally; never store server IP or credentials here.",
+  "url_env": "POMS_URL",
+  "token_env": "POMS_API_KEY"
+}

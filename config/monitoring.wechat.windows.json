@@ -15,6 +15,7 @@
   "wechat_mp_max_pages": 1000,
   "wechat_mp_max_results_per_keyword": 100000,
   "wechat_mp_source": "sogou_weixin_public_search",
+  "wechat_mp_resolve_article_urls": true,
   "wechat_mp_collect_public_articles": true,
   "wechat_mp_collect_comments": false,
   "wechat_mp_collect_public_ip_region": false,
@@ -35,5 +36,11 @@
     "民族团结进步倡议",
     "民族团结进步宣传周主场活动",
     "石榴花开——铸牢中华民族共同体意识"
-  ]
+  ],
+  "wechat_mp_work_root": "data/wechat_mp",
+  "wechat_mp_submission_root": "data_submissions/wechat_mp",
+  "wechat_mp_node_id": "wechatmp01",
+  "wechat_mp_content_export_seconds": 900,
+  "wechat_mp_interaction_export_seconds": 3600,
+  "wechat_mp_key_accounts": "config/key_accounts.wechat_mp.json"
 }

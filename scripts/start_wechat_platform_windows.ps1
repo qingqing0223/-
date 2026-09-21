@@ -13,6 +13,18 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path "$PSScriptRoot\..").Path
 Set-Location $RepoRoot
 
+if ($Platform -eq "wechat_mp") {
+    if (-not $PSBoundParameters.ContainsKey("NodeId")) { $NodeId = "wechatmp01" }
+    if ($PushGithub) { throw "WeChat MP V3 collection does not support automatic GitHub publishing." }
+    if (-not (Test-Path $Config)) { $Config = ".\config\monitoring.wechat.windows.json" }
+    $PythonExe = if (Test-Path ".\.venv\Scripts\python.exe") { (Resolve-Path ".\.venv\Scripts\python.exe").Path } else { (Get-Command python -ErrorAction Stop).Source }
+    $env:PYTHONIOENCODING = "utf-8"
+    $mpArgs = @(".\run_wechat_platform.py", "--platform", "wechat_mp", "--config", $Config, "--node-id", $NodeId)
+    if ($Once) { $mpArgs += "--once" }
+    & $PythonExe @mpArgs
+    exit $LASTEXITCODE
+}
+
 if (-not $env:DASHSCOPE_API_KEY) {
     Write-Host "ERROR: DASHSCOPE_API_KEY is not set in this PowerShell session." -ForegroundColor Red
     exit 1

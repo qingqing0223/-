@@ -1,129 +1,117 @@
+"""Configuration / exported data checks, without importing the old classifier."""
 from __future__ import annotations
 
 import argparse
+import csv
+from datetime import datetime
 import json
-import os
 from pathlib import Path
-import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT))
+from wechat.mp_export import FIELDS, FILES, SHEETS, WORKBOOK
+from wechat.mp_poms import POMS_FIELDS
+from wechat.mp_records import START, assess_record, time_problem
 
-from monitor.result_summary import build_summary
-
-EXPECTED_KEYWORDS = [
-    "2026年民族团结进步宣传周",
-    "首个民族团结进步宣传周",
-    "促进民族团结进步，奋进伟大复兴征程",
-    "民族团结进步倡议",
-    "民族团结进步宣传周主场活动",
-    "石榴花开——铸牢中华民族共同体意识",
-]
+EXPECTED_KEYWORDS = ["2026年民族团结进步宣传周", "首个民族团结进步宣传周", "促进民族团结进步，奋进伟大复兴征程", "民族团结进步倡议", "民族团结进步宣传周主场活动", "石榴花开——铸牢中华民族共同体意识"]
 
 
-def _load(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8-sig"))
+def verify_export(directory: Path) -> dict:
+    from openpyxl import load_workbook  # Read-only independent verification.
+    rows = [json.loads(line) for line in (directory / "search_contents.jsonl").read_text(encoding="utf-8").splitlines() if line]
+    assert len({r["content_id"] for r in rows}) == len(rows), "duplicate IDs"
+    assert all(r.get("matched_keywords") for r in rows), "missing keywords"
+    book = load_workbook(directory / WORKBOOK, data_only=False)
+    assert book.sheetnames == ["说明与统计", *SHEETS], book.sheetnames
+    summary = json.loads((directory / "summary.json").read_text(encoding="utf-8"))
+    assert all(not time_problem(r, summary["monitoring_start_time"], summary.get("monitoring_end_time")) for r in rows), "out-of-time monitoring candidate"
+    for cell, key in (("B2", "monitoring_start_time"), ("B5", "content_export_at"), ("B6", "metrics_export_at")):
+        expected = datetime.fromisoformat(summary[key]).replace(tzinfo=None)
+        assert abs((book["说明与统计"][cell].value - expected).total_seconds()) < 0.01
+    counts = []
+    for index, (filename, fields, name) in enumerate(zip(FILES, FIELDS, SHEETS)):
+        with (directory / filename).open(encoding="utf-8-sig", newline="") as stream:
+            data = list(csv.reader(stream))
+        assert data[0] == fields, filename
+        assert all(len(r) == len(fields) for r in data), filename
+        sheet = book[name]
+        assert [sheet.cell(1, c + 1).value for c in range(len(fields))] == fields, name
+        populated = list(sheet.iter_rows(min_row=2, max_col=len(fields))) if sheet.max_row > 1 else []
+        assert len(populated) == len(data) - 1, name
+        for cells, csv_row in zip(populated, data[1:]):
+            for col, cell in enumerate(cells):
+                assert cell.data_type != "f", (name, cell.coordinate)
+                if "编号" in fields[col] or "ID" in fields[col]:
+                    assert cell.number_format == "@", (name, cell.coordinate)
+                    assert cell.value is None or isinstance(cell.value, str)
+                if csv_row[col] == "":
+                    assert cell.value is None, (name, cell.coordinate, cell.value)
+                elif "时间" in fields[col]:
+                    expected = datetime.fromisoformat(csv_row[col]).replace(tzinfo=None)
+                    assert isinstance(cell.value, datetime) and abs((cell.value - expected).total_seconds()) < 0.01, (name, cell.coordinate)
+                else:
+                    actual = str(cell.value)
+                    # Artifact Tool may preserve the explicit literal escape.
+                    assert actual == csv_row[col] or "'" + actual == csv_row[col] or actual == "'" + csv_row[col], (name, cell.coordinate, actual, csv_row[col])
+        if index in (1, 3):
+            assert len(data) == 1, "Public source should not invent comments"
+        counts.append(len(data) - 1)
+        if index == 0:
+            for csv_row, original in zip(data[1:], rows):
+                assert csv_row[0] == original["content_id"]
+                assert csv_row[3] == (original.get("author") or "")
+                assert csv_row[9] == original["publish_time"]
+                assert csv_row[10] == original["collected_at"]
+                assert json.loads(csv_row[12]) == original["matched_keywords"]
+                assessed = assess_record(original, summary["monitoring_start_time"], end=summary.get("monitoring_end_time"))
+                assert csv_row[14] == assessed["review_status"]
+                assert csv_row[15] == assessed["invalid_reason"]
+        batches = json.loads((directory / f"table{index+1}_batch.json").read_text(encoding="utf-8"))
+        assert isinstance(batches, list) and len(batches) == len(data) - 1
+        for obj, cells in zip(batches, populated):
+            assert list(obj) == POMS_FIELDS[index]
+            for field, cell in zip(POMS_FIELDS[index], cells):
+                if field.endswith("_id"):
+                    assert obj[field] is None or isinstance(obj[field], str)
+                if cell.value is None:
+                    assert obj[field] is None or obj[field] == ""
+                elif field == "matched_keywords":
+                    assert obj[field] == json.loads(cell.value)
+                elif field.startswith("is_"):
+                    assert obj[field] is {"是": True, "否": False, "待核验": None}[cell.value]
+    book.close()
+    assert counts[0] == len(rows), "JSONL / CSV row mismatch"
+    assert summary["total_candidates"] == len(rows)
+    for label, field in (("是", "valid_articles"), ("否", "invalid_articles"), ("待核验", "pending_review_articles")):
+        assert summary[field] == sum(r["review_status"] == label for r in rows)
+    return {"ok": True, "table_counts": counts, "jsonl_records": len(rows), "text_ids_and_nulls_checked": True}
 
 
-def _platform_root(cfg: dict) -> Path:
-    base = Path(cfg["data_root"])
-    return base.parent / f"{base.name}_wechat_mp"
-
-
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--config", default=str(ROOT / "config" / "monitoring.wechat.local.json"))
-    ap.add_argument("--config-only", action="store_true")
-    args = ap.parse_args()
-
-    path = Path(args.config).resolve()
-    checks = []
-
-    def add(name: str, ok: bool, detail, required: bool = True):
-        checks.append({"name": name, "ok": bool(ok), "required": bool(required), "detail": detail})
-
-    if not path.exists():
-        add("config", False, f"missing: {path}")
-        cfg = {}
-    else:
-        try:
-            cfg = _load(path)
-            add("config", True, str(path))
-        except Exception as exc:
-            cfg = {}
-            add("config", False, f"invalid json: {type(exc).__name__}: {exc}")
-
-    if cfg:
-        keywords = [str(x).strip() for x in cfg.get("keywords", []) if str(x).strip()]
-        add("six official keywords", keywords == EXPECTED_KEYWORDS, {"configured": keywords})
-        add("monitoring start", str(cfg.get("monitoring_start_time") or "") == "2026-09-16T00:00:00+08:00", cfg.get("monitoring_start_time"))
-        add("five-minute polling", int(cfg.get("wechat_mp_interval_seconds", 0) or 0) == 300, cfg.get("wechat_mp_interval_seconds"))
-        add("deep paging", bool(cfg.get("wechat_mp_search_until_exhausted", False)), cfg.get("wechat_mp_search_until_exhausted"))
-        add("page safety cap", int(cfg.get("wechat_mp_max_pages", 0) or 0) >= 1000, cfg.get("wechat_mp_max_pages"))
-        add("result safety cap", int(cfg.get("wechat_mp_max_results_per_keyword", 0) or 0) >= 100000, cfg.get("wechat_mp_max_results_per_keyword"))
-        dash = cfg.get("dashboard") or {}
-        add("dashboard configured", bool(dash.get("enabled")) and bool(dash.get("ingest_url")), dash, required=False)
-        add("DashScope API key", bool(os.environ.get("DASHSCOPE_API_KEY", "").strip()), "set" if os.environ.get("DASHSCOPE_API_KEY") else "missing")
-        add("Chrome", shutil.which("chrome") is not None or any(Path(p).exists() for p in [
-            Path(os.environ.get("ProgramFiles", "")) / "Google/Chrome/Application/chrome.exe",
-            Path(os.environ.get("LOCALAPPDATA", "")) / "Google/Chrome/Application/chrome.exe",
-        ]), "required for visible Sogou-Weixin browser")
-        try:
-            import opinion_monitor_v2  # noqa: F401
-            add("opinion_monitor_v2", True, "import ok")
-        except Exception as exc:
-            add("opinion_monitor_v2", False, f"{type(exc).__name__}: {exc}")
-
-        # These are source capability statements, not failures.
-        add("public article search", True, "supported via public Sogou-Weixin search", required=False)
-        add("article comments / nested replies", False, "not exposed by the current public Sogou-Weixin search source; do not interpret as zero comments", required=False)
-        add("public IP-region labels", False, "not exposed by the current public Sogou-Weixin search result source", required=False)
-        add("reliable complete engagement", False, "not consistently exposed by the current public search source", required=False)
-
-        if not args.config_only:
-            root = _platform_root(cfg)
-            summary = build_summary([root] if root.exists() else [], str(cfg.get("monitoring_start_time") or ""))
-            totals = summary.get("totals") or {}
-            runtime = summary.get("runtime") or []
-            payload = {
-                "schema_version": summary.get("schema_version"),
-                "data_root": str(root),
-                "latest_seen_time": summary.get("latest_seen_time"),
-                "unique_records": totals.get("unique_records", 0),
-                "public_publisher_accounts": totals.get("public_publisher_accounts", 0),
-                "keywords": summary.get("keywords") or {},
-                "attitude": summary.get("attitude") or {},
-                "v2_status": summary.get("v2_status") or {},
-                "v2_type": summary.get("v2_type") or {},
-                "source_types": summary.get("source_types") or {},
-                "languages": summary.get("languages") or {},
-                "minority_languages": summary.get("minority_languages") or {},
-                "public_account_stats": summary.get("public_account_stats") or [],
-                "runtime": runtime,
-                "limitations": {
-                    "comments_and_nested_replies": "unavailable_from_current_public_source",
-                    "public_ip_region": "unavailable_from_current_public_source",
-                    "complete_engagement_metrics": "not_reliably_available_from_current_public_source",
-                },
-            }
-        else:
-            payload = {"mode": "config-only"}
-    else:
-        payload = {}
-
-    required_failures = [x for x in checks if x["required"] and not x["ok"]]
-    result = {
-        "ok": not required_failures,
-        "platform": "wechat_mp",
-        "required_failures": len(required_failures),
-        "checks": checks,
-        "result": payload,
-    }
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default=str(ROOT / "config/monitoring.wechat.windows.json"))
+    parser.add_argument("--config-only", action="store_true")
+    parser.add_argument("--directory", type=Path)
+    args = parser.parse_args()
+    cfg = json.loads(Path(args.config).read_text(encoding="utf-8-sig"))
+    from wechat.mp_pipeline import validate_config
+    validate_config(cfg)
+    assert cfg["wechat_mp_search_until_exhausted"]
+    assert int(cfg.get("wechat_mp_content_export_seconds", 900)) > 0
+    assert int(cfg.get("wechat_mp_interaction_export_seconds", 3600)) > 0
+    catalog = Path(cfg.get("wechat_mp_key_accounts", "config/key_accounts.wechat_mp.json"))
+    assert catalog.is_file(), str(catalog)
+    result = {"ok": True, "mode": "config-only"}
+    if not args.config_only:
+        directory = args.directory
+        if directory is None:
+            candidates = sorted(Path(cfg.get("wechat_mp_submission_root", "data_submissions/wechat_mp")).glob("*_*"))
+            directory = candidates[-1] if candidates else None
+        assert directory and directory.is_dir(), "No V3 submission directory"
+        result = verify_export(directory)
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0 if result["ok"] else 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
