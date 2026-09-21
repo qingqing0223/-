@@ -200,6 +200,7 @@
   <script src="assets/echarts.min.js"></script>
   <script src="assets/china.js"></script>
   <script src="assets/data.js"></script>
+  <script src="assets/poms-live.js"></script>
   <script>
   (function(){
     "use strict";
@@ -351,6 +352,9 @@
       if(location.protocol==="file:"){
         return Promise.resolve(window.DASH_DATA);
       }
+      if(window.POMS_LIVE){
+        return window.POMS_LIVE.load().catch(loadFallbackData);
+      }
       if(location.hostname.endsWith(".github.io")){
         return loadFallbackData(new Error("POMS 快照不可用"));
       }
@@ -377,7 +381,8 @@
           buildRegionFocusRows();
           renderPhaseTag();
           renderAll();
-          if(D.source&&D.source.mode==="poms-snapshot")setLiveStatus("pending",`POMS快照 · ${D.generatedAt||""}`);
+          if(D.source&&D.source.mode==="poms-live")setLiveStatus("on",`POMS实时数据 · ${D.generatedAt||""}`);
+          else if(D.source&&D.source.mode==="poms-snapshot")setLiveStatus("pending",`POMS快照 · ${D.generatedAt||""}`);
         }).catch(()=>{});
       },600);
     }
@@ -991,7 +996,7 @@
         renderBottomCharts();
       });
       // 定期从后端重新拉取，保证“最近10分钟/当前小时新增”等实时指标跟着时间走
-      setInterval(()=>{if(!state.paused)refreshFromServer()},30000);
+      setInterval(()=>{if(!state.paused)refreshFromServer()},window.POMS_LIVE?.refreshIntervalMs||30000);
     }
     function renderPhaseTag(){
       const el=$("phaseTag");
@@ -1012,6 +1017,8 @@
       if(D.live){
         liveItems=(D.live.incidents||[]).slice(0,50);
         startLive();
+      }else if(D.source&&D.source.mode==="poms-live"){
+        setLiveStatus("on",`POMS实时数据 · ${D.generatedAt||""}`);
       }else if(D.source&&D.source.mode==="poms-snapshot"){
         setLiveStatus("pending",`POMS快照 · ${D.generatedAt||""}`);
       }else{
