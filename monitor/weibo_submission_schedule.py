@@ -12,6 +12,7 @@ from .weibo_submission_full import (
     _safe_node,
     export_weibo_submission,
 )
+from .poms_batch_sender import deliver_with_outbox
 
 
 TABLE12_KEYS = ("table1", "table2")
@@ -314,10 +315,51 @@ def run_scheduled_weibo_submission(
         now=now_dt,
     )
 
+    poms_pending_path = (
+        data_root
+        / "outbox"
+        / "weibo_poms_batch_pending.jsonl"
+    )
+    poms_payload_root = (
+        data_root
+        / "outbox"
+        / "weibo_poms_payloads"
+    )
+
+    poms_event = None
+    if publish_result.get("published_groups"):
+        poms_event = {
+            "platform": "wb",
+            "node_id": node,
+            "published_at": now_dt.isoformat(timespec="seconds"),
+            "published_groups": list(
+                publish_result.get("published_groups") or []
+            ),
+            "table_files": dict(
+                publish_result.get("table_files") or {}
+            ),
+        }
+
+    poms_delivery = deliver_with_outbox(
+        poms_event,
+        poms_pending_path,
+        poms_payload_root,
+        base_url=str(cfg.get("poms_url") or "").strip() or None,
+        api_key=str(cfg.get("poms_api_key") or "").strip() or None,
+        timeout_seconds=int(
+            cfg.get("poms_timeout_seconds", 20)
+        ),
+        batch_size=int(
+            cfg.get("poms_batch_size", 50)
+        ),
+    )
+
     return {
         **stage_result,
         **publish_result,
         "accepted_rows": int(stage_result.get("accepted_rows") or 0),
+        "poms_delivery": poms_delivery,
+        "poms_pending_outbox": str(poms_pending_path),
         "stage_output_dir": stage_result["output_dir"],
         "stage_manifest": stage_result["manifest"],
         "stage_excel": stage_result["excel"],
