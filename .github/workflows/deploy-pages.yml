@@ -26,6 +26,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      POMS_URL: ${{ secrets.POMS_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,13 +38,11 @@ jobs:
           python-version: "3.12"
 
       - name: Refresh POMS dashboard snapshot
-        if: ${{ secrets.POMS_URL != '' }}
-        env:
-          POMS_URL: ${{ secrets.POMS_URL }}
+        if: ${{ env.POMS_URL != '' }}
         run: python scripts/sync_poms_dashboard.py
 
       - name: Explain static fallback
-        if: ${{ secrets.POMS_URL == '' }}
+        if: ${{ env.POMS_URL == '' }}
         run: echo "POMS_URL is not configured; deploying the repository snapshot only."
 
       - name: Configure Pages
