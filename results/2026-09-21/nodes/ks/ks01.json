@@ -6,10 +6,10 @@
   "results_date": "2026-09-21",
   "node_id": "ks01",
   "platform": "ks",
-  "generated_at": "2026-09-21T09:55:45+08:00",
+  "generated_at": "2026-09-21T10:00:52+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "4ed4b70559842fc7cc94b4e1115d6295ee5c3595",
+    "repo_head": "d5c76d569e6f4de745f9da7789f3704d6a1307c2",
     "repo_branch": "kuaishou-v3-xuanqi",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,15 +21,15 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-21T09:55:45+08:00",
+    "generated_at": "2026-09-21T10:00:52+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-21T09:43:00+08:00",
+    "latest_seen_time": "2026-09-21T09:58:04+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 199,
+      "unique_records": 214,
       "filtered_before_start_from_existing_output": 0,
-      "region_records": 28,
-      "region_coverage_rate": 0.1407,
+      "region_records": 31,
+      "region_coverage_rate": 0.1449,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 66,
@@ -40,40 +40,40 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 56,
-      "public_publisher_accounts": 86,
-      "likes": 369,
+      "public_publisher_accounts": 91,
+      "likes": 388,
       "comments": 0,
       "shares": 0,
-      "views": 92897,
+      "views": 120509,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "ks": 199
+      "ks": 214
     },
     "platform_attitude": {
       "ks": {
-        "neutral": 126,
-        "support": 71,
+        "neutral": 135,
+        "support": 77,
         "attention": 2
       }
     },
     "platform_tri_class": {
       "ks": {
-        "neutral": 128,
-        "support": 71
+        "neutral": 137,
+        "support": 77
       }
     },
     "languages": {
-      "汉语": 192,
+      "汉语": 207,
       "未知": 7
     },
     "minority_languages": {},
     "regions": {
-      "内蒙古": 7,
+      "内蒙古": 8,
+      "重庆": 6,
       "海南": 4,
-      "重庆": 4,
       "西藏": 3,
       "新疆": 3,
       "宁夏": 3,
@@ -83,9 +83,9 @@
       "北京": 1
     },
     "content_regions": {
-      "内蒙古": 7,
+      "内蒙古": 8,
+      "重庆": 6,
       "海南": 4,
-      "重庆": 4,
       "西藏": 3,
       "新疆": 3,
       "宁夏": 3,
@@ -96,23 +96,23 @@
     },
     "comment_regions": {},
     "v2_status": {
-      "attention": 128,
-      "normal": 71
+      "attention": 137,
+      "normal": 77
     },
     "v2_type": {
-      "neutral": 126,
-      "support": 71,
+      "neutral": 135,
+      "support": 77,
       "information_gap": 1,
       "consultation": 1
     },
     "attitude": {
-      "neutral": 126,
-      "support": 71,
+      "neutral": 135,
+      "support": 77,
       "attention": 2
     },
     "tri_class": {
-      "neutral": 128,
-      "support": 71
+      "neutral": 137,
+      "support": 77
     },
     "comment_v2_status": {
       "normal": 52,
@@ -134,25 +134,25 @@
       "neutral": 14
     },
     "source_types": {
-      "普通用户舆情": 115,
-      "权威媒体/新闻评论": 70,
+      "普通用户舆情": 129,
+      "权威媒体/新闻评论": 71,
       "自媒体观点": 9,
       "二创/剪辑解读": 5
     },
     "record_types": {
-      "video": 133,
+      "video": 148,
       "comment": 66
     },
     "keywords": {
-      "2026年民族团结进步宣传周": 52,
-      "首个民族团结进步宣传周": 24,
-      "促进民族团结进步，奋进伟大复兴征程": 19,
-      "民族团结进步宣传周主场活动": 12,
-      "民族团结进步倡议": 10,
+      "2026年民族团结进步宣传周": 53,
+      "首个民族团结进步宣传周": 26,
+      "促进民族团结进步，奋进伟大复兴征程": 25,
+      "民族团结进步宣传周主场活动": 13,
+      "民族团结进步倡议": 12,
       "石榴花开——铸牢中华民族共同体意识": 4
     },
     "video_analysis": {
-      "video_records": 133,
+      "video_records": 148,
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,
@@ -252,6 +252,73 @@
         }
       },
       {
+        "account": "临***媒",
+        "platforms": {
+          "ks": 3
+        },
+        "records": 3,
+        "posts": 0,
+        "videos": 3,
+        "attitude": {
+          "neutral": 3
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 620,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "临***布",
+        "platforms": {
+          "ks": 3
+        },
+        "records": 3,
+        "posts": 0,
+        "videos": 3,
+        "attitude": {
+          "neutral": 3
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 10689,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "会***媒",
+        "platforms": {
+          "ks": 3
+        },
+        "records": 3,
+        "posts": 0,
+        "videos": 3,
+        "attitude": {
+          "neutral": 2,
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 25292,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "内***报",
         "platforms": {
           "ks": 3
@@ -295,6 +362,29 @@
           "comments": 0,
           "shares": 0,
           "views": 182,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "北***闻",
+        "platforms": {
+          "ks": 3
+        },
+        "records": 3,
+        "posts": 0,
+        "videos": 3,
+        "attitude": {
+          "neutral": 2,
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 840,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -441,50 +531,6 @@
         }
       },
       {
-        "account": "临***媒",
-        "platforms": {
-          "ks": 2
-        },
-        "records": 2,
-        "posts": 0,
-        "videos": 2,
-        "attitude": {
-          "neutral": 2
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 611,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "临***布",
-        "platforms": {
-          "ks": 2
-        },
-        "records": 2,
-        "posts": 0,
-        "videos": 2,
-        "attitude": {
-          "neutral": 2
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 4904,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
         "account": "临***心",
         "platforms": {
           "ks": 2
@@ -496,7 +542,7 @@
           "neutral": 2
         },
         "regions": {
-          "内蒙古": 1
+          "内蒙古": 2
         },
         "engagement": {
           "likes": 0,
@@ -554,51 +600,6 @@
         }
       },
       {
-        "account": "会***媒",
-        "platforms": {
-          "ks": 2
-        },
-        "records": 2,
-        "posts": 0,
-        "videos": 2,
-        "attitude": {
-          "neutral": 2
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 13713,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "北***闻",
-        "platforms": {
-          "ks": 2
-        },
-        "records": 2,
-        "posts": 0,
-        "videos": 2,
-        "attitude": {
-          "neutral": 1,
-          "support": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 398,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
         "account": "天***心",
         "platforms": {
           "ks": 2
@@ -615,6 +616,51 @@
           "comments": 0,
           "shares": 0,
           "views": 380,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "宁***察",
+        "platforms": {
+          "ks": 2
+        },
+        "records": 2,
+        "posts": 0,
+        "videos": 2,
+        "attitude": {
+          "neutral": 1,
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 7399,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "岭***安",
+        "platforms": {
+          "ks": 2
+        },
+        "records": 2,
+        "posts": 0,
+        "videos": 2,
+        "attitude": {
+          "neutral": 2
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 214,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -659,6 +705,50 @@
           "comments": 0,
           "shares": 0,
           "views": 309,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "扎***媒",
+        "platforms": {
+          "ks": 2
+        },
+        "records": 2,
+        "posts": 0,
+        "videos": 2,
+        "attitude": {
+          "neutral": 2
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 378,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "掌***旗",
+        "platforms": {
+          "ks": 2
+        },
+        "records": 2,
+        "posts": 0,
+        "videos": 2,
+        "attitude": {
+          "neutral": 2
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 4,
+          "comments": 0,
+          "shares": 0,
+          "views": 336,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -726,6 +816,30 @@
           "comments": 0,
           "shares": 0,
           "views": 53,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "渝***团",
+        "platforms": {
+          "ks": 2
+        },
+        "records": 2,
+        "posts": 0,
+        "videos": 2,
+        "attitude": {
+          "neutral": 2
+        },
+        "regions": {
+          "重庆": 2
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 24,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -844,6 +958,29 @@
         }
       },
       {
+        "account": "靖***媒",
+        "platforms": {
+          "ks": 2
+        },
+        "records": 2,
+        "posts": 0,
+        "videos": 2,
+        "attitude": {
+          "neutral": 1,
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 4404,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "C***峰",
         "platforms": {
           "ks": 1
@@ -956,6 +1093,28 @@
         }
       },
       {
+        "account": "包***号",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 2605,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "华***线",
         "platforms": {
           "ks": 1
@@ -972,6 +1131,28 @@
           "comments": 0,
           "shares": 0,
           "views": 236,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "印***东",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "neutral": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 351,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -1044,28 +1225,6 @@
         }
       },
       {
-        "account": "宁***察",
-        "platforms": {
-          "ks": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 4715,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
         "account": "宁***心",
         "platforms": {
           "ks": 1
@@ -1110,7 +1269,7 @@
         }
       },
       {
-        "account": "岭***安",
+        "account": "巴***体",
         "platforms": {
           "ks": 1
         },
@@ -1122,10 +1281,10 @@
         },
         "regions": {},
         "engagement": {
-          "likes": 0,
+          "likes": 15,
           "comments": 0,
           "shares": 0,
-          "views": 125,
+          "views": 1021,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -1198,7 +1357,7 @@
         }
       },
       {
-        "account": "扎***媒",
+        "account": "无***西",
         "platforms": {
           "ks": 1
         },
@@ -1206,36 +1365,14 @@
         "posts": 0,
         "videos": 1,
         "attitude": {
-          "neutral": 1
+          "support": 1
         },
         "regions": {},
         "engagement": {
           "likes": 0,
           "comments": 0,
           "shares": 0,
-          "views": 68,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "掌***旗",
-        "platforms": {
-          "ks": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 74,
+          "views": 91,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -1460,30 +1597,6 @@
           "comments": 0,
           "shares": 0,
           "views": 14,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "渝***团",
-        "platforms": {
-          "ks": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {
-          "重庆": 1
-        },
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 7,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -1872,6 +1985,30 @@
         }
       },
       {
+        "account": "重***场",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "support": 1
+        },
+        "regions": {
+          "重庆": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 47,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "重***观",
         "platforms": {
           "ks": 1
@@ -2054,28 +2191,6 @@
         }
       },
       {
-        "account": "靖***媒",
-        "platforms": {
-          "ks": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "neutral": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 2084,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
         "account": "风***号",
         "platforms": {
           "ks": 1
@@ -2098,27 +2213,27 @@
         }
       }
     ],
-    "public_account_stats_total": 86,
+    "public_account_stats_total": 91,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_ks",
-        "cycle_finished_at": "2026-09-21T09:44:29+08:00",
+        "cycle_finished_at": "2026-09-21T09:58:57+08:00",
         "crawler_status": "ok",
-        "crawler_state": "SUCCESS",
+        "crawler_state": "SUCCESS_NO_COMMENTS",
         "return_code": 0,
-        "duration_seconds": 168.47,
-        "new_records": 57,
+        "duration_seconds": 172.16,
+        "new_records": 15,
         "filtered_before_start": 19,
-        "classified_records": 57,
+        "classified_records": 15,
         "ingest_comments": true,
-        "input_file_count": 3,
-        "comment_input_file_count": 1,
-        "region_records": 9,
-        "region_rate": 0.1579,
+        "input_file_count": 2,
+        "comment_input_file_count": 0,
+        "region_records": 2,
+        "region_rate": 0.1333,
         "minority_language_records": 0,
         "language_counts": {
-          "汉语": 57
+          "汉语": 15
         },
         "dashboard_ok": null,
         "dashboard_sent": 0,
@@ -2285,6 +2400,33 @@
       "comments": 0,
       "shares": 0,
       "views": 147,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "06c39cb3674e29dfa9c5",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "normal",
+      "type": "support",
+      "attitude": "support",
+      "tri_class": "support",
+      "source_type": "普通用户舆情",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "da84a04f2a6c961cd87f",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 2320,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -2940,6 +3082,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "25f3ba98f2839e071899",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "权威媒体/新闻评论",
+      "keyword": "首个民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "fb94a6e50130e08d1268",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 310,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "260e826c766fcf381e18",
       "record_type": "video",
       "region": "内蒙古",
@@ -3264,6 +3433,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "3125c4f175382e4c4cf8",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "普通用户舆情",
+      "keyword": "",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "ae34d4ea74eee7cb4bb1",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 9,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "31adbe354e7ab565102b",
       "record_type": "comment",
       "region": "",
@@ -3284,6 +3480,33 @@
       "comments": 0,
       "shares": 0,
       "views": 0,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "31eb34898f2fae330360",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "普通用户舆情",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "679f0e9dcb4194cde99e",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 89,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -3527,6 +3750,33 @@
       "comments": 0,
       "shares": 0,
       "views": 75,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "442dcdbeac38b0cfce60",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "普通用户舆情",
+      "keyword": "",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "9cb035045b3256aaf702",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 4,
+      "comments": 0,
+      "shares": 0,
+      "views": 262,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -4182,6 +4432,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "6230d1f994ff20b875d6",
+      "record_type": "video",
+      "region": "重庆",
+      "language": "汉语",
+      "status": "normal",
+      "type": "support",
+      "attitude": "support",
+      "tri_class": "support",
+      "source_type": "普通用户舆情",
+      "keyword": "民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "2faa3b35108f86c821f7",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 47,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "6329f4c880832e8d018b",
       "record_type": "comment",
       "region": "",
@@ -4452,6 +4729,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "704270861ed89f1d2c25",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "普通用户舆情",
+      "keyword": "",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "1fdfd14690b9b1186f93",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 15,
+      "comments": 0,
+      "shares": 0,
+      "views": 1021,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "70a416330da7562e2190",
       "record_type": "comment",
       "region": "",
@@ -4668,6 +4972,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "78abe9ab47184c361e4e",
+      "record_type": "video",
+      "region": "重庆",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "普通用户舆情",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "7e85de84a529e838b770",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 17,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "7a5ac049d6bdb9aaeba7",
       "record_type": "video",
       "region": "",
@@ -4859,7 +5190,7 @@
     {
       "record_hash": "83c268749e96f48b29ad",
       "record_type": "video",
-      "region": "",
+      "region": "内蒙古",
       "language": "汉语",
       "status": "attention",
       "type": "neutral",
@@ -5127,6 +5458,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "8ab0eb0878b80bf71f95",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "普通用户舆情",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "646d4357b83f218e02bc",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 351,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "8ad03e03b436ef83ae95",
       "record_type": "video",
       "region": "",
@@ -5309,6 +5667,33 @@
       "comments": 0,
       "shares": 0,
       "views": 679,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "90fa4e59c914e0bd53cd",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "normal",
+      "type": "support",
+      "attitude": "support",
+      "tri_class": "support",
+      "source_type": "普通用户舆情",
+      "keyword": "2026年民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "00cb57df5bf2003bc478",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 2684,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -5579,6 +5964,33 @@
       "comments": 0,
       "shares": 0,
       "views": 76,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "982bc64f4cfb2ac72ee3",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "普通用户舆情",
+      "keyword": "首个民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "cda49db631a031a3d482",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 442,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -6011,6 +6423,33 @@
       "comments": 0,
       "shares": 0,
       "views": 0,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "b0de99413b593be12ff8",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "normal",
+      "type": "support",
+      "attitude": "support",
+      "tri_class": "support",
+      "source_type": "普通用户舆情",
+      "keyword": "民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "a537beed96ba3e5ea61a",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 91,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -6477,6 +6916,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "c5100f416455a5754a29",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "normal",
+      "type": "support",
+      "attitude": "support",
+      "tri_class": "support",
+      "source_type": "普通用户舆情",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "03a0b044277a486ce779",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 2605,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "c7f258b5b9ef4c10f10a",
       "record_type": "video",
       "region": "",
@@ -6578,6 +7044,33 @@
       "comments": 0,
       "shares": 0,
       "views": 0,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "cd2e9a615909a53ccaa1",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "normal",
+      "type": "support",
+      "attitude": "support",
+      "tri_class": "support",
+      "source_type": "普通用户舆情",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "0331b6d4db9dc89fcf10",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 11579,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -6983,6 +7476,33 @@
       "comments": 0,
       "shares": 0,
       "views": 272,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "e4138c22ef51c8e99c53",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "attention",
+      "type": "neutral",
+      "attitude": "attention",
+      "tri_class": "neutral",
+      "source_type": "普通用户舆情",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "ceb9563164007685cb1f",
+      "latest_seen_time": "2026-09-21T09:58:04+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 5785,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -7511,13 +8031,303 @@
       "data_root": "E:\\MediaCrawlerData\\2026-09-16_promotion_week_ks",
       "jsonl_files": [
         {
+          "kind": "comment",
+          "name": "detail_comments_2026-09-21.jsonl",
+          "relative_path": "raw_runs/20260921_095511/ks_20260921_095511/kuaishou/jsonl/detail_comments_2026-09-21.jsonl",
+          "bytes": 621,
+          "rows": 2,
+          "sha256": "643ac4cce485a368b6e80ac5baeef1f2f6ef3ecb7004ed8cdb42a5c5326792cd",
+          "modified_at": "2026-09-21T09:58:04+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "parent_comment_id",
+                "root_comment_id",
+                "sub_comment_count",
+                "video_id"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "video_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "parent_comment_id": "str",
+                "root_comment_id": "str",
+                "last_modify_ts": "int",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "e6814e51ed95078d6737",
+                "video_id": "70b442f264af541944bb"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1789736472121,
+                "last_modify_ts": 1789955884908
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_id",
+                "content",
+                "create_time",
+                "creator_hash",
+                "ip_location",
+                "last_modify_ts",
+                "nickname",
+                "parent_comment_id",
+                "root_comment_id",
+                "sub_comment_count",
+                "video_id"
+              ],
+              "field_types": {
+                "comment_id": "str",
+                "create_time": "int",
+                "video_id": "str",
+                "content": "str",
+                "creator_hash": "str",
+                "nickname": "str",
+                "sub_comment_count": "str",
+                "parent_comment_id": "str",
+                "root_comment_id": "str",
+                "last_modify_ts": "int",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "comment_id": "69b829a01386915dcd8a",
+                "video_id": "70b442f264af541944bb"
+              },
+              "safe_values": {
+                "sub_comment_count": "0",
+                "create_time": 1789729170725,
+                "last_modify_ts": 1789955884909
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
+          "kind": "content",
+          "name": "detail_contents_2026-09-21.jsonl",
+          "relative_path": "raw_runs/20260921_095511/ks_20260921_095511/kuaishou/jsonl/detail_contents_2026-09-21.jsonl",
+          "bytes": 5830,
+          "rows": 4,
+          "sha256": "f083d1a9ce772ba50f2f643019691eb8c146c06bc206c974cb15cb12e0f51a04",
+          "modified_at": "2026-09-21T09:57:59+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "video_id": "f981a91fb98dd38570e2"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "0",
+                "create_time": 1789911595162,
+                "last_modify_ts": 1789955785828
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "video_id": "f03778464ada4630c116"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "4",
+                "create_time": 1789897640560,
+                "last_modify_ts": 1789955818475
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "video_id": "8f619f11e1081494828b"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "15",
+                "create_time": 1789745021695,
+                "last_modify_ts": 1789955849880
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str"
+              },
+              "stable_id_hashes": {
+                "video_id": "70b442f264af541944bb"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "37",
+                "create_time": 1789727920490,
+                "last_modify_ts": 1789955879759
+              },
+              "nested_fields": {}
+            }
+          ]
+        },
+        {
           "kind": "content",
           "name": "search_contents_2026-09-21.jsonl",
           "relative_path": "raw_runs/20260921_095511/ks_20260921_095511/kuaishou/jsonl/search_contents_2026-09-21.jsonl",
-          "bytes": 67302,
-          "rows": 60,
-          "sha256": "6d4818ad3538884dc7e916911cd6a5fd60c7a688aa8cd0a206efc37ce79b2186",
-          "modified_at": "2026-09-21T09:55:42+08:00",
+          "bytes": 133281,
+          "rows": 120,
+          "sha256": "14c0cd81ba54cce2e77806055f5c9f9e7bccad49c21c37a9a35f0c1082cad171",
+          "modified_at": "2026-09-21T09:55:59+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -7772,14 +8582,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260921_095511/ks_20260921_095511/stderr.log",
-          "bytes": 25208,
-          "sha256": "282079cdc6e7673bc80d1b3a9a1def0ba257b6f23ce4720bff5ea9bbe1421a37"
+          "bytes": 68338,
+          "sha256": "53f1a7cfc40212d1845d03b63d4c0780d50924b76f2b0095bd70508b54e8e668"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260921_095511/ks_20260921_095511/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 601,
+          "sha256": "709fb5151c4049f940663efafa03a5defda4ac6343499534fe31a71a031dd2fe"
         }
       ]
     }
