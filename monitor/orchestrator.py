@@ -60,14 +60,15 @@ def run_one_cycle(cfg: dict) -> dict:
                 str(cfg.get("submission_node_id") or "zhihu01"),
             )
         elif run.platform == "wb" and files:
-            from .weibo_submission_full import export_weibo_submission
+            from .weibo_submission_schedule import run_scheduled_weibo_submission
 
-            export = export_weibo_submission(
+            export = run_scheduled_weibo_submission(
                 files,
                 cfg,
                 ROOT,
                 str(cfg.get("wb_submission_node_id") or "wb01"),
                 raw_root=Path(run.output_dir),
+                now=cycle_started_dt,
             )
         else:
             export = None
