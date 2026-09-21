@@ -1,10 +1,13 @@
 name: Deploy dashboard to GitHub Pages
 
 on:
+  schedule:
+    - cron: "*/5 * * * *"
   push:
     branches: [main]
     paths:
       - "yuqing-v1/03_live_system/web/**"
+      - "scripts/sync_poms_dashboard.py"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -26,6 +29,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh POMS dashboard snapshot
+        if: ${{ secrets.POMS_URL != '' }}
+        env:
+          POMS_URL: ${{ secrets.POMS_URL }}
+        run: python scripts/sync_poms_dashboard.py
+
+      - name: Explain static fallback
+        if: ${{ secrets.POMS_URL == '' }}
+        run: echo "POMS_URL is not configured; deploying the repository snapshot only."
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

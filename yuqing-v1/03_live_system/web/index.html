@@ -333,17 +333,30 @@
     const state={regionIndex:0,platformIndex:0,timelineIndex:0,timelineMode:"hour",attitudeMode:"support",regionFeedIndex:0,platformFeedIndex:0,riskFeedIndex:0,contentFeedIndex:0,paused:false};
     let charts={};
     let regionFocusRows=[];
+    const POMS_SNAPSHOT_URL="assets/poms-dashboard.json";
+
+    function loadPomsSnapshot(){
+      return fetch(`${POMS_SNAPSHOT_URL}?t=${Date.now()}`,{cache:"no-store"})
+        .then(r=>{if(!r.ok)throw new Error("POMS 快照 "+r.status);return r.json()});
+    }
+
+    function loadFallbackData(originalError){
+      return loadPomsSnapshot().catch(()=>{
+        if(window.DASH_DATA)return window.DASH_DATA;
+        throw originalError;
+      });
+    }
 
     function loadDashboardData(){
       if(location.protocol==="file:"){
         return Promise.resolve(window.DASH_DATA);
       }
+      if(location.hostname.endsWith(".github.io")){
+        return loadFallbackData(new Error("POMS 快照不可用"));
+      }
       return fetch("/api/bootstrap",{cache:"no-store"})
         .then(r=>{if(!r.ok)throw new Error("API "+r.status);return r.json()})
-        .catch(error=>{
-          if(window.DASH_DATA)return window.DASH_DATA;
-          throw error;
-        });
+        .catch(loadFallbackData);
     }
     let liveItems=[];
     let refreshTimer=null;
@@ -357,12 +370,14 @@
       if(refreshTimer)return;
       refreshTimer=setTimeout(()=>{
         refreshTimer=null;
-        fetch("/api/bootstrap",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(data=>{
+        loadDashboardData().then(data=>{
           if(!data)return;
           D=data;
           liveItems=(data.live&&data.live.incidents||[]).slice(0,50);
+          buildRegionFocusRows();
           renderPhaseTag();
           renderAll();
+          if(D.source&&D.source.mode==="poms-snapshot")setLiveStatus("pending",`POMS快照 · ${D.generatedAt||""}`);
         }).catch(()=>{});
       },600);
     }
@@ -448,9 +463,12 @@
       const byName=new Map((D.focusRegions||[]).map(r=>[String(r.name||""),r]));
       regionFocusRows=FOCUS_REGIONS.map(spec=>{
         const r=byName.get(spec.name)||{};
+        const provinceRows=(D.provinces||[]).filter(item=>spec.provinces.includes(normalizeProvince(item.name||item.short)));
+        const derivedTotal=provinceRows.reduce((sum,item)=>sum+Number(item.value??item.total??0),0);
+        const derivedSupport=provinceRows.reduce((sum,item)=>sum+Number(item.support??0),0);
         return {
           name:spec.name,full:r.full||spec.name,provinces:spec.provinces,
-          total:Number(r.total||0),hour:Number(r.hour||0),support:Number(r.support||0),neutral:Number(r.neutral||0),nonSupport:Number(r.nonSupport||0),
+          total:Number(r.total??derivedTotal),hour:Number(r.hour||0),support:Number(r.support??derivedSupport),neutral:Number(r.neutral||0),nonSupport:Number(r.nonSupport||0),
           qa:Number(r.qa||0),worry:Number(r.worry||0),criticism:Number(r.criticism||0),complaint:Number(r.complaint||0),
           implement:Number(r.implement||0),fairness:Number(r.fairness||0),discrimination:Number(r.discrimination||0),
           other:Number(r.other||0),topPlatform:String(r.topPlatform||""),latest:String(r.latest||"")
@@ -475,7 +493,14 @@
     function platformRows(){
       const src=D.platformDetail;
       if(Array.isArray(src)&&src.length){
-        const by=new Map(src.map(r=>[String(r.name||""),r]));
+        const by=new Map();
+        src.forEach(r=>{
+          const name=canonicalPlatformName(r.name)||String(r.name||"");
+          const old=by.get(name)||{name,total:0,hour:0,support:0,neutral:0,nonSupport:0,likes:0,share:0};
+          old.total+=Number(r.total||0);old.hour+=Number(r.hour||0);old.support+=Number(r.support||0);old.neutral+=Number(r.neutral||0);
+          old.nonSupport+=Number(r.nonSupport||0);old.likes+=Number(r.likes||0);old.share+=Number(r.share||0);
+          by.set(name,old);
+        });
         return PLATFORM_ORDER.map(name=>{
           const r=by.get(name)||{};
           return {
@@ -987,6 +1012,8 @@
       if(D.live){
         liveItems=(D.live.incidents||[]).slice(0,50);
         startLive();
+      }else if(D.source&&D.source.mode==="poms-snapshot"){
+        setLiveStatus("pending",`POMS快照 · ${D.generatedAt||""}`);
       }else{
         setLiveStatus("off","离线模式（静态数据）");
       }

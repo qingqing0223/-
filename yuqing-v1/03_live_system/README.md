@@ -67,6 +67,12 @@ export DASHSCOPE_API_KEY="你的 DashScope API Key"
 
 更新静态数据：运行 `run_pipeline.sh`（或 `build_data.py --atomic`），会重新生成 `web/assets/data.js` 和 `web/assets/china.js`；推送 `main` 后 GitHub Pages 自动重新部署。
 
+### POMS 后端快照同步（GitHub Pages）
+
+当大屏发布在 GitHub Pages 时，浏览器不能直接读取仅提供 HTTP 的 POMS 服务。Pages 工作流每 5 分钟在服务端读取 POMS 的表6—表13，执行 `scripts/sync_poms_dashboard.py`，生成同域的 `web/assets/poms-dashboard.json`；页面每 30 秒检查一次该快照。
+
+在仓库 **Settings → Secrets and variables → Actions** 中创建 `POMS_URL` Repository secret，值为后端组提供的服务根地址。大屏只调用 GET 接口，不需要也绝不能配置 API Key。若该 Secret 未配置，工作流仍会发布仓库中的最近快照，但不会从 POMS 刷新数据。
+
 ### 预热阶段口径（2026 民族团结进步宣传周）
 
 `phase.json` 设定大屏只统计 `stats_start`（默认 `2026-09-16T00:00:00`）之后**实际入库**的数据，第一阶段历史基线与之前的测试数据保留在库中但不参与展示；顶部 KPI、右上 9 个平台独立分布、固定 10 个重点地区、按小时趋势、重点账号面板都取自同一批入库记录。
