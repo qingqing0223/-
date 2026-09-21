@@ -50,18 +50,31 @@ def run_one_cycle(cfg: dict) -> dict:
     for run in runs:
         files = find_ingest_jsonl(Path(run.output_dir), include_comments=include_comments)
 
-        # The collection group owns only tables 1-5 for Zhihu.  Export those
-        # rows before any analysis-stage classifier is considered.
+        # The collection group owns Tables 1-5 only. Export them before
+        # any analysis-stage classifier is considered.
         if run.platform == "zhihu" and files:
             export = export_zhihu_submission(
-                files, cfg, ROOT, str(cfg.get("submission_node_id") or "zhihu01")
+                files,
+                cfg,
+                ROOT,
+                str(cfg.get("submission_node_id") or "zhihu01"),
+            )
+        elif run.platform == "wb" and files:
+            from .weibo_submission_full import export_weibo_submission
+
+            export = export_weibo_submission(
+                files,
+                cfg,
+                ROOT,
+                str(cfg.get("wb_submission_node_id") or "wb01"),
+                raw_root=Path(run.output_dir),
             )
         else:
             export = None
 
         if export is not None:
             ingests.append({
-                "platform": "zhihu",
+                "platform": run.platform,
                 "monitoring_start_time": monitoring_start_time,
                 "new_records": export["accepted_rows"],
                 "classified_records": 0,

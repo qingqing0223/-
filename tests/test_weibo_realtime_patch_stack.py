@@ -21,6 +21,12 @@ class WeiboRealtimePatchStackTest(unittest.TestCase):
         self.assertIn("PROMOTION_WEEK_WB_COMMENT_HIERARCHY_V2", text)
         self.assertIn('["parent_comment_id"] = ""', text)
         self.assertIn('["root_comment_id"]', text)
+        self.assertIn('body = payload.get("data")', text)
+        self.assertIn('isinstance(body, dict)', text)
+        self.assertIn('next_max_id = body.get(', text)
+        self.assertIn('next_max_id_type = body.get(', text)
+        self.assertNotIn("WB_CHILD_DEBUG", text)
+        self.assertNotIn("WB_ROOT_DEBUG", text)
 
     def test_public_region_contract(self):
         text = (ROOT / "scripts" / "patch_weibo_public_regions.py").read_text(encoding="utf-8")
