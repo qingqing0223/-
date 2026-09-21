@@ -15,13 +15,14 @@ import tempfile
 import urllib.error
 import urllib.request
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "yuqing-v1/03_live_system/web/assets/poms-dashboard.json"
+CHINA_TIMEZONE = timezone(timedelta(hours=8))
 
 TABLE_PATHS = {
     "platforms": "overall_and_platform_distribution_statistics",
@@ -48,7 +49,7 @@ def text(value: Any) -> str:
 
 
 def iso_now() -> str:
-    return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    return datetime.now(CHINA_TIMEZONE).isoformat(timespec="seconds")
 
 
 def fetch_rows(base_url: str, path: str, timeout: int) -> list[dict[str, Any]]:
