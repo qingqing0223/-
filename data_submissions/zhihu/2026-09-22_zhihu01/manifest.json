@@ -1,0 +1,34 @@
+{
+  "platform": "zhihu",
+  "node_id": "zhihu01",
+  "generated_at": "2026-09-22T01:34:34+08:00",
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "keywords": [
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "促进民族团结进步，奋进伟大复兴征程",
+    "民族团结进步倡议",
+    "民族团结进步宣传周主场活动",
+    "石榴花开——铸牢中华民族共同体意识"
+  ],
+  "accepted_rows": 6,
+  "excluded_rows": 1031,
+  "exclusion_reasons": {
+    "发布时间早于正式监测起点": 949,
+    "标题/正文未命中完整正式主题关键词": 82
+  },
+  "content_rows_seen_this_cycle": 6,
+  "comment_rows_seen_this_cycle": 0,
+  "table1_new_rows": 0,
+  "table2_new_rows": 0,
+  "hourly_snapshot_due": true,
+  "hourly_snapshot_bucket": "2026-09-22T01:00:00+08:00",
+  "table3_snapshot_rows_added": 4,
+  "table4_snapshot_rows_added": 0,
+  "table5_accounts_changed": 3,
+  "last_hourly_snapshot_bucket": "2026-09-22T01:00:00+08:00",
+  "table12_update_policy_seconds": 900,
+  "table345_update_policy_seconds": 3600,
+  "classification": "not_run_collection_group_scope_only",
+  "output_directory_contract": "data_submissions/zhihu/YYYY-MM-DD_<node_id>/"
+}

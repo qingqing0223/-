@@ -124,7 +124,7 @@ def _nonzero_id(value) -> str:
 def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") -> dict | None:
     title = _first(raw, "title", "note_title", "video_title")
     desc = _first(raw, "desc", "description", "aweme_desc")
-    body = _first(raw, "content", "text", "note_text", "content_text", "comment_text", "message")
+    body = _first(raw, "content_text", "content", "text", "note_text", "comment_text", "message")
     tags = _tag_text(raw)
 
     asr_text = _first(raw, "asr_text", "transcript_text", "speech_text")

@@ -86,12 +86,31 @@ def _normalize_topic_text(value: str) -> str:
 
 
 def _matched_keywords(record: dict, keywords: list[str]) -> list[str]:
-    visible = "\n".join((str(record.get("content") or ""), str(record.get("context") or "")))
+    visible = "\n".join(
+        (
+            str(record.get("content") or ""),
+            str(record.get("context") or ""),
+        )
+    )
     normalized = _normalize_topic_text(visible)
-    return list(dict.fromkeys(
-        kw for kw in keywords if _normalize_topic_text(kw) in normalized
-    ))
 
+    source_keyword = _normalize_topic_text(
+        str(record.get("source_keyword") or "")
+    )
+
+    matched = [
+        kw for kw in keywords
+        if _normalize_topic_text(kw) in normalized
+    ]
+
+    # 知乎搜索结果明确记录了命中的正式搜索关键词，
+    # 即使正文没有逐字出现该关键词，也保留该关键词作为命中依据。
+    if not matched and source_keyword:
+        for kw in keywords:
+            if _normalize_topic_text(kw) == source_keyword:
+                matched.append(kw)
+
+    return list(dict.fromkeys(matched))
 
 def _in_scope(
     record: dict,
