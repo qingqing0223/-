@@ -2,7 +2,7 @@
   "schema_version": 2,
   "platform": "xhs",
   "results_date": "2026-09-22",
-  "generated_at": "2026-09-22T14:42:32+00:00",
+  "generated_at": "2026-09-22T14:47:27+00:00",
   "aggregation_mode": "exact_cross_node_dedupe",
   "aggregation_note": "Exact cross-node totals are used only when every count-bearing node publishes privacy-safe record fingerprints. Until then, the largest complete node snapshot is the conservative reporting total so overlapping nodes are never blindly summed.",
   "authoritative_node_id": "xhs01",
@@ -10,37 +10,37 @@
   "node_count": 1,
   "diagnostic_node_count": 0,
   "all_counting_nodes_have_fingerprints": true,
-  "fingerprint_union_records": 22,
-  "known_unique_lower_bound": 22,
-  "naive_sum_upper_bound": 22,
+  "fingerprint_union_records": 23,
+  "known_unique_lower_bound": 23,
+  "naive_sum_upper_bound": 23,
   "nodes": [
     {
       "node_id": "xhs01",
       "file": "results/2026-09-22/nodes/xhs/xhs01.json",
       "schema_version": 5,
-      "generated_at": "2026-09-22T22:42:05+08:00",
-      "latest_seen_time": "2026-09-22T21:21:00+08:00",
-      "unique_records": 22,
+      "generated_at": "2026-09-22T22:47:09+08:00",
+      "latest_seen_time": "2026-09-22T22:44:44+08:00",
+      "unique_records": 23,
       "comment_records": 0,
       "root_comment_records": 0,
       "reply_comment_records": 0,
       "region_records": 17,
       "comment_region_records": 0,
-      "crawler_state": "NETWORK_ERROR",
-      "fingerprint_records": 22,
+      "crawler_state": "VERIFY_REQUIRED",
+      "fingerprint_records": 23,
       "has_record_fingerprints": true
     }
   ],
   "diagnostic_nodes": [],
   "summary": {
     "schema_version": 7,
-    "generated_at": "2026-09-22T14:42:32+00:00",
-    "latest_seen_time": "2026-09-22T21:21:00+08:00",
+    "generated_at": "2026-09-22T14:47:27+00:00",
+    "latest_seen_time": "2026-09-22T22:44:44+08:00",
     "privacy": "exact_cross_node_dedupe_from_privacy_safe_record_fingerprints",
     "totals": {
-      "unique_records": 22,
+      "unique_records": 23,
       "region_records": 17,
-      "region_coverage_rate": 0.7727,
+      "region_coverage_rate": 0.7391,
       "comment_records": 0,
       "root_comment_records": 0,
       "reply_comment_records": 0,
@@ -49,27 +49,27 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 0,
-      "public_publisher_accounts": 21,
-      "likes": 329,
+      "public_publisher_accounts": 22,
+      "likes": 380,
       "comments": 12,
       "shares": 47,
       "views": 0,
-      "favorites": 94,
+      "favorites": 96,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "xhs": 22
+      "xhs": 23
     },
     "platform_attitude": {
       "xhs": {
         "neutral": 11,
         "attention": 9,
-        "support": 2
+        "support": 3
       }
     },
     "languages": {
-      "汉语": 22
+      "汉语": 23
     },
     "regions": {
       "浙江": 3,
@@ -105,17 +105,17 @@
     "v2_status": {
       "neutral": 11,
       "attention": 9,
-      "normal": 2
+      "normal": 3
     },
     "v2_type": {
       "null": 11,
       "neutral": 9,
-      "support": 2
+      "support": 3
     },
     "attitude": {
       "neutral": 11,
       "attention": 9,
-      "support": 2
+      "support": 3
     },
     "comment_v2_status": {},
     "comment_v2_type": {},
@@ -123,21 +123,21 @@
     "source_types": {
       "权威媒体/新闻评论": 9,
       "普通用户舆情": 6,
-      "自媒体观点": 4,
+      "自媒体观点": 5,
       "二创/剪辑解读": 2,
       "律师/专家解读": 1
     },
     "record_types": {
       "post": 14,
-      "video": 8
+      "video": 9
     },
     "keywords": {
-      "2026年民族团结进步宣传周": 13,
+      "2026年民族团结进步宣传周": 14,
       "首个民族团结进步宣传周": 8,
       "促进民族团结进步，奋进伟大复兴征程": 1
     },
     "video_analysis": {
-      "video_records": 8,
+      "video_records": 9,
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,

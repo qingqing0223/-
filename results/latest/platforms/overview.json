@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-09-22T14:42:32+00:00",
+  "generated_at": "2026-09-22T14:47:27+00:00",
   "selection": "newest_available_rollup_per_platform",
   "platforms": {
     "xhs": {
@@ -8,13 +8,13 @@
       "aggregation_mode": "exact_cross_node_dedupe",
       "authoritative_node_id": "xhs01",
       "latest_node_id": "xhs01",
-      "unique_records": 22,
+      "unique_records": 23,
       "comment_records": 0,
       "root_comment_records": 0,
       "reply_comment_records": 0,
       "region_records": 17,
       "comment_region_records": 0,
-      "latest_seen_time": "2026-09-22T21:21:00+08:00",
+      "latest_seen_time": "2026-09-22T22:44:44+08:00",
       "node_count": 1,
       "all_counting_nodes_have_fingerprints": true
     },
