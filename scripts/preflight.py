@@ -262,7 +262,12 @@ def main() -> int:
     add(
         "DASHSCOPE_API_KEY",
         bool(os.environ.get("DASHSCOPE_API_KEY", "").strip()),
-        "set" if os.environ.get("DASHSCOPE_API_KEY", "").strip() else "not set",
+        (
+            "set"
+            if os.environ.get("DASHSCOPE_API_KEY", "").strip()
+            else "not set; collection is allowed and classifier output may remain unclassified/degraded"
+        ),
+        required=False,
     )
 
     json_files = (

@@ -46,9 +46,7 @@ try {
 }
 
 if (-not $env:DASHSCOPE_API_KEY) {
-    Write-Host "ERROR: DASHSCOPE_API_KEY is not set in this PowerShell session." -ForegroundColor Red
-    Write-Host "Set it locally first, then rerun this script." -ForegroundColor Yellow
-    exit 3
+    Write-Host "DASHSCOPE_API_KEY is not set. Collection/update will continue; attitude classification will remain unclassified/degraded until an analysis node provides the model service." -ForegroundColor Yellow
 }
 
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -154,8 +152,8 @@ Write-Host "  - public post/video detail and engagement fields" -ForegroundColor
 Write-Host "  - first-level comments and nested replies" -ForegroundColor Yellow
 Write-Host "  - parent/root reply reconstruction and integrity verification" -ForegroundColor Yellow
 Write-Host "  - public IP-region labels when the platform exposes them" -ForegroundColor Yellow
-Write-Host "  - v2 attitude classification for posts/videos/comments" -ForegroundColor Yellow
-Write-Host "  - support / neutral / attention / non-support reporting buckets" -ForegroundColor Yellow
+Write-Host "  - optional v2 attitude classification when DASHSCOPE_API_KEY is configured; collection does not depend on it" -ForegroundColor Yellow
+Write-Host "  - attitude/reporting buckets are analysis-stage outputs and may remain unclassified on collection-only nodes" -ForegroundColor Yellow
 Write-Host "  - Chinese/minority-language detection" -ForegroundColor Yellow
 Write-Host "  - public publisher account aggregate statistics" -ForegroundColor Yellow
 Write-Host "  - video ASR/OCR completeness diagnostics when those fields exist" -ForegroundColor Yellow
