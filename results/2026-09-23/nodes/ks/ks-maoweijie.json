@@ -6,10 +6,10 @@
   "results_date": "2026-09-23",
   "node_id": "ks-maoweijie",
   "platform": "ks",
-  "generated_at": "2026-09-23T01:32:58+08:00",
+  "generated_at": "2026-09-23T01:38:05+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "e726fcf9a2978c2e25be92405b4ea49ece946209",
+    "repo_head": "ece447472cfa08073e2f56fa6e0bd4205797ff10",
     "repo_branch": "kuaishou-v3-maoweijie",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,15 +21,15 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-23T01:32:58+08:00",
+    "generated_at": "2026-09-23T01:38:05+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-23T01:18:47+08:00",
+    "latest_seen_time": "2026-09-23T01:33:43+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 53,
+      "unique_records": 56,
       "filtered_before_start_from_existing_output": 0,
-      "region_records": 12,
-      "region_coverage_rate": 0.2264,
+      "region_records": 13,
+      "region_coverage_rate": 0.2321,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 0,
@@ -40,30 +40,30 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 0,
-      "public_publisher_accounts": 46,
+      "public_publisher_accounts": 48,
       "likes": 0,
       "comments": 0,
       "shares": 0,
-      "views": 66619,
+      "views": 72372,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "ks": 53
+      "ks": 56
     },
     "platform_attitude": {
       "ks": {
-        "unknown": 53
+        "unknown": 56
       }
     },
     "platform_tri_class": {
       "ks": {
-        "unknown": 53
+        "unknown": 56
       }
     },
     "languages": {
-      "汉语": 53
+      "汉语": 56
     },
     "minority_languages": {},
     "regions": {
@@ -71,9 +71,9 @@
       "西藏": 2,
       "宁夏": 2,
       "甘肃": 2,
+      "内蒙古": 2,
       "重庆": 1,
       "新疆": 1,
-      "内蒙古": 1,
       "上海": 1
     },
     "content_regions": {
@@ -81,60 +81,64 @@
       "西藏": 2,
       "宁夏": 2,
       "甘肃": 2,
+      "内蒙古": 2,
       "重庆": 1,
       "新疆": 1,
-      "内蒙古": 1,
       "上海": 1
     },
     "comment_regions": {},
     "v2_status": {
-      "unknown": 53
+      "unknown": 56
     },
     "v2_type": {
-      "null": 53
+      "null": 56
     },
     "attitude": {
-      "unknown": 53
+      "unknown": 56
     },
     "tri_class": {
-      "unknown": 53
+      "unknown": 56
     },
     "comment_v2_status": {},
     "comment_v2_type": {},
     "comment_attitude": {},
     "comment_tri_class": {},
     "source_types": {
-      "未分类": 53
+      "未分类": 56
     },
     "record_types": {
-      "video": 53
+      "video": 56
     },
     "keywords": {
-      "民族团结进步宣传周主场活动": 8,
-      "2026年民族团结进步宣传周": 5,
+      "民族团结进步宣传周主场活动": 9,
+      "首个民族团结进步宣传周": 5,
       "促进民族团结进步，奋进伟大复兴征程": 5,
-      "首个民族团结进步宣传周": 4,
-      "民族团结进步倡议": 4,
-      "民族团结进步宣传周": 3,
-      "首个民族团结进步宣传周；民族团结进步倡议": 3,
-      "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动；首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动": 2,
-      "民族团结进步宣传周；首个民族团结进步宣传周": 2,
-      "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议": 2,
-      "2026年民族团结进步宣传周；民族团结进步倡议": 2,
-      "2026年民族团结进步宣传周；民族团结进步宣传周主场活动": 2,
-      "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动": 2,
-      "民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1,
+      "2026年民族团结进步宣传周": 4,
+      "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动；首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动": 3,
+      "民族团结进步倡议": 3,
+      "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议": 3,
+      "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步宣传周；首个民族团结进步宣传周": 2,
+      "民族团结进步宣传周": 2,
+      "2026年民族团结进步宣传周；民族团结进步倡议；2026年民族团结进步宣传周；民族团结进步倡议": 2,
+      "2026年民族团结进步宣传周；民族团结进步宣传周主场活动；2026年民族团结进步宣传周；民族团结进步宣传周主场活动": 2,
+      "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动；促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动": 2,
+      "民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1,
+      "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议；2026年民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周": 1,
       "民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周": 1,
-      "民族团结进步宣传周；民族团结进步宣传周主场活动": 1,
-      "民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动": 1,
-      "2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1,
+      "民族团结进步宣传周；首个民族团结进步宣传周": 1,
+      "民族团结进步宣传周；民族团结进步宣传周主场活动；民族团结进步宣传周；民族团结进步宣传周主场活动": 1,
+      "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议": 1,
+      "民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动；民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动": 1,
+      "2026年民族团结进步宣传周；民族团结进步倡议": 1,
+      "2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1,
+      "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议": 1,
       "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议": 1,
-      "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1,
-      "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动": 1,
-      "促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；民族团结进步宣传周主场活动": 1
+      "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动": 1,
+      "促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；民族团结进步宣传周主场活动；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；民族团结进步宣传周主场活动": 1,
+      "民族团结进步倡议；2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1
     },
     "video_analysis": {
-      "video_records": 53,
+      "video_records": 56,
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,
@@ -230,6 +234,28 @@
         }
       },
       {
+        "account": "新***媒",
+        "platforms": {
+          "ks": 2
+        },
+        "records": 2,
+        "posts": 0,
+        "videos": 2,
+        "attitude": {
+          "unknown": 2
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 114,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "景***媒",
         "platforms": {
           "ks": 2
@@ -292,6 +318,28 @@
           "comments": 0,
           "shares": 0,
           "views": 783,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "临***媒",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 4710,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -526,6 +574,30 @@
         }
       },
       {
+        "account": "奔***媒",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "内蒙古": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 972,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "宁***事",
         "platforms": {
           "ks": 1
@@ -632,28 +704,6 @@
           "comments": 0,
           "shares": 0,
           "views": 1463,
-          "favorites": 0,
-          "danmaku": 0,
-          "coins": 0
-        }
-      },
-      {
-        "account": "新***媒",
-        "platforms": {
-          "ks": 1
-        },
-        "records": 1,
-        "posts": 0,
-        "videos": 1,
-        "attitude": {
-          "unknown": 1
-        },
-        "regions": {},
-        "engagement": {
-          "likes": 0,
-          "comments": 0,
-          "shares": 0,
-          "views": 43,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -1178,27 +1228,27 @@
         }
       }
     ],
-    "public_account_stats_total": 46,
+    "public_account_stats_total": 48,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "D:\\KuaishouTrial\\20260920_real_ks",
-        "cycle_finished_at": "2026-09-23T01:18:47+08:00",
+        "cycle_finished_at": "2026-09-23T01:33:43+08:00",
         "crawler_status": "failed",
         "crawler_state": "CRAWLER_FAILED",
         "return_code": 125,
-        "duration_seconds": 82.68,
-        "new_records": 35,
-        "filtered_before_start": 14,
-        "classified_records": 35,
+        "duration_seconds": 79.23,
+        "new_records": 3,
+        "filtered_before_start": 12,
+        "classified_records": 3,
         "ingest_comments": true,
         "input_file_count": 1,
         "comment_input_file_count": 0,
-        "region_records": 7,
-        "region_rate": 0.2,
+        "region_records": 1,
+        "region_rate": 0.3333,
         "minority_language_records": 0,
         "language_counts": {
-          "汉语": 35
+          "汉语": 3
         },
         "dashboard_ok": null,
         "dashboard_sent": 0,
@@ -1246,7 +1296,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动",
+      "keyword": "民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动；民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1327,7 +1377,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；民族团结进步宣传周主场活动",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；民族团结进步宣传周主场活动；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1381,7 +1431,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步宣传周；首个民族团结进步宣传周",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1426,6 +1476,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "1d18a9d923d35564122f",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "0b74f79313288e1b0dbe",
+      "latest_seen_time": "2026-09-23T01:33:43+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 71,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "1ef15163787ac076fe1c",
       "record_type": "video",
       "region": "宁夏",
@@ -1435,7 +1512,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步宣传周；首个民族团结进步宣传周",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1516,7 +1593,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动",
+      "keyword": "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动；首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1570,7 +1647,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "2026年民族团结进步宣传周；民族团结进步宣传周主场活动",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步宣传周主场活动；2026年民族团结进步宣传周；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1597,7 +1674,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "2026年民族团结进步宣传周；民族团结进步倡议",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步倡议；2026年民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1624,7 +1701,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "2026年民族团结进步宣传周",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1635,6 +1712,33 @@
       "comments": 0,
       "shares": 0,
       "views": 61,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "3dcc351da24c8970f5a9",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "首个民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "22684b284e85d53dc48b",
+      "latest_seen_time": "2026-09-23T01:33:43+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 4710,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -1678,7 +1782,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1732,7 +1836,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议；2026年民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1759,7 +1863,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "首个民族团结进步宣传周；民族团结进步倡议",
+      "keyword": "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1786,7 +1890,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "2026年民族团结进步宣传周；民族团结进步宣传周主场活动",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步宣传周主场活动；2026年民族团结进步宣传周；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1840,7 +1944,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议",
+      "keyword": "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1867,7 +1971,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
+      "keyword": "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -1975,7 +2079,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动；促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2083,7 +2187,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2218,7 +2322,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "2026年民族团结进步宣传周；民族团结进步倡议",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步倡议；2026年民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2229,6 +2333,33 @@
       "comments": 0,
       "shares": 0,
       "views": 537,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "b8a5abb195378289e3ea",
+      "record_type": "video",
+      "region": "内蒙古",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "f6158405c634c4d05424",
+      "latest_seen_time": "2026-09-23T01:33:43+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 972,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -2299,7 +2430,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动；促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2326,7 +2457,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步倡议",
+      "keyword": "民族团结进步倡议；2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2380,7 +2511,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "首个民族团结进步宣传周；民族团结进步倡议",
+      "keyword": "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2434,7 +2565,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2461,7 +2592,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "首个民族团结进步宣传周；民族团结进步倡议",
+      "keyword": "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2515,7 +2646,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2569,7 +2700,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周；民族团结进步宣传周主场活动",
+      "keyword": "民族团结进步宣传周；民族团结进步宣传周主场活动；民族团结进步宣传周；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2623,7 +2754,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
+      "keyword": "2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -2652,10 +2783,10 @@
           "kind": "content",
           "name": "search_contents_2026-09-23.jsonl",
           "relative_path": "raw_runs/20260923_013224/ks_20260923_013224/kuaishou/jsonl/search_contents_2026-09-23.jsonl",
-          "bytes": 47125,
-          "rows": 40,
-          "sha256": "af65bcc67af21e235caa4a5556646060ab0b52fd35fa4ac525a359e3477a6e2f",
-          "modified_at": "2026-09-23T01:32:58+08:00",
+          "bytes": 139111,
+          "rows": 120,
+          "sha256": "03c27775ce6b19b77d6ada79e3d676d73d79099dab79e4dfd29e9756f960afba",
+          "modified_at": "2026-09-23T01:33:37+08:00",
           "sanitized_schema_samples": [
             {
               "fields": [
@@ -2929,14 +3060,14 @@
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260923_013224/ks_20260923_013224/stderr.log",
-          "bytes": 17533,
-          "sha256": "35a24a4b4a918e2d2ac3a8f56af82e8ca497a08c5cf707987e95fef2a796add9"
+          "bytes": 46654,
+          "sha256": "a5584efa11c6657de808913f193689cf2e01de5a38e9024a4082ab44bafc1ac5"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260923_013224/ks_20260923_013224/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 164,
+          "sha256": "23c4eed590707ddb557d44af76e9f919eeb332b522dc86bf4e56a15a6ed965fd"
         }
       ]
     }
