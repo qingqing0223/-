@@ -264,6 +264,49 @@ if ($Platform -eq "toutiao") {
 }
 
 if ($Platform -eq "ks") {
+    Write-Host "Applying Kuaishou startup resilience patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou startup resilience patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou startup resilience verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Kuaishou login/session resilience patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_login_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou login/session resilience patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_kuaishou_login_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou login/session resilience verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Kuaishou creator trial-safety patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_creator_trial_safety.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou creator trial-safety patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Kuaishou public follower/following/comment-like metrics patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_public_metrics.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou public metrics patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_kuaishou_public_metrics.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou public metrics verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
     Write-Host "Applying Kuaishou public comment-region recovery patch..." -ForegroundColor Cyan
     python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot
     if ($LASTEXITCODE -ne 0) {
