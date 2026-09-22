@@ -15,6 +15,7 @@
   "kuaishou_engagement_snapshot_key_content_only": true,
   "kuaishou_account_snapshot_interval_seconds": 3600,
   "kuaishou_account_snapshot_implemented": true,
+  "kuaishou_collect_public_profile_metrics": true,
   "kuaishou_skip_opinion_classification": true,
   "kuaishou_key_accounts_config": "kuaishou_key_accounts.json",
   "overrun_cooldown_seconds": 60,

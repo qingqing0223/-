@@ -233,7 +233,8 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
 
     likes = _first(
         raw, "likes", "like_count", "liked_count", "digg_count", "thumbs_count",
-        "voteup_count", "total_liked", "comment_like_count"
+        "voteup_count", "total_liked", "comment_like_count", "realLikedCount",
+        "likedCount", "likeCount", "real_liked_count"
     )
     comments = _first(
         raw, "comments", "comment_count", "comments_count", "comment_num",
@@ -251,11 +252,11 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     coins = _first(raw, "coins", "coin_count", "video_coin_count")
     follower_count = _first_nested(
         raw, ("user", "user_info", "author", "creator"),
-        "fans", "fans_count", "follower_count", "followers_count"
+        "fan", "fan_count", "fans", "fans_count", "follower_count", "followers_count"
     )
     following_count = _first_nested(
         raw, ("user", "user_info", "author", "creator"),
-        "following", "following_count", "follow_count"
+        "follow", "following", "following_count", "follow_count"
     )
     account_type = _first_nested(
         raw, ("user", "user_info", "author", "creator"),

@@ -10,6 +10,8 @@ import time
 import urllib.request
 
 from monitor.orchestrator import load_config, run_forever, run_one_cycle
+from scripts.patch_kuaishou_creator_trial_safety import patch as patch_kuaishou_creator_safety
+from scripts.patch_kuaishou_public_metrics import patch as patch_kuaishou_public_metrics, check as check_kuaishou_public_metrics
 
 PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "toutiao", "zhihu"}
 
@@ -73,6 +75,35 @@ def _apply_kuaishou_cadence(cfg: dict, platform: str) -> dict:
         900, int(cfg.get("kuaishou_comment_incremental_interval_seconds", 900))
     )
     return cfg
+
+
+def _ensure_kuaishou_public_metrics_patch(cfg: dict) -> dict:
+    """Patch the local MediaCrawler checkout so public aggregate counters are preserved.
+
+    The upstream teaching store intentionally drops creator-profile counters and
+    comment likes from JSONL. For this monitoring project we keep only the public
+    aggregate counts (followers, following, comment likes); raw profile IDs are
+    not added to the stored records.
+    """
+    enabled = bool(cfg.get("kuaishou_collect_public_profile_metrics", True))
+    if not enabled:
+        os.environ.pop("KUAISHOU_PUBLIC_METRICS", None)
+        return {"enabled": False}
+
+    root = Path(str(cfg.get("media_crawler_root") or "")).resolve()
+    if not root.exists():
+        raise FileNotFoundError(f"MediaCrawler root not found: {root}")
+
+    # Keep the existing creator/profile-unwrapping safety patch, then add the
+    # public aggregate-metric persistence patch. Both patchers are idempotent.
+    patch_kuaishou_creator_safety(root)
+    patch_kuaishou_public_metrics(root)
+    status = check_kuaishou_public_metrics(root)
+    if not status.get("ok"):
+        raise RuntimeError(f"Kuaishou public-metrics patch verification failed: {status}")
+
+    os.environ["KUAISHOU_PUBLIC_METRICS"] = "1"
+    return {"enabled": True, **status}
 
 
 def _install_kuaishou_unknown_comment_queue_fallback() -> None:
@@ -604,6 +635,9 @@ def main():
         _install_weibo_realtime_policy()
 
     cfg = load_config(Path(args.config))
+
+    if args.platform == "ks":
+        _ensure_kuaishou_public_metrics_patch(cfg)
 
     if args.platform == "ks" and bool(cfg.get("realtime_mode", False)):
         # The teacher's cadence applies to Kuaishou new-content discovery only.
