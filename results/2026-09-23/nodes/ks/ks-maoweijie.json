@@ -6,10 +6,10 @@
   "results_date": "2026-09-23",
   "node_id": "ks-maoweijie",
   "platform": "ks",
-  "generated_at": "2026-09-23T02:34:21+08:00",
+  "generated_at": "2026-09-23T02:39:29+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "a9a2e475a1b092a3873f1e630413db05c2c189d8",
+    "repo_head": "107f116a9fa9c886a76244c9dedbc93ab87aa72c",
     "repo_branch": "kuaishou-v3-maoweijie",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,7 +21,7 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-23T02:34:21+08:00",
+    "generated_at": "2026-09-23T02:39:29+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
     "latest_seen_time": "2026-09-23T02:33:37+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
