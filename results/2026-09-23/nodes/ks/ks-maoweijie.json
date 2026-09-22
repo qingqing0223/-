@@ -6,10 +6,10 @@
   "results_date": "2026-09-23",
   "node_id": "ks-maoweijie",
   "platform": "ks",
-  "generated_at": "2026-09-23T01:17:33+08:00",
+  "generated_at": "2026-09-23T01:22:43+08:00",
   "sync_target_seconds": 300,
   "node_build": {
-    "repo_head": "a9fd228763dda9fd8cebd3269a2e5892983bf1ec",
+    "repo_head": "fb9aadf47c7f4643c53d2ea2edaa3c5aedaf71e6",
     "repo_branch": "kuaishou-v3-maoweijie",
     "douyin_request_profile_v2": false,
     "douyin_startup_resilience": false,
@@ -21,15 +21,15 @@
   ],
   "summary": {
     "schema_version": 6,
-    "generated_at": "2026-09-23T01:17:33+08:00",
+    "generated_at": "2026-09-23T01:22:43+08:00",
     "monitoring_start_time": "2026-09-16T00:00:00+08:00",
-    "latest_seen_time": "2026-09-23T00:34:21+08:00",
+    "latest_seen_time": "2026-09-23T01:18:47+08:00",
     "privacy": "aggregate_no_raw_text_no_url_public_publisher_account_stats",
     "totals": {
-      "unique_records": 18,
+      "unique_records": 53,
       "filtered_before_start_from_existing_output": 0,
-      "region_records": 5,
-      "region_coverage_rate": 0.2778,
+      "region_records": 12,
+      "region_coverage_rate": 0.2264,
       "minority_language_records": 0,
       "minority_language_rate": 0.0,
       "comment_records": 0,
@@ -40,84 +40,173 @@
       "comment_region_records": 0,
       "comment_region_coverage_rate": 0.0,
       "unique_comment_authors": 0,
-      "public_publisher_accounts": 16,
+      "public_publisher_accounts": 46,
       "likes": 0,
       "comments": 0,
       "shares": 0,
-      "views": 6912,
+      "views": 66619,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0
     },
     "platforms": {
-      "ks": 18
+      "ks": 53
     },
     "platform_attitude": {
       "ks": {
-        "unknown": 18
+        "unknown": 53
       }
     },
     "platform_tri_class": {
       "ks": {
-        "unknown": 18
+        "unknown": 53
       }
     },
     "languages": {
-      "汉语": 18
+      "汉语": 53
     },
     "minority_languages": {},
     "regions": {
-      "海南": 1,
-      "西藏": 1,
-      "宁夏": 1,
-      "甘肃": 1,
-      "重庆": 1
+      "海南": 2,
+      "西藏": 2,
+      "宁夏": 2,
+      "甘肃": 2,
+      "重庆": 1,
+      "新疆": 1,
+      "内蒙古": 1,
+      "上海": 1
     },
     "content_regions": {
-      "海南": 1,
-      "西藏": 1,
-      "宁夏": 1,
-      "甘肃": 1,
-      "重庆": 1
+      "海南": 2,
+      "西藏": 2,
+      "宁夏": 2,
+      "甘肃": 2,
+      "重庆": 1,
+      "新疆": 1,
+      "内蒙古": 1,
+      "上海": 1
     },
     "comment_regions": {},
     "v2_status": {
-      "unknown": 18
+      "unknown": 53
     },
     "v2_type": {
-      "null": 18
+      "null": 53
     },
     "attitude": {
-      "unknown": 18
+      "unknown": 53
     },
     "tri_class": {
-      "unknown": 18
+      "unknown": 53
     },
     "comment_v2_status": {},
     "comment_v2_type": {},
     "comment_attitude": {},
     "comment_tri_class": {},
     "source_types": {
-      "未分类": 18
+      "未分类": 53
     },
     "record_types": {
-      "video": 18
+      "video": 53
     },
     "keywords": {
-      "民族团结进步宣传周": 11,
-      "首个民族团结进步宣传周": 3,
+      "民族团结进步宣传周主场活动": 8,
+      "2026年民族团结进步宣传周": 5,
+      "促进民族团结进步，奋进伟大复兴征程": 5,
+      "首个民族团结进步宣传周": 4,
+      "民族团结进步倡议": 4,
+      "民族团结进步宣传周": 3,
+      "首个民族团结进步宣传周；民族团结进步倡议": 3,
       "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动；首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动": 2,
-      "民族团结进步倡议": 1,
-      "民族团结进步宣传周主场活动": 1
+      "民族团结进步宣传周；首个民族团结进步宣传周": 2,
+      "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议": 2,
+      "2026年民族团结进步宣传周；民族团结进步倡议": 2,
+      "2026年民族团结进步宣传周；民族团结进步宣传周主场活动": 2,
+      "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动": 2,
+      "民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1,
+      "民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周": 1,
+      "民族团结进步宣传周；民族团结进步宣传周主场活动": 1,
+      "民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动": 1,
+      "2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1,
+      "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议": 1,
+      "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程": 1,
+      "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动": 1,
+      "促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；民族团结进步宣传周主场活动": 1
     },
     "video_analysis": {
-      "video_records": 18,
+      "video_records": 53,
       "with_asr": 0,
       "with_ocr": 0,
       "multimodal_complete": 0,
       "multimodal_completion_rate": 0.0
     },
     "public_account_stats": [
+      {
+        "account": "张***媒",
+        "platforms": {
+          "ks": 3
+        },
+        "records": 3,
+        "posts": 0,
+        "videos": 3,
+        "attitude": {
+          "unknown": 3
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 3851,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "快***洮",
+        "platforms": {
+          "ks": 3
+        },
+        "records": 3,
+        "posts": 0,
+        "videos": 3,
+        "attitude": {
+          "unknown": 3
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 27924,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "巴***体",
+        "platforms": {
+          "ks": 2
+        },
+        "records": 2,
+        "posts": 0,
+        "videos": 2,
+        "attitude": {
+          "unknown": 2
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 1193,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
       {
         "account": "广***心",
         "platforms": {
@@ -141,7 +230,7 @@
         }
       },
       {
-        "account": "张***媒",
+        "account": "景***媒",
         "platforms": {
           "ks": 2
         },
@@ -156,7 +245,29 @@
           "likes": 0,
           "comments": 0,
           "shares": 0,
-          "views": 1460,
+          "views": 170,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "C***峰",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 228,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -187,6 +298,72 @@
         }
       },
       {
+        "account": "丽***布",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 348,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "乌***布",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 40,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "乌***心",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 32,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "今***夏",
         "platforms": {
           "ks": 1
@@ -205,6 +382,52 @@
           "comments": 0,
           "shares": 0,
           "views": 154,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "伊***心",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "新疆": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 127,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "你***区",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 28,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -257,6 +480,28 @@
         }
       },
       {
+        "account": "喀***心",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 34,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "大***观",
         "platforms": {
           "ks": 1
@@ -281,7 +526,31 @@
         }
       },
       {
-        "account": "巴***体",
+        "account": "宁***事",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "宁夏": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 632,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "屏***布",
         "platforms": {
           "ks": 1
         },
@@ -296,7 +565,7 @@
           "likes": 0,
           "comments": 0,
           "shares": 0,
-          "views": 300,
+          "views": 118,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -347,6 +616,94 @@
         }
       },
       {
+        "account": "托***媒",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 1463,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "新***媒",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 43,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "新***社",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 18297,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "新***网",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 742,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "民***心",
         "platforms": {
           "ks": 1
@@ -363,6 +720,74 @@
           "comments": 0,
           "shares": 0,
           "views": 11,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "民***社",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 1329,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "江***心",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 27,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "活***古",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "内蒙古": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 285,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -391,6 +816,164 @@
         }
       },
       {
+        "account": "海***台",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "海南": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 286,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "澄***媒",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 75,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "热***江",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 537,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "玉***心",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "甘肃": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 27,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "知***阳",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 61,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "红***媒",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 8,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "统***语",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 1215,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "绿***心",
         "platforms": {
           "ks": 1
@@ -407,6 +990,76 @@
           "comments": 0,
           "shares": 0,
           "views": 14,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "绿***浦",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "上海": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 639,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "药***空",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 377,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "西***旅",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {
+          "西藏": 1
+        },
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 977,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -437,6 +1090,28 @@
         }
       },
       {
+        "account": "这***州",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 114,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
         "account": "锦***中",
         "platforms": {
           "ks": 1
@@ -453,6 +1128,28 @@
           "comments": 0,
           "shares": 0,
           "views": 405,
+          "favorites": 0,
+          "danmaku": 0,
+          "coins": 0
+        }
+      },
+      {
+        "account": "青***媒",
+        "platforms": {
+          "ks": 1
+        },
+        "records": 1,
+        "posts": 0,
+        "videos": 1,
+        "attitude": {
+          "unknown": 1
+        },
+        "regions": {},
+        "engagement": {
+          "likes": 0,
+          "comments": 0,
+          "shares": 0,
+          "views": 240,
           "favorites": 0,
           "danmaku": 0,
           "coins": 0
@@ -481,27 +1178,27 @@
         }
       }
     ],
-    "public_account_stats_total": 16,
+    "public_account_stats_total": 46,
     "public_account_stats_truncated": false,
     "runtime": [
       {
         "data_root": "D:\\KuaishouTrial\\20260920_real_ks",
-        "cycle_finished_at": "2026-09-23T00:34:21+08:00",
+        "cycle_finished_at": "2026-09-23T01:18:47+08:00",
         "crawler_status": "failed",
-        "crawler_state": "NETWORK_ERROR",
+        "crawler_state": "CRAWLER_FAILED",
         "return_code": 125,
-        "duration_seconds": 32.17,
-        "new_records": 2,
-        "filtered_before_start": 0,
-        "classified_records": 2,
+        "duration_seconds": 82.68,
+        "new_records": 35,
+        "filtered_before_start": 14,
+        "classified_records": 35,
         "ingest_comments": true,
         "input_file_count": 1,
         "comment_input_file_count": 0,
-        "region_records": 0,
-        "region_rate": 0.0,
+        "region_records": 7,
+        "region_rate": 0.2,
         "minority_language_records": 0,
         "language_counts": {
-          "汉语": 2
+          "汉语": 35
         },
         "dashboard_ok": null,
         "dashboard_sent": 0,
@@ -513,6 +1210,33 @@
   },
   "record_fingerprints": [
     {
+      "record_hash": "0031d83a425e6199295e",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "首个民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "dd3794fec90775fd9ffc",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 34,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "0048cfed229bdbd27361",
       "record_type": "video",
       "region": "",
@@ -522,7 +1246,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -567,6 +1291,87 @@
       "has_ocr": false
     },
     {
+      "record_hash": "12042f3c34459ca6f22e",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "ee912a06e167b8094a7a",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 2391,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "13ba7c5a4f18caa44fba",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议；民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "49d31a99393de8064e4c",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 742,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "17e144c26db2f6cbf485",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "31be27652d0a0f1fd7d0",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 1329,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "19f42fcffe39fd7aac51",
       "record_type": "video",
       "region": "",
@@ -576,7 +1381,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -594,6 +1399,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "1bf6dbcebdef0857ed7e",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "d23036486e3fc58f2c03",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 133,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "1ef15163787ac076fe1c",
       "record_type": "video",
       "region": "宁夏",
@@ -603,7 +1435,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -621,6 +1453,276 @@
       "has_ocr": false
     },
     {
+      "record_hash": "20897d93bc2eda7574b5",
+      "record_type": "video",
+      "region": "西藏",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "7788db818e1162be7146",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 977,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "2261dddf2747cde0ec90",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "b8b1da1e3e3b8df95c25",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 18297,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "240cf8d4a37efcd4651f",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "首个民族团结进步宣传周；民族团结进步倡议；首个民族团结进步宣传周；民族团结进步倡议；民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "1fdfd14690b9b1186f93",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 893,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "314d90e82ca29ffef28d",
+      "record_type": "video",
+      "region": "甘肃",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "b93c60c854f764b5c713",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 27,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "33a730069fdc93df00ee",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "1aa046131202f0b9b8d1",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 27,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "36cf74b40781281575ac",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "18495af61c2c72027c7b",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 37,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "38feadd9af381544dd1e",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "2cf7955a527401ccc046",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 61,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "3ee8d7b8b4badc0523e7",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "ee3c6efe25515e6049b3",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 1215,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "4b8041586c3022840ebe",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "9766dc16bfd6fe50c654",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 6165,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "4f148098bb0a3ba68b8b",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "bf271a964e8e76b0a245",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 28,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "512604a6738e7419260f",
       "record_type": "video",
       "region": "甘肃",
@@ -630,7 +1732,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -641,6 +1743,60 @@
       "comments": 0,
       "shares": 0,
       "views": 489,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "55f2f969cff51d288688",
+      "record_type": "video",
+      "region": "内蒙古",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "首个民族团结进步宣传周；民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "bf9988d9554d5f35a776",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 285,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "57d517d883f81b2b764d",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "9c9545bd3bab911b5a51",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 348,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -675,6 +1831,114 @@
       "has_ocr": false
     },
     {
+      "record_hash": "6669bdace3e926c8e750",
+      "record_type": "video",
+      "region": "新疆",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程；民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "1a757fd99c04e33af6b1",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 127,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "6e365f0124254b2d6483",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周；首个民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "9766dc16bfd6fe50c654",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 20170,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "6ff54e38dbff94aca775",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "07fd9868878fb711a7ee",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 240,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "7199c8ed05086f02eed3",
+      "record_type": "video",
+      "region": "宁夏",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "9ecf45e62abd30aa67c5",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 632,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "720ec5ff17ece224eac8",
       "record_type": "video",
       "region": "重庆",
@@ -702,6 +1966,33 @@
       "has_ocr": false
     },
     {
+      "record_hash": "7f3e593f2bdd06fcb0b5",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "b39057c6f84a51c26773",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 118,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "889c5015c2eae93537e1",
       "record_type": "video",
       "region": "海南",
@@ -722,6 +2013,33 @@
       "comments": 0,
       "shares": 0,
       "views": 616,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "8b1a37f586f08aac95d4",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "d8c7b6d3222f4fdb7efd",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 377,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -765,7 +2083,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；民族团结进步倡议",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -810,6 +2128,60 @@
       "has_ocr": false
     },
     {
+      "record_hash": "a6c8750c5c43137ca3e6",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "0b74f79313288e1b0dbe",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 43,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "af75fd745f2f4b56417b",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "b2d3a8c42441ebcd5d4f",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 8,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "b59a5b1a49b0c0e2aca9",
       "record_type": "video",
       "region": "",
@@ -819,7 +2191,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；2026年民族团结进步宣传周；首个民族团结进步宣传周",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -830,6 +2202,60 @@
       "comments": 0,
       "shares": 0,
       "views": 178,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "b653c95a47b77ffb736a",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周；民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "da0881f2c7bf3bda191b",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 537,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "b9480fafac032549ab7f",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "9766dc16bfd6fe50c654",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 1589,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -864,6 +2290,60 @@
       "has_ocr": false
     },
     {
+      "record_hash": "c80eec680fe0e45e63e5",
+      "record_type": "video",
+      "region": "海南",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "促进民族团结进步，奋进伟大复兴征程；民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "bcf864f99606988c3fea",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 286,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "cd72575651378168831f",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "227caf157ae792f8c6c3",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 40,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "ce0bcf62c8dacda6d50e",
       "record_type": "video",
       "region": "",
@@ -891,6 +2371,60 @@
       "has_ocr": false
     },
     {
+      "record_hash": "d1c9cc6a07ffdecce8f9",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "首个民族团结进步宣传周；民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "de0c7f2419e3bcd9d02e",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 228,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "d96ea32069b1a6d677c0",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步宣传周主场活动",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "ab366d5e47ffc4177acc",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 32,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
       "record_hash": "e2fa61ff67eb382693dd",
       "record_type": "video",
       "region": "",
@@ -900,7 +2434,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；首个民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -911,6 +2445,60 @@
       "comments": 0,
       "shares": 0,
       "views": 1378,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "ee23176d61394b299d8e",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "首个民族团结进步宣传周；民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "f9b9fa19af54b04422dd",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 1463,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "ef7bedf89283dd12dd3b",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "d756fda54f0005d9b650",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 75,
       "favorites": 0,
       "danmaku": 0,
       "coins": 0,
@@ -981,7 +2569,7 @@
       "attitude": "unknown",
       "tri_class": "unknown",
       "source_type": "未分类",
-      "keyword": "民族团结进步宣传周",
+      "keyword": "民族团结进步宣传周；民族团结进步宣传周主场活动",
       "comment_level": 0,
       "parent_hash": "",
       "root_hash": "",
@@ -997,6 +2585,60 @@
       "coins": 0,
       "has_asr": false,
       "has_ocr": false
+    },
+    {
+      "record_hash": "f71a7ed29f2cb1ce1fc2",
+      "record_type": "video",
+      "region": "上海",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "民族团结进步倡议",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "c01f6ae441f1d23a14f6",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 639,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
+    },
+    {
+      "record_hash": "fdcdaffb98d07b705527",
+      "record_type": "video",
+      "region": "",
+      "language": "汉语",
+      "status": "unknown",
+      "type": "null",
+      "attitude": "unknown",
+      "tri_class": "unknown",
+      "source_type": "未分类",
+      "keyword": "2026年民族团结进步宣传周；促进民族团结进步，奋进伟大复兴征程",
+      "comment_level": 0,
+      "parent_hash": "",
+      "root_hash": "",
+      "author_hash": "",
+      "publisher_hash": "887c1c7658faf97f4b90",
+      "latest_seen_time": "2026-09-23T01:18:47+08:00",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "views": 114,
+      "favorites": 0,
+      "danmaku": 0,
+      "coins": 0,
+      "has_asr": false,
+      "has_ocr": false
     }
   ],
   "raw_diagnostics": [
@@ -1005,19 +2647,296 @@
       "privacy": "schema_and_structural_diagnostics_only_no_raw_text_no_raw_user_ids_no_raw_urls_no_real_ip",
       "cycle": "20260923_011724",
       "data_root": "D:\\KuaishouTrial\\20260920_real_ks",
-      "jsonl_files": [],
+      "jsonl_files": [
+        {
+          "kind": "content",
+          "name": "search_contents_2026-09-23.jsonl",
+          "relative_path": "raw_runs/20260923_011724/ks_20260923_011724/kuaishou/jsonl/search_contents_2026-09-23.jsonl",
+          "bytes": 138034,
+          "rows": 120,
+          "sha256": "b7ba63c3324c8ad7ffb9ab35f2d5d739a5b9a03b0f3c83513fa0dd8998497c8a",
+          "modified_at": "2026-09-23T01:18:39+08:00",
+          "sanitized_schema_samples": [
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "follower_count",
+                "following_count",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "follower_count": "str",
+                "following_count": "int"
+              },
+              "stable_id_hashes": {
+                "video_id": "44e14f015dc62f9bb220"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "None",
+                "create_time": 1789986278720,
+                "last_modify_ts": 1790097465967,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "follower_count",
+                "following_count",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "follower_count": "str",
+                "following_count": "int"
+              },
+              "stable_id_hashes": {
+                "video_id": "182ff4a04e9af803e5da"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "None",
+                "create_time": 1789984696244,
+                "last_modify_ts": 1790097466453,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "follower_count",
+                "following_count",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "follower_count": "str",
+                "following_count": "int"
+              },
+              "stable_id_hashes": {
+                "video_id": "e62d390c30504c00d0b4"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "None",
+                "create_time": 1789980041454,
+                "last_modify_ts": 1790097466807,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "follower_count",
+                "following_count",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "follower_count": "str",
+                "following_count": "int"
+              },
+              "stable_id_hashes": {
+                "video_id": "e177f9bdcb7b6de1684f"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "None",
+                "create_time": 1790066753585,
+                "last_modify_ts": 1790097467291,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            },
+            {
+              "fields": [
+                "comment_count",
+                "create_time",
+                "creator_hash",
+                "desc",
+                "follower_count",
+                "following_count",
+                "ip_location",
+                "last_modify_ts",
+                "liked_count",
+                "nickname",
+                "source_keyword",
+                "title",
+                "video_cover_url",
+                "video_id",
+                "video_play_url",
+                "video_type",
+                "video_url",
+                "viewd_count"
+              ],
+              "field_types": {
+                "video_id": "str",
+                "video_type": "str",
+                "title": "str",
+                "desc": "str",
+                "create_time": "int",
+                "creator_hash": "str",
+                "nickname": "str",
+                "liked_count": "str",
+                "viewd_count": "str",
+                "comment_count": "str",
+                "last_modify_ts": "int",
+                "video_url": "str",
+                "video_cover_url": "str",
+                "video_play_url": "str",
+                "source_keyword": "str",
+                "ip_location": "str",
+                "follower_count": "str",
+                "following_count": "int"
+              },
+              "stable_id_hashes": {
+                "video_id": "0d92eaa19a812cb8f427"
+              },
+              "safe_values": {
+                "comment_count": "0",
+                "liked_count": "None",
+                "create_time": 1789993906352,
+                "last_modify_ts": 1790097467698,
+                "source_keyword": "2026年民族团结进步宣传周"
+              },
+              "nested_fields": {}
+            }
+          ]
+        }
+      ],
       "log_files": [
         {
           "name": "stderr.log",
           "relative_path": "raw_runs/20260923_011724/ks_20260923_011724/stderr.log",
-          "bytes": 105,
-          "sha256": "8ebcffdc31b9810cb0e8055c11a1ed420a9e8bf2d0cd6902ebdb1f8ceb74d053"
+          "bytes": 46442,
+          "sha256": "4fdf483e1e3cb1b6215311ce24f15801c3dfa185f0b095b68a3b797a0d789f13"
         },
         {
           "name": "stdout.log",
           "relative_path": "raw_runs/20260923_011724/ks_20260923_011724/stdout.log",
-          "bytes": 0,
-          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          "bytes": 164,
+          "sha256": "23c4eed590707ddb557d44af76e9f919eeb332b522dc86bf4e56a15a6ed965fd"
         }
       ]
     }
