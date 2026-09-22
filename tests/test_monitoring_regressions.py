@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from monitor.crawler_runner import _classify_state, _detail_recovery_candidates
 from monitor.ingest import _prepare_region_aliases
@@ -139,12 +140,14 @@ class MonitoringRegressionTests(unittest.TestCase):
 
         original_update = crawler_runner._update_queue_from_content
         original_detail = crawler_runner._run_detail_comment_recovery
+        original_mark = crawler_runner._mark_queue_batch
         original_flag = getattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback", None)
         try:
             if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
                 delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
             crawler_runner._update_queue_from_content = original_update
             crawler_runner._run_detail_comment_recovery = original_detail
+            crawler_runner._mark_queue_batch = original_mark
             _install_kuaishou_unknown_comment_queue_fallback()
 
             self.assertIsNot(crawler_runner._run_detail_comment_recovery, original_detail)
@@ -174,6 +177,159 @@ class MonitoringRegressionTests(unittest.TestCase):
                     delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
             else:
                 crawler_runner._promotion_week_ks_unknown_count_fallback = original_flag
+
+    def test_kuaishou_realtime_timeout_is_per_candidate_and_queue_marking_is_precise(self):
+        import monitor.crawler_runner as crawler_runner
+        from run_single_platform import _install_kuaishou_unknown_comment_queue_fallback
+
+        original_update = crawler_runner._update_queue_from_content
+        original_detail = crawler_runner._run_detail_comment_recovery
+        original_mark = crawler_runner._mark_queue_batch
+        original_flag = getattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback", None)
+
+        class FakeProc:
+            calls = 0
+
+            def __init__(self, *args, **kwargs):
+                self.pid = 9000 + FakeProc.calls
+                self.returncode = None
+                self.index = FakeProc.calls
+                FakeProc.calls += 1
+
+            def wait(self, timeout=None):
+                self.timeout = timeout
+                if self.index == 0 and self.returncode is None:
+                    raise subprocess.TimeoutExpired("uv", timeout)
+                self.returncode = 0
+                return 0
+
+            def poll(self):
+                return self.returncode
+
+        try:
+            if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
+                delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
+            crawler_runner._update_queue_from_content = original_update
+            crawler_runner._run_detail_comment_recovery = original_detail
+            crawler_runner._mark_queue_batch = original_mark
+            _install_kuaishou_unknown_comment_queue_fallback()
+
+            queue = {
+                "items": {
+                    "a": {"last_deep_crawled_at": "", "retry_count": 0},
+                    "b": {"last_deep_crawled_at": "", "retry_count": 0},
+                    "c": {"last_deep_crawled_at": "", "retry_count": 0},
+                }
+            }
+            with tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                out = root / "stdout.log"
+                err = root / "stderr.log"
+                out.write_text("", encoding="utf-8")
+                err.write_text("", encoding="utf-8")
+                cfg = {
+                    "realtime_mode": True,
+                    "media_crawler_root": td,
+                    "kuaishou_realtime_detail_budget_seconds": 180,
+                    "kuaishou_realtime_candidate_timeout_seconds": 40,
+                    "get_sub_comment": "yes",
+                }
+                with patch("run_single_platform._kuaishou_cdp_preflight", return_value=(True, "ok")), \
+                     patch("subprocess.Popen", side_effect=FakeProc) as popen, \
+                     patch("monitor.final_realtime_policy._terminate_process_tree") as terminate:
+                    rc, attempts = crawler_runner._run_detail_comment_recovery(
+                        cfg, "ks", ["a", "b"], root, out, err
+                    )
+                    crawler_runner._mark_queue_batch(queue, ["a", "b"], rc == 0)
+
+                self.assertEqual(attempts, 2)
+                self.assertEqual(popen.call_count, 2)
+                self.assertEqual(terminate.call_count, 1)
+                self.assertEqual(queue["items"]["a"]["last_deep_crawled_at"], "")
+                self.assertEqual(queue["items"]["a"]["retry_count"], 1)
+                self.assertTrue(queue["items"]["b"]["last_deep_crawled_at"])
+                self.assertEqual(queue["items"]["b"]["retry_count"], 0)
+                self.assertEqual(queue["items"]["c"]["last_deep_crawled_at"], "")
+                self.assertIn("candidate_timeout=40s", out.read_text(encoding="utf-8"))
+                first_cmd = popen.call_args_list[0].args[0]
+                self.assertEqual(first_cmd[first_cmd.index("--get_comment") + 1], "yes")
+                self.assertEqual(first_cmd[first_cmd.index("--get_sub_comment") + 1], "yes")
+        finally:
+            crawler_runner._update_queue_from_content = original_update
+            crawler_runner._run_detail_comment_recovery = original_detail
+            crawler_runner._mark_queue_batch = original_mark
+            if original_flag is None:
+                if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
+                    delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
+            else:
+                crawler_runner._promotion_week_ks_unknown_count_fallback = original_flag
+
+    def test_kuaishou_realtime_cdp_unavailable_keeps_every_candidate_unattempted(self):
+        import monitor.crawler_runner as crawler_runner
+        from run_single_platform import _install_kuaishou_unknown_comment_queue_fallback
+
+        original_update = crawler_runner._update_queue_from_content
+        original_detail = crawler_runner._run_detail_comment_recovery
+        original_mark = crawler_runner._mark_queue_batch
+        original_flag = getattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback", None)
+        try:
+            if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
+                delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
+            crawler_runner._update_queue_from_content = original_update
+            crawler_runner._run_detail_comment_recovery = original_detail
+            crawler_runner._mark_queue_batch = original_mark
+            _install_kuaishou_unknown_comment_queue_fallback()
+            queue = {"items": {key: {"last_deep_crawled_at": "", "retry_count": 0} for key in ["a", "b"]}}
+            with tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                out = root / "stdout.log"
+                err = root / "stderr.log"
+                out.write_text("", encoding="utf-8")
+                err.write_text("", encoding="utf-8")
+                with patch("run_single_platform._kuaishou_cdp_preflight", return_value=(False, "test_unavailable")), \
+                     patch("subprocess.Popen") as popen:
+                    rc, attempts = crawler_runner._run_detail_comment_recovery(
+                        {"realtime_mode": True, "media_crawler_root": td},
+                        "ks", ["a", "b"], root, out, err,
+                    )
+                    crawler_runner._mark_queue_batch(queue, ["a", "b"], rc == 0)
+                self.assertEqual(rc, 125)
+                self.assertEqual(attempts, 0)
+                popen.assert_not_called()
+                self.assertEqual(queue["items"]["a"], {"last_deep_crawled_at": "", "retry_count": 0})
+                self.assertEqual(queue["items"]["b"], {"last_deep_crawled_at": "", "retry_count": 0})
+                self.assertIn("CDP_UNAVAILABLE", out.read_text(encoding="utf-8"))
+        finally:
+            crawler_runner._update_queue_from_content = original_update
+            crawler_runner._run_detail_comment_recovery = original_detail
+            crawler_runner._mark_queue_batch = original_mark
+            if original_flag is None:
+                if hasattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback"):
+                    delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
+            else:
+                crawler_runner._promotion_week_ks_unknown_count_fallback = original_flag
+
+    def test_kuaishou_cdp_preflight_uses_json_version_and_playwright_handshake(self):
+        from run_single_platform import _kuaishou_cdp_preflight
+
+        response = MagicMock()
+        response.read.return_value = json.dumps({
+            "webSocketDebuggerUrl": "ws://127.0.0.1:9222/devtools/browser/test"
+        }).encode("utf-8")
+        response.__enter__.return_value = response
+        playwright = MagicMock()
+        playwright.chromium.connect_over_cdp = AsyncMock(return_value=object())
+        playwright.stop = AsyncMock()
+        manager = MagicMock()
+        manager.start = AsyncMock(return_value=playwright)
+        with patch("urllib.request.urlopen", return_value=response) as urlopen, \
+             patch("playwright.async_api.async_playwright", return_value=manager):
+            ok, reason = _kuaishou_cdp_preflight(9222, timeout_seconds=0.5)
+        self.assertTrue(ok)
+        self.assertEqual(reason, "ok")
+        self.assertIn("/json/version", urlopen.call_args.args[0])
+        playwright.chromium.connect_over_cdp.assert_awaited_once()
+        playwright.stop.assert_awaited_once()
 
     def test_region_aliases_cover_realistic_nested_platform_shapes(self):
         cases = [
@@ -226,7 +382,8 @@ class MonitoringRegressionTests(unittest.TestCase):
             "context": "",
             "ip_location": "山东",
         }
-        with patch("pipeline.classifier.OpinionMonitorV2") as mocked:
+        with patch("pipeline.classifier._load_opinion_monitor_v2") as loader:
+            mocked = loader.return_value
             mocked.return_value.classify_many.side_effect = RuntimeError("Arrearage")
             rows = classify_records([record], concurrency=1)
         self.assertEqual(len(rows), 1)

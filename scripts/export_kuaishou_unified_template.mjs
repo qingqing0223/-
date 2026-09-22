@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+// Offline exporter: imports the supplied unified template and never uses network access.
+import fs from 'node:fs/promises'; import path from 'node:path';
+import { FileBlob, SpreadsheetFile } from '@oai/artifact-tool';
+const get=(n)=>{const i=process.argv.indexOf(n);return i<0?'':process.argv[i+1]||''};
+const template=get('--template'),staging=get('--staging'),commentsRoot=get('--comments'),formalRoot=get('--formal-root'),output=get('--output'),previewDir=get('--preview-dir');
+if(![template,staging,commentsRoot,formalRoot,output,previewDir].every(Boolean))throw Error('Usage: --template --staging --comments --formal-root --output --preview-dir');
+const readJson=async p=>JSON.parse(await fs.readFile(p,'utf8'));
+const readJsonl=async p=>{try{return(await fs.readFile(p,'utf8')).split(/\r?\n/).filter(Boolean).map(JSON.parse)}catch(e){if(e.code==='ENOENT')return[];throw e}};
+const txt=v=>v==null||v===''?null:String(v),num=v=>v==null||v===''||!Number.isFinite(+v)?null:+v,yes=v=>v==null?null:v?'是':'否';
+const date=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})T?(\d{2}):(\d{2}):(\d{2})/);return m?new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6])):null};
+const col=n=>{let s='';while(n){const x=(n-1)%26;s=String.fromCharCode(65+x)+s;n=Math.floor((n-1)/26)}return s};
+const kw=r=>[...new Set((r.source_keywords||[r.source_keyword]).flatMap(x=>String(x||'').split(/[；;,]/)).map(x=>x.trim()).filter(Boolean))].join('；')||null;
+async function detailFiles(root){const out=[];async function walk(d){for(const e of await fs.readdir(d,{withFileTypes:true})){const p=path.join(d,e.name);if(e.isDirectory())await walk(p);else if(e.name==='detail_contents_2026-09-22.jsonl')out.push(p)}}await walk(root);return out}
+const targets=await readJson(path.join(staging,'relevant_targets_48.json')),ids=new Set(targets.map(r=>String(r.content_id)));
+if(targets.length!==48||ids.size!==48||targets.some(r=>!r.content_id))throw Error('Expected 48 distinct relevant targets');
+const comments=await readJsonl(path.join(commentsRoot,'table2_comment_backfill.jsonl')),t4=await readJsonl(path.join(commentsRoot,'table4_comment_interaction_backfill.jsonl'));
+if(comments.length!==1||comments.some(r=>!ids.has(String(r.corresponding_content_id)))||t4.length)throw Error('Expected one valid comment and zero Table 4 records');
+const details=new Map();for(const p of await detailFiles(path.join(commentsRoot,'runs'))){const mt=(await fs.stat(p)).mtime;for(const r of await readJsonl(p))if(ids.has(String(r.video_id)))details.set(String(r.video_id),{...r,mt})}
+if(details.size!==48)throw Error(`Missing detail snapshots: ${details.size}/48`);
+const t1=targets.map(r=>[txt(r.content_id),'快手',txt(r.author_id),txt(r.author),txt(r.ip_location),txt(r.account_type),txt(r.record_type),txt(r.title||r.context||r.content),txt(r.content||r.context),date(r.publish_time),date(r.first_seen_time),txt(r.url),kw(r),null,'是',null]);
+const t2=comments.map(r=>[txt(r.corresponding_content_id),num(r.comment_id),'快手',null,txt(r.comment_user_ip_region),txt(r.comment_text),date(r.comment_publish_time),'是']);
+// Detail files are actual platform responses. File mtime is their collection time; no snapshot is invented/backdated.
+const t3=targets.map(r=>{const d=details.get(String(r.content_id));return[txt(r.content_id),'快手',d.mt,num(d.viewd_count),num(d.liked_count),num(d.comment_count),null,null,null]});
+const acc=new Map();for(const r of targets){const id=txt(r.author_id);if(!id)continue;const g=acc.get(id)||{rs:[],r};g.rs.push(r);if(Date.parse(r.first_seen_time||0)>Date.parse(g.r.first_seen_time||0))g.r=r;acc.set(id,g)}
+const allsum=(rs,k)=>rs.every(r=>num(r[k])!=null)?rs.reduce((s,r)=>s+num(r[k]),0):null;
+const t5=[...acc.entries()].map(([id,g])=>{const r=g.r,x=g.rs,V=allsum(x,'views'),L=allsum(x,'likes'),C=allsum(x,'comments'),R=allsum(x,'reposts'),F=allsum(x,'favorites'),I=[L,C,R,F].every(v=>v!=null)?L+C+R+F:null;return[id,'快手',txt(r.author),txt(r.author_profile_url),txt(r.account_type),num(r.follower_count),num(r.following_count),txt(r.account_region||r.ip_location),txt(r.institution),yes(r.is_key_monitor_account),x.length,V,L,C,R,F,I,date(r.first_seen_time)]});
+const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(template));
+const names=['总数据','表1-发布内容','表2-评论基础','表3-发布互动','表4-评论互动','表5-账号信息'];if(JSON.stringify(wb.worksheets.items.map(s=>s.name))!==JSON.stringify(names))throw Error('Template sheet contract changed');
+const headers={'表1-发布内容':['发布内容编号','平台名称','发布帐号ID','帐号名称','帐号IP属地','帐号类型','内容类型','标题','正文、文案或视频描述','发布时间','数据采集时间','原始内容链接','命中的全部关键词','是否原创/转载','是否属于有效监测数据','无效原因'],'表2-评论基础':['对应发布内容编号','评论编号','平台名称','评论用户ID','评论用户IP属地','评论正文','评论发布时间','是否属于有效评论'],'表3-发布互动':['对应发布内容编号','平台名称','统计时间','阅读/播放量','点赞量','评论量','转发量','分享量','收藏量'],'表4-评论互动':['对应发布内容编号','评论编号','平台名称','统计时间','评论回复数','评论点赞数'],'表5-账号信息':['帐号ID','平台','帐号名称','主页地址','帐号类型','粉丝量','关注量','所属地区','所属机构','是否属于重点监测帐号','相关发文量','阅读/播放量','点赞量','评论量','转发量','收藏量','总互动量','数据采集时间']};
+for(const[n,h]of Object.entries(headers))if(JSON.stringify(wb.worksheets.getItem(n).getRange(`A1:${col(h.length)}1`).values[0])!==JSON.stringify(h))throw Error(`Header changed: ${n}`);
+function write(n,c,rows,strings,dates){const s=wb.worksheets.getItem(n);s.getRange(`A2:${col(c)}5000`).clear({applyTo:'contents'});if(rows.length)s.getRange(`A2:${col(c)}${rows.length+1}`).values=rows;for(const i of strings)s.getRangeByIndexes(1,i,Math.max(rows.length,1),1).format.numberFormat='@';for(const i of dates)s.getRangeByIndexes(1,i,Math.max(rows.length,1),1).format.numberFormat='yyyy-mm-dd hh:mm:ss'}
+write('表1-发布内容',16,t1,[0,2],[9,10]);write('表2-评论基础',8,t2,[0,3],[6]);wb.worksheets.getItem('表2-评论基础').getRange('B2').format.numberFormat='0';write('表3-发布互动',9,t3,[0],[2]);write('表4-评论互动',6,[],[0,1],[3]);write('表5-账号信息',18,t5,[0],[17]);wb.recalculate();
+const id1=new Set(t1.map(r=>r[0])),commentIds=t2.map(r=>r[1]),accountIds=new Set(t5.map(r=>r[0]));
+const report={counts:{table1:t1.length,table2:t2.length,table3:t3.length,table4:0,table5:t5.length},content_ids_complete:id1.size===48&&[...ids].every(i=>id1.has(i)),duplicate_content_primary_keys:t1.length-id1.size,duplicate_comment_primary_keys:commentIds.length-new Set(commentIds).size,table2_orphan_content_ids:t2.map(r=>r[0]).filter(i=>!id1.has(i)),table3_orphan_content_ids:t3.map(r=>r[0]).filter(i=>!id1.has(i)),table5_missing_content_accounts:[...acc.keys()].filter(i=>!accountIds.has(i)),comment_user_id_blank:t2.every(r=>r[3]==null),table4_is_empty_from_source:true,table3_real_detail_snapshots:t3.length===48,formal_root_read_only:formalRoot};
+if(!report.content_ids_complete||report.duplicate_content_primary_keys||report.duplicate_comment_primary_keys||report.table2_orphan_content_ids.length||report.table3_orphan_content_ids.length||report.table5_missing_content_accounts.length||!report.comment_user_id_blank)throw Error(`Integrity failed: ${JSON.stringify(report)}`);
+const errors=await wb.inspect({kind:'match',searchTerm:'#REF!|#DIV/0!|#VALUE!|#NAME\\?|#N/A|#NUM!|#NULL!|#SPILL!|#CALC!',options:{useRegex:true,maxResults:300},summary:'final formula error scan'});if(/"matches":\[[^\]]/.test(errors.ndjson))throw Error(`Formula errors: ${errors.ndjson}`);
+await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(previewDir,{recursive:true});const out=await SpreadsheetFile.exportXlsx(wb);await out.save(output);
+const saved=await SpreadsheetFile.importXlsx(await FileBlob.load(output));for(const n of names){const img=await saved.render({sheetName:n,autoCrop:'all',scale:1,format:'png'});await fs.writeFile(path.join(previewDir,`${n}.png`),new Uint8Array(await img.arrayBuffer()))}
+report.sheets=saved.worksheets.items.map(s=>s.name);report.headers_preserved=Object.entries(headers).every(([n,h])=>JSON.stringify(saved.worksheets.getItem(n).getRange(`A1:${col(h.length)}1`).values[0])===JSON.stringify(h));report.formula_error_scan=errors.ndjson;await fs.writeFile(path.join(previewDir,'integrity_report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({output,previewDir,report},null,2));

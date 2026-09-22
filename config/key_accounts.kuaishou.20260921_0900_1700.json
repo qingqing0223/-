@@ -1,0 +1,34 @@
+{
+  "media_crawler_root": "D:\\MediaCrawler_clean",
+  "data_root": "D:\\KuaishouTrial\\20260921_0900_1700_ks",
+  "kuaishou_formal_data_root": "D:\\KuaishouTrial\\20260921_0900_1700_ks",
+  "formal_monitoring_ingest": true,
+  "monitoring_start_time": "2026-09-21T09:00:00+08:00",
+  "monitoring_end_time": "2026-09-21T17:00:00+08:00",
+  "interval_seconds": 3600,
+  "classifier_concurrency": 4,
+  "login_type": "qrcode",
+  "crawler_max_notes_count": 20,
+  "max_concurrency_num": 1,
+  "get_comment": "yes",
+  "get_sub_comment": "yes",
+  "save_data_option": "jsonl",
+  "kuaishou_engagement_snapshot_interval_seconds": 3600,
+  "kuaishou_account_snapshot_interval_seconds": 3600,
+  "kuaishou_key_accounts_config": "kuaishou_key_accounts.json",
+  "dashboard": {
+    "enabled": false,
+    "ingest_url": "",
+    "timeout_seconds": 15
+  },
+  "accounts": [
+    {
+      "platform": "ks",
+      "name": "快临洮",
+      "creator_id": "3x6j6hyt7894tag",
+      "enabled": true,
+      "verification_status": "profile_valid_confirmed",
+      "note": "已由userProfile和作品detail双重确认；仅此账号启用，其他未验证重点账号不猜测ID。"
+    }
+  ]
+}

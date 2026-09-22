@@ -1,8 +1,19 @@
 from __future__ import annotations
 
-from opinion_monitor_v2 import OpinionMonitorV2
-
 from .content_source_classifier import classify_source_types
+
+
+def _load_opinion_monitor_v2():
+    """Load the optional opinion classifier only when classification is requested."""
+    try:
+        from opinion_monitor_v2 import OpinionMonitorV2
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "Opinion classification is enabled, but the optional "
+            "'opinion_monitor_v2' package is unavailable. Install/configure the "
+            "classifier package or disable opinion classification for collection-only runs."
+        ) from exc
+    return OpinionMonitorV2
 
 
 def _safe_error_text(exc: Exception, limit: int = 600) -> str:
@@ -71,6 +82,10 @@ def _degraded_rows(records: list[dict], exc: Exception) -> list[dict]:
 def classify_records(records: list[dict], concurrency: int = 4) -> list[dict]:
     if not records:
         return []
+
+    # Import outside the degradation fallback: a deployment that explicitly
+    # enables classification must fail clearly when its classifier is absent.
+    OpinionMonitorV2 = _load_opinion_monitor_v2()
 
     model_records = []
     for rec in records:

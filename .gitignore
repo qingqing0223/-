@@ -4,6 +4,8 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+node_modules/
+tmp/
 logs/
 data/inbox/*
 data/out/*
@@ -19,3 +21,4 @@ config/monitoring.local.json
 config/monitoring.wechat.local.json
 config/wechat_channels_screen.local.json
 config/key_accounts.json
+data_submissions/

@@ -1,0 +1,34 @@
+{
+  "media_crawler_root": "D:\\MediaCrawler_clean",
+  "data_root": "D:\\KuaishouTrial\\creator_3x6j6hyt7894tag_trial",
+  "kuaishou_formal_data_root": "D:\\KuaishouTrial\\creator_3x6j6hyt7894tag_trial",
+  "formal_monitoring_ingest": true,
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "monitoring_end_time": "",
+  "interval_seconds": 3600,
+  "classifier_concurrency": 4,
+  "login_type": "qrcode",
+  "crawler_max_notes_count": 20,
+  "max_concurrency_num": 1,
+  "get_comment": "yes",
+  "get_sub_comment": "yes",
+  "save_data_option": "jsonl",
+  "kuaishou_engagement_snapshot_interval_seconds": 3600,
+  "kuaishou_account_snapshot_interval_seconds": 3600,
+  "kuaishou_key_accounts_config": "kuaishou_key_accounts.json",
+  "dashboard": {
+    "enabled": false,
+    "ingest_url": "",
+    "timeout_seconds": 15
+  },
+  "accounts": [
+    {
+      "platform": "ks",
+      "name": "负责人提供的覆盖率验收账号",
+      "creator_id": "3x6j6hyt7894tag",
+      "enabled": false,
+      "verification_status": "provided_identifier_pending_real_profile_verification",
+      "note": "仅用于小规模覆盖率验收；确认这是快手主页稳定账号标识后再启用，不得按同名账号替代。"
+    }
+  ]
+}

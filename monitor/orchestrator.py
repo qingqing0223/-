@@ -8,6 +8,7 @@ import time
 from .crawler_runner import run_platform, find_ingest_jsonl
 from .ingest import ingest_and_classify
 from .keyword_pack import apply_keyword_pack
+from .kuaishou_queries import apply_kuaishou_query_plan
 from pipeline.io_utils import write_json
 from dashboard_adapter.suqi_pusher import deliver_with_outbox
 
@@ -15,7 +16,7 @@ from dashboard_adapter.suqi_pusher import deliver_with_outbox
 def load_config(path: Path) -> dict:
     cfg = json.loads(path.read_text(encoding="utf-8"))
     cfg["_config_dir"] = str(path.resolve().parent)
-    return apply_keyword_pack(cfg, path)
+    return apply_kuaishou_query_plan(apply_keyword_pack(cfg, path))
 
 
 def run_one_cycle(cfg: dict) -> dict:
@@ -111,6 +112,8 @@ def run_one_cycle(cfg: dict) -> dict:
                     cfg.get("kuaishou_account_snapshot_interval_seconds", 3600)
                 ),
                 key_accounts_config_path=key_accounts_config,
+                key_content_ids=list(cfg.get("kuaishou_key_content_ids") or []),
+                kuaishou_query_catalog=list(cfg.get("kuaishou_query_catalog") or []),
                 enable_classification=not (
                     run.platform == "ks"
                     and bool(cfg.get("kuaishou_skip_opinion_classification", True))

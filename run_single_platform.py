@@ -1,14 +1,66 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
+import os
 from pathlib import Path
 import subprocess
 import time
+import urllib.request
 
 from monitor.orchestrator import load_config, run_forever, run_one_cycle
 
 PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "toutiao", "zhihu"}
+
+
+def _kuaishou_cdp_preflight(port: int, timeout_seconds: float = 3.0) -> tuple[bool, str]:
+    """Validate the actual CDP endpoint once before realtime detail work.
+
+    A listening TCP port is insufficient: Chrome may expose an unusable endpoint
+    or Playwright may be unable to finish the WebSocket handshake. This probe
+    reads Chrome's canonical WebSocket URL and opens one short-lived Playwright
+    connection. Stopping Playwright releases only this process's connection and
+    does not close the externally managed Chrome instance.
+    """
+    try:
+        with urllib.request.urlopen(
+            f"http://127.0.0.1:{port}/json/version", timeout=timeout_seconds,
+        ) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        websocket_url = str(payload.get("webSocketDebuggerUrl") or "").strip()
+        if not websocket_url:
+            return False, "missing_webSocketDebuggerUrl"
+    except Exception as exc:
+        return False, f"json_version_failed:{type(exc).__name__}"
+
+    async def probe() -> None:
+        from playwright.async_api import async_playwright
+
+        playwright = await async_playwright().start()
+        try:
+            await asyncio.wait_for(
+                playwright.chromium.connect_over_cdp(
+                    websocket_url, timeout=max(1, int(timeout_seconds * 1000)),
+                ),
+                timeout=timeout_seconds,
+            )
+        finally:
+            await playwright.stop()
+
+    try:
+        asyncio.run(probe())
+        return True, "ok"
+    except Exception as exc:
+        return False, f"playwright_cdp_handshake_failed:{type(exc).__name__}"
+
+
+def _platform_data_root(cfg: dict, platform: str) -> str:
+    explicit_platform_root = str(cfg.get(f"{platform}_data_root") or "").strip()
+    if explicit_platform_root:
+        return explicit_platform_root
+    root = Path(cfg["data_root"])
+    return str(root.parent / f"{root.name}_{platform}")
 
 
 def _apply_kuaishou_cadence(cfg: dict, platform: str) -> dict:
@@ -48,6 +100,21 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
 
     original_update = crawler_runner._update_queue_from_content
     original_detail = crawler_runner._run_detail_comment_recovery
+    original_mark = crawler_runner._mark_queue_batch
+
+    def store_outcome(
+        requested: list[str],
+        attempted: list[str],
+        successful: list[str],
+        failed: list[str],
+    ) -> None:
+        setattr(crawler_runner, "_promotion_week_last_detail_outcome", {
+            "platform": "ks",
+            "requested": list(requested),
+            "attempted": list(attempted),
+            "successful": list(successful),
+            "failed": list(failed),
+        })
 
     def update_with_kuaishou_fallback(platform: str, content_files: list[Path], queue: dict) -> None:
         original_update(platform, content_files, queue)
@@ -86,13 +153,40 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                 batch_size=batch_size,
             )
         if not candidates:
+            store_outcome([], [], [], [])
             return 0, 0
 
         budget_seconds = max(30, min(int(cfg.get("kuaishou_realtime_detail_budget_seconds", 120)), 180))
+        candidate_timeout = max(
+            10,
+            min(int(cfg.get("kuaishou_realtime_candidate_timeout_seconds", 40)), 120),
+        )
         realtime_comment_cap = max(20, min(int(cfg.get("kuaishou_realtime_max_comments_per_video", 300)), 2000))
+        cdp_port = int(cfg.get("cdp_debug_port", 9222))
+        cdp_ok, cdp_reason = _kuaishou_cdp_preflight(
+            cdp_port,
+            float(cfg.get("kuaishou_realtime_cdp_preflight_timeout_seconds", 3)),
+        )
+        if not cdp_ok:
+            store_outcome(candidates, [], [], [])
+            with stdout_log.open("a", encoding="utf-8") as out:
+                out.write(
+                    f"\n[monitor] KUAISHOU_REALTIME_DETAIL_CDP_UNAVAILABLE port={cdp_port} "
+                    f"reason={cdp_reason}; "
+                    "all_candidates_remain_retryable=yes; standard_mode_fallback=no\n"
+                )
+            return 125, 0
+
+        from monitor.final_realtime_policy import (
+            _rollback_jsonl,
+            _snapshot_jsonl,
+            _terminate_process_tree,
+        )
+
         deadline = time.monotonic() + budget_seconds
-        attempts = 0
-        success_count = 0
+        attempted: list[str] = []
+        successful: list[str] = []
+        failed: list[str] = []
         first_failure_rc: int | None = None
 
         for identifier in candidates:
@@ -101,6 +195,8 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                 with stdout_log.open("a", encoding="utf-8") as out:
                     out.write("\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED before next candidate\n")
                 break
+
+            timeout_seconds = max(1, min(candidate_timeout, int(remaining)))
 
             cmd = [
                 "uv", "run", "main.py",
@@ -117,33 +213,46 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
             ]
             with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
                 out.write(
-                    f"\n[monitor] KUAISHOU_REALTIME_DETAIL candidate={attempts + 1}/{len(candidates)} "
-                    f"budget_remaining={int(remaining)}s comment_cap={realtime_comment_cap}\n"
+                    f"\n[monitor] KUAISHOU_REALTIME_DETAIL candidate={len(attempted) + 1}/{len(candidates)} "
+                    f"budget_remaining={int(remaining)}s candidate_timeout={timeout_seconds}s "
+                    f"comment_cap={realtime_comment_cap}\n"
                 )
+                snapshot = _snapshot_jsonl(output_dir)
+                attempted.append(identifier)
+                popen_kwargs = {
+                    "cwd": cfg["media_crawler_root"],
+                    "stdout": out,
+                    "stderr": err,
+                    "text": True,
+                }
+                if os.name == "nt":
+                    popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                else:
+                    popen_kwargs["start_new_session"] = True
+                proc = subprocess.Popen(cmd, **popen_kwargs)
                 try:
-                    proc = subprocess.run(
-                        cmd,
-                        cwd=cfg["media_crawler_root"],
-                        stdout=out,
-                        stderr=err,
-                        text=True,
-                        timeout=max(5, int(remaining)),
-                    )
+                    proc.wait(timeout=timeout_seconds)
                 except subprocess.TimeoutExpired:
+                    _terminate_process_tree(proc)
+                    _rollback_jsonl(output_dir, snapshot)
+                    failed.append(identifier)
+                    if first_failure_rc is None:
+                        first_failure_rc = 124
                     out.write(
-                        "\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED "
-                        "partial_rows_preserved=yes\n"
+                        "\n[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_TIMEOUT "
+                        "process_tree_terminated=yes; partial_jsonl_rolled_back=yes; "
+                        "candidate_remains_retryable=yes\n"
                     )
-                    attempts += 1
-                    break
+                    continue
 
-            attempts += 1
             if proc.returncode == 0:
-                success_count += 1
+                successful.append(identifier)
                 with stdout_log.open("a", encoding="utf-8") as out:
                     out.write("[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_SUCCESS\n")
                 continue
 
+            _rollback_jsonl(output_dir, snapshot)
+            failed.append(identifier)
             if first_failure_rc is None:
                 first_failure_rc = proc.returncode
             with stdout_log.open("a", encoding="utf-8") as out:
@@ -152,14 +261,30 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                     "continuing_with_next_candidate=yes\n"
                 )
 
-        if success_count > 0:
-            return 0, attempts
+        store_outcome(candidates, attempted, successful, failed)
+        if successful:
+            return 0, len(attempted)
         if first_failure_rc is not None:
-            return first_failure_rc, attempts
-        return 0, attempts
+            return first_failure_rc, len(attempted)
+        return 0, len(attempted)
+
+    def precise_queue_mark(queue: dict, candidates: list[str], success: bool) -> None:
+        outcome = getattr(crawler_runner, "_promotion_week_last_detail_outcome", None)
+        if isinstance(outcome, dict) and outcome.get("platform") == "ks":
+            if list(outcome.get("requested") or []) == list(candidates):
+                successful = list(outcome.get("successful") or [])
+                failed = list(outcome.get("failed") or [])
+                if successful:
+                    original_mark(queue, successful, True)
+                if failed:
+                    original_mark(queue, failed, False)
+                setattr(crawler_runner, "_promotion_week_last_detail_outcome", None)
+                return
+        original_mark(queue, candidates, success)
 
     crawler_runner._update_queue_from_content = update_with_kuaishou_fallback
     crawler_runner._run_detail_comment_recovery = bounded_kuaishou_detail
+    crawler_runner._mark_queue_batch = precise_queue_mark
     crawler_runner._promotion_week_ks_unknown_count_fallback = True
 
 
@@ -614,8 +739,7 @@ def main():
     if args.keyword:
         cfg["keywords"] = args.keyword
 
-    root = Path(cfg["data_root"])
-    cfg["data_root"] = str(root.parent / f"{root.name}_{args.platform}")
+    cfg["data_root"] = _platform_data_root(cfg, args.platform)
     cfg["max_parallel_platforms"] = 1
 
     if args.once:

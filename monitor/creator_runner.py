@@ -2,10 +2,23 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+import shutil
 import subprocess
 import time
 
 from .crawler_runner import PlatformRun, _classify_state
+
+
+def _media_crawler_command_prefix(media_crawler_root: str) -> list[str]:
+    root = Path(media_crawler_root)
+    venv_python = root / ".venv" / "Scripts" / "python.exe"
+    if venv_python.exists():
+        return [str(venv_python), "main.py"]
+    if shutil.which("uv"):
+        return ["uv", "run", "main.py"]
+    raise FileNotFoundError(
+        f"Neither {venv_python} nor uv is available for MediaCrawler"
+    )
 
 
 def run_creator_platform(cfg: dict, platform: str, platform_name: str, creator_ids: list[str], run_root: Path) -> PlatformRun:
@@ -19,8 +32,7 @@ def run_creator_platform(cfg: dict, platform: str, platform_name: str, creator_i
     if not creator_ids:
         raise ValueError("creator_ids is empty")
 
-    cmd = [
-        "uv", "run", "main.py",
+    cmd = _media_crawler_command_prefix(cfg["media_crawler_root"]) + [
         "--platform", platform,
         "--lt", cfg.get("login_type", "qrcode"),
         "--type", "creator",

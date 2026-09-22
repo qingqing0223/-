@@ -11,20 +11,12 @@ from .kuaishou_key_accounts import (
     enrich_kuaishou_key_account_records,
     load_kuaishou_key_accounts,
 )
+from .kuaishou_topic import assess_kuaishou_topic, candidate_source
+from .kuaishou_queries import query_catalog_by_query
 
 
 COUNTRY_ONLY_REGION_LABELS = {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC", "CN"}
 BEIJING_TZ = timezone(timedelta(hours=8))
-KUAISHOU_TOPIC_ANCHORS = (
-    "2026年民族团结进步宣传周",
-    "首个民族团结进步宣传周",
-    "促进民族团结进步，奋进伟大复兴征程",
-    "促进民族团结进步,奋进伟大复兴征程",
-    "民族团结进步宣传周主场活动",
-    "石榴花开——铸牢中华民族共同体意识",
-    "石榴花开-铸牢中华民族共同体意识",
-)
-
 PROVINCE_ALIASES = [
     ("内蒙古", "内蒙古"), ("广西", "广西"), ("西藏", "西藏"), ("宁夏", "宁夏"), ("新疆", "新疆"),
     ("香港", "香港"), ("澳门", "澳门"),
@@ -137,10 +129,7 @@ def _snapshot_due(last_observed: str, observed_at: str, interval_seconds: int) -
 
 
 def _kuaishou_topic_relevant(rec: dict) -> bool:
-    text = "\n".join(str(rec.get(key) or "") for key in (
-        "analysis_text", "content", "context", "tag_text", "asr_text", "ocr_text"
-    ))
-    return any(anchor in text for anchor in KUAISHOU_TOPIC_ANCHORS)
+    return assess_kuaishou_topic(rec).status == "relevant"
 
 
 def _merge_source_keywords(target: dict, incoming: dict) -> None:
@@ -154,6 +143,108 @@ def _merge_source_keywords(target: dict, incoming: dict) -> None:
     target["source_keyword"] = "；".join(merged)
 
 
+def _query_hits(record: dict) -> list[dict]:
+    hits = []
+    for hit in record.get("query_hits") or []:
+        if not isinstance(hit, dict):
+            continue
+        query = str(hit.get("query") or "").strip()
+        query_type = str(hit.get("query_type") or "").strip()
+        if query:
+            hits.append({"query": query, "query_type": query_type})
+    return hits
+
+
+def _merge_query_audit(target: dict, incoming: dict) -> None:
+    """Merge actual queries in first-discovery order for one deduplicated hit."""
+    merged = []
+    seen = set()
+    for record in (target, incoming):
+        for hit in _query_hits(record):
+            key = (hit["query"], hit["query_type"])
+            if key not in seen:
+                seen.add(key)
+                merged.append(hit)
+    if not merged:
+        return
+    target["query_hits"] = merged
+    target["search_queries"] = [hit["query"] for hit in merged]
+    target["query_types"] = list(dict.fromkeys(
+        hit["query_type"] for hit in merged if hit["query_type"]
+    ))
+    target.setdefault("first_search_query", merged[0]["query"])
+    target.setdefault("first_query_type", merged[0]["query_type"])
+    target["last_search_query"] = merged[-1]["query"]
+    target["last_query_type"] = merged[-1]["query_type"]
+
+
+def _attach_query_audit(record: dict, query_types_by_query: dict[str, str]) -> None:
+    values = list(record.get("source_keywords") or [])
+    if record.get("source_keyword"):
+        values.append(str(record["source_keyword"]))
+    hits = []
+    seen = set()
+    for value in values:
+        query = str(value or "").strip()
+        if not query or query in seen:
+            continue
+        seen.add(query)
+        hits.append({"query": query, "query_type": query_types_by_query.get(query, "unknown")})
+    if hits:
+        record["query_hits"] = hits
+        record["search_queries"] = [hit["query"] for hit in hits]
+        record["query_types"] = list(dict.fromkeys(hit["query_type"] for hit in hits))
+        record["first_search_query"] = hits[0]["query"]
+        record["first_query_type"] = hits[0]["query_type"]
+        record["last_search_query"] = hits[-1]["query"]
+        record["last_query_type"] = hits[-1]["query_type"]
+
+
+def _upsert_kuaishou_topic_candidates(path: Path, incoming: list[dict]) -> int:
+    """Keep one auditable candidate row per content id/URL across discovery sources."""
+    by_key: dict[str, dict] = {}
+    if path.exists():
+        for row in read_jsonl(path):
+            key = str(row.get("content_id") or row.get("url") or "").strip()
+            if key:
+                by_key[key] = row
+    for row in incoming:
+        key = str(row.get("content_id") or row.get("url") or "").strip()
+        if not key:
+            continue
+        old = by_key.get(key, {})
+        merged = dict(old)
+        merged.update(row)
+        keywords = list(old.get("source_keywords") or []) + list(row.get("source_keywords") or [])
+        merged["source_keywords"] = list(dict.fromkeys(
+            str(value).strip() for value in keywords if str(value).strip()
+        ))
+        sources = list(old.get("candidate_sources") or [])
+        if old.get("candidate_source"):
+            sources.append(str(old["candidate_source"]))
+        if row.get("candidate_source"):
+            sources.append(str(row["candidate_source"]))
+        merged["candidate_sources"] = list(dict.fromkeys(value for value in sources if value))
+        _merge_query_audit(merged, old)
+        _merge_query_audit(merged, row)
+        merged["candidate_first_observed_at"] = (
+            old.get("candidate_first_observed_at")
+            or old.get("candidate_observed_at")
+            or row.get("candidate_observed_at")
+        )
+        merged["candidate_last_observed_at"] = row.get("candidate_observed_at") or old.get("candidate_last_observed_at")
+        by_key[key] = merged
+    if not incoming:
+        return 0
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as handle:
+        for row in by_key.values():
+            handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+    tmp.replace(path)
+    return len(incoming)
+
+
 def _append_kuaishou_engagement_snapshots(
     records: list[dict], state_path: Path, output_path: Path,
     interval_seconds: int, observed_at: str,
@@ -161,12 +252,17 @@ def _append_kuaishou_engagement_snapshots(
     state = read_json(state_path, {"last_observed": {}})
     last_observed = state.setdefault("last_observed", {})
     snapshots = []
+    snapshot_candidates = 0
+    skipped_not_key_content = 0
+    skipped_not_key_comment = 0
     skipped_not_due = 0
     skipped_missing_id = 0
     for rec in records:
+        snapshot_candidates += 1
         record_type = str(rec.get("record_type") or "")
         if record_type == "comment":
             if not rec.get("is_key_monitor_comment", False):
+                skipped_not_key_comment += 1
                 continue
             entity_id = str(rec.get("comment_id") or "").strip()
             entity_type = "comment"
@@ -176,6 +272,7 @@ def _append_kuaishou_engagement_snapshots(
             }
         else:
             if not rec.get("is_key_monitor_content", False):
+                skipped_not_key_content += 1
                 continue
             entity_id = str(rec.get("content_id") or rec.get("url") or "").strip()
             entity_type = "content"
@@ -215,6 +312,9 @@ def _append_kuaishou_engagement_snapshots(
         append_jsonl(output_path, snapshots)
         write_json(state_path, state)
     return {
+        "snapshot_candidates": snapshot_candidates,
+        "snapshot_skipped_not_key_content": skipped_not_key_content,
+        "snapshot_skipped_not_key_comment": skipped_not_key_comment,
         "snapshot_records": len(snapshots),
         "snapshot_skipped_not_due": skipped_not_due,
         "snapshot_skipped_missing_id": skipped_missing_id,
@@ -358,7 +458,10 @@ def _merge_regions_into_existing(output_jsonl: Path, region_by_key: dict[str, st
     return updated
 
 
-def _merge_keywords_into_existing(output_jsonl: Path, keywords_by_key: dict[str, list[str]]) -> int:
+def _merge_keywords_into_existing(
+    output_jsonl: Path, keywords_by_key: dict[str, list[str]],
+    query_audit_by_key: dict[str, dict] | None = None,
+) -> int:
     if not keywords_by_key or not output_jsonl.exists():
         return 0
     rows = list(read_jsonl(output_jsonl))
@@ -369,8 +472,11 @@ def _merge_keywords_into_existing(output_jsonl: Path, keywords_by_key: dict[str,
         if not key or not incoming:
             continue
         before = list(row.get("source_keywords") or [])
+        before_query_hits = _query_hits(row)
         _merge_source_keywords(row, {"source_keywords": incoming})
-        if row.get("source_keywords") != before:
+        if query_audit_by_key:
+            _merge_query_audit(row, query_audit_by_key.get(key, {}))
+        if row.get("source_keywords") != before or _query_hits(row) != before_query_hits:
             updated += 1
     if updated:
         tmp = output_jsonl.with_suffix(output_jsonl.suffix + ".keywords.tmp")
@@ -387,8 +493,12 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
                         engagement_snapshot_interval_seconds: int = 3600,
                         account_snapshot_interval_seconds: int = 3600,
                         key_accounts_config_path: str = "",
+                        key_content_ids: list[str] | None = None,
+                        kuaishou_query_catalog: list[dict] | None = None,
                         observed_at: str = "",
-                        enable_classification: bool = True) -> dict:
+                        enable_classification: bool = True,
+                        candidate_source_hint: str = "",
+                        enable_kuaishou_snapshots: bool = True) -> dict:
     seen = load_seen(state_path)
     fresh = []
     filtered_before_start = 0
@@ -409,7 +519,10 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     duplicate_comment_skipped = 0
     duplicate_content_skipped = 0
     filtered_topic_irrelevant = 0
+    topic_candidates_pending_review = 0
+    topic_candidates_recorded = 0
     prepared: list[dict] = []
+    query_types_by_query = query_catalog_by_query(kuaishou_query_catalog) if platform == "ks" else {}
 
     for path in jsonl_files:
         is_comment_file = "comment" in path.name.lower()
@@ -425,6 +538,10 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             normalized_records += 1
             if rec.get("record_type") == "comment":
                 normalized_comment_records += 1
+            if platform == "ks" and candidate_source_hint:
+                rec["_candidate_source_hint"] = candidate_source_hint
+            if platform == "ks":
+                _attach_query_audit(rec, query_types_by_query)
             if platform == "ks":
                 scope_reason = _time_scope_reason(rec, monitoring_start_time, monitoring_end_time)
                 if scope_reason:
@@ -444,14 +561,66 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             prepared.append(rec)
 
     if platform == "ks":
+        # Merge duplicate search/detail/homepage observations before topic
+        # assessment so the candidate audit row preserves every discovery term.
+        candidate_consolidated: dict[str, dict] = {}
+        for rec in prepared:
+            key = rec["dedupe_key"]
+            if key in candidate_consolidated:
+                _merge_source_keywords(candidate_consolidated[key], rec)
+                _merge_query_audit(candidate_consolidated[key], rec)
+                duplicate_skipped += 1
+                if rec.get("record_type") == "comment":
+                    duplicate_comment_skipped += 1
+                else:
+                    duplicate_content_skipped += 1
+                continue
+            candidate_consolidated[key] = rec
+        prepared = list(candidate_consolidated.values())
+
         relevance_path = state_path.parent / "kuaishou_relevant_content_ids.json"
         relevance_state = read_json(relevance_path, {"content_ids": []})
         relevant_content_ids = set(map(str, relevance_state.get("content_ids", [])))
+        candidate_rows = []
         for rec in prepared:
-            if rec.get("record_type") != "comment" and _kuaishou_topic_relevant(rec):
-                content_key = str(rec.get("content_id") or rec.get("url") or "").strip()
-                if content_key:
-                    relevant_content_ids.add(content_key)
+            if rec.get("record_type") == "comment":
+                continue
+            decision = assess_kuaishou_topic(rec)
+            rec["topic_relevance_status"] = decision.status
+            rec["topic_relevance_reason"] = decision.reason
+            rec["topic_matched_evidence"] = list(decision.matched_evidence)
+            rec["candidate_source"] = candidate_source(rec)
+            content_key = str(rec.get("content_id") or rec.get("url") or "").strip()
+            if decision.status == "relevant" and content_key:
+                relevant_content_ids.add(content_key)
+            else:
+                topic_candidates_pending_review += 1
+            candidate_rows.append({
+                "platform": "ks",
+                "content_id": str(rec.get("content_id") or ""),
+                "url": str(rec.get("url") or ""),
+                "publish_time": rec.get("publish_time"),
+                "author": rec.get("author"),
+                "author_id": rec.get("author_id"),
+                "content": rec.get("content"),
+                "source_keywords": list(rec.get("source_keywords") or []),
+                "query_hits": list(rec.get("query_hits") or []),
+                "search_queries": list(rec.get("search_queries") or []),
+                "query_types": list(rec.get("query_types") or []),
+                "first_search_query": rec.get("first_search_query"),
+                "first_query_type": rec.get("first_query_type"),
+                "last_search_query": rec.get("last_search_query"),
+                "last_query_type": rec.get("last_query_type"),
+                "candidate_source": rec["candidate_source"],
+                "topic_relevance_status": decision.status,
+                "topic_relevance_reason": decision.reason,
+                "topic_matched_evidence": list(decision.matched_evidence),
+                "candidate_observed_at": observed_at or None,
+            })
+        if candidate_rows:
+            topic_candidates_recorded = _upsert_kuaishou_topic_candidates(
+                output_jsonl.parent / "kuaishou_topic_candidates.jsonl", candidate_rows
+            )
         accepted = []
         for rec in prepared:
             content_key = str(rec.get("content_id") or rec.get("url") or "").strip()
@@ -471,6 +640,7 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         key = rec["dedupe_key"]
         if key in consolidated:
             _merge_source_keywords(consolidated[key], rec)
+            _merge_query_audit(consolidated[key], rec)
             duplicate_skipped += 1
             if rec.get("record_type") == "comment":
                 duplicate_comment_skipped += 1
@@ -508,12 +678,21 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     snapshot_summary = {}
     key_account_summary = {}
     account_snapshot_summary = {}
-    if platform == "ks":
+    if platform == "ks" and enable_kuaishou_snapshots:
         snapshot_time = observed_at or datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
         registry_path = Path(key_accounts_config_path) if key_accounts_config_path else Path()
         registry = load_kuaishou_key_accounts(registry_path) if key_accounts_config_path else {
             "platform": "ks", "accounts": [], "key_content_ids": []
         }
+        # Key content is an independent business designation. Verified key-account
+        # posts are still promoted automatically below, but explicit content IDs
+        # do not depend on any account being configured or verified.
+        registry = dict(registry)
+        registry["key_content_ids"] = list(dict.fromkeys(
+            str(value).strip()
+            for value in [*(registry.get("key_content_ids") or []), *(key_content_ids or [])]
+            if str(value).strip()
+        ))
         key_account_summary = enrich_kuaishou_key_account_records(
             snapshot_candidates,
             registry,
@@ -539,7 +718,12 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         rec["dedupe_key"]: list(rec.get("source_keywords") or [])
         for rec in consolidated.values()
     }
-    keyword_backfilled_records = _merge_keywords_into_existing(output_jsonl, keyword_hits_by_key)
+    query_audit_by_key = {
+        rec["dedupe_key"]: rec for rec in consolidated.values()
+    }
+    keyword_backfilled_records = _merge_keywords_into_existing(
+        output_jsonl, keyword_hits_by_key, query_audit_by_key
+    )
 
     # The Kuaishou collection deliverable is Tech Design V3 Tables 1-5 only.
     # Keep the normalized output path for compatibility, but do not create
@@ -589,6 +773,9 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "filtered_missing_publish_time": filtered_missing_publish_time,
         "filtered_unparseable_publish_time": filtered_unparseable_publish_time,
         "filtered_topic_irrelevant": filtered_topic_irrelevant,
+        "topic_candidates_recorded": topic_candidates_recorded,
+        "topic_candidates_pending_review": topic_candidates_pending_review,
+        "topic_candidate_output": str(output_jsonl.parent / "kuaishou_topic_candidates.jsonl") if platform == "ks" else "",
         "duplicate_comment_skipped": duplicate_comment_skipped,
         "duplicate_content_skipped": duplicate_content_skipped,
         "classified_records": total,

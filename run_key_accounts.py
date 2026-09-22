@@ -8,7 +8,8 @@ import time
 
 from dashboard_adapter.suqi_pusher import deliver_with_outbox
 from monitor.creator_runner import run_creator_platform
-from monitor.crawler_runner import find_content_jsonl
+from monitor.crawler_runner import find_content_jsonl, find_ingest_jsonl
+from monitor.ingest import ingest_and_classify
 from monitor.key_account_ingest import ingest_key_account_snapshot
 from pipeline.io_utils import write_json
 
@@ -24,7 +25,9 @@ PLATFORM_NAMES = {
 
 
 def load_config(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+    cfg = json.loads(path.read_text(encoding="utf-8"))
+    cfg["_config_dir"] = str(path.resolve().parent)
+    return cfg
 
 
 def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
@@ -51,7 +54,13 @@ def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
     base_root = Path(cfg["data_root"])
     results = []
     for platform, items in grouped.items():
-        root = base_root.parent / f"{base_root.name}_{platform}"
+        formal_kuaishou_ingest = platform == "ks" and bool(
+            cfg.get("formal_monitoring_ingest", False)
+        )
+        if formal_kuaishou_ingest and cfg.get("kuaishou_formal_data_root"):
+            root = Path(str(cfg["kuaishou_formal_data_root"]))
+        else:
+            root = base_root.parent / f"{base_root.name}_{platform}"
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         cycle_root = root / "raw_runs" / stamp
         cycle_root.mkdir(parents=True, exist_ok=True)
@@ -75,7 +84,11 @@ def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
             results.append(item)
             continue
 
-        files = find_content_jsonl(Path(run.output_dir))
+        files = (
+            find_ingest_jsonl(Path(run.output_dir), include_comments=True)
+            if formal_kuaishou_ingest
+            else find_content_jsonl(Path(run.output_dir))
+        )
         if not files:
             item["ok"] = False
             item["reason"] = "no_content_jsonl"
@@ -84,14 +97,38 @@ def run_cycle(cfg: dict, platform_filter: str | None = None) -> dict:
 
         classified_path = root / "classified" / "classified_results.jsonl"
         state_path = root / "state" / "seen_ids.json"
-        summary = ingest_key_account_snapshot(
-            platform,
-            files,
-            state_path,
-            classified_path,
-            concurrency=int(cfg.get("classifier_concurrency", 4)),
-        )
-        push_rows = summary.pop("push_rows")
+        if formal_kuaishou_ingest:
+            registry_path = str(cfg.get("kuaishou_key_accounts_config") or "")
+            if registry_path and not Path(registry_path).is_absolute():
+                registry_path = str(Path(cfg.get("_config_dir") or ".") / registry_path)
+            summary = ingest_and_classify(
+                platform,
+                files,
+                state_path,
+                classified_path,
+                concurrency=int(cfg.get("classifier_concurrency", 4)),
+                monitoring_start_time=str(cfg.get("monitoring_start_time") or ""),
+                monitoring_end_time=str(cfg.get("monitoring_end_time") or ""),
+                engagement_snapshot_interval_seconds=int(
+                    cfg.get("kuaishou_engagement_snapshot_interval_seconds", 3600)
+                ),
+                account_snapshot_interval_seconds=int(
+                    cfg.get("kuaishou_account_snapshot_interval_seconds", 3600)
+                ),
+                key_accounts_config_path=registry_path,
+                enable_classification=False,
+                candidate_source_hint="account_homepage",
+            )
+            push_rows = summary.pop("_classified_rows", [])
+        else:
+            summary = ingest_key_account_snapshot(
+                platform,
+                files,
+                state_path,
+                classified_path,
+                concurrency=int(cfg.get("classifier_concurrency", 4)),
+            )
+            push_rows = summary.pop("push_rows")
 
         dashboard_cfg = cfg.get("dashboard") or {}
         dashboard_result = {"enabled": bool(dashboard_cfg.get("enabled", False)), "sent": 0, "ok": None}

@@ -240,6 +240,37 @@ def _check_mediacrawler_comment_cli(root: Path) -> tuple[bool, str]:
     return True, "comment/sub-comment/deep-paging/save-path CLI flags present"
 
 
+def _dashscope_api_key_check(runtime_cfg: dict, environ=None) -> dict:
+    """Return the config-aware DashScope preflight result.
+
+    Kuaishou collection-only deployments produce Tech Design V3 Tables 1-5 and
+    explicitly skip opinion classification. In that mode the model credential is
+    not a runtime dependency and must not block collection preflight.
+    """
+    env = os.environ if environ is None else environ
+    key_is_set = bool(str(env.get("DASHSCOPE_API_KEY", "")).strip())
+    skip_kuaishou_classification = bool(
+        runtime_cfg.get("kuaishou_skip_opinion_classification", False)
+    )
+    if skip_kuaishou_classification:
+        return {
+            "ok": True,
+            "required": False,
+            "status": "skipped",
+            "detail": (
+                "optional/skipped: Kuaishou runtime configuration explicitly "
+                "skips opinion classification; Tables 1-5 collection does not "
+                "require DASHSCOPE_API_KEY"
+            ),
+        }
+    return {
+        "ok": key_is_set,
+        "required": True,
+        "status": "set" if key_is_set else "missing",
+        "detail": "set" if key_is_set else "not set; opinion classification is enabled",
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Deployment preflight for the realtime opinion monitor.")
     parser.add_argument(
@@ -253,18 +284,15 @@ def main() -> int:
     local_upgraded, local_upgrade_detail = _upgrade_local_full_matrix(runtime_config)
     checks: list[dict] = []
 
-    def add(name: str, ok: bool, detail: str, required: bool = True):
-        checks.append({"name": name, "ok": bool(ok), "required": required, "detail": detail})
+    def add(name: str, ok: bool, detail: str, required: bool = True, status: str = ""):
+        item = {"name": name, "ok": bool(ok), "required": required, "detail": detail}
+        if status:
+            item["status"] = status
+        checks.append(item)
 
     add("python", True, sys.version.split()[0])
     add("git", shutil.which("git") is not None, shutil.which("git") or "not found")
     add("uv", shutil.which("uv") is not None, shutil.which("uv") or "not found")
-    add(
-        "DASHSCOPE_API_KEY",
-        bool(os.environ.get("DASHSCOPE_API_KEY", "").strip()),
-        "set" if os.environ.get("DASHSCOPE_API_KEY", "").strip() else "not set",
-    )
-
     json_files = (
         "config/monitoring.windows.json",
         "config/monitoring.student.windows.json",
@@ -280,6 +308,15 @@ def main() -> int:
     runtime_ok, runtime_detail = _check_json(runtime_config)
     add(f"runtime config:{runtime_config}", runtime_ok, runtime_detail)
     if runtime_ok:
+        runtime_cfg_for_key = _load_json(runtime_config)
+        key_check = _dashscope_api_key_check(runtime_cfg_for_key)
+        add(
+            "DASHSCOPE_API_KEY",
+            key_check["ok"],
+            key_check["detail"],
+            required=key_check["required"],
+            status=key_check["status"],
+        )
         ok, detail = _check_platform_config(runtime_config)
         add("runtime config seven-platform coverage", ok, detail)
         matrix_ok, matrix_detail = _check_full_matrix(runtime_config)
@@ -289,6 +326,12 @@ def main() -> int:
         add("runtime config six campaign keywords", kw_ok, kw_detail)
         scope_ok, scope_detail = _check_monitoring_scope(runtime_config)
         add("runtime config monitoring scope", scope_ok, scope_detail)
+    else:
+        add(
+            "DASHSCOPE_API_KEY",
+            False,
+            "cannot determine classification requirement because runtime config is invalid",
+        )
 
     for rel in (
         "config/monitoring.windows.json",
