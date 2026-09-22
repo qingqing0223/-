@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 from pipeline.normalizer import normalize_record
+from monitor.ingest import _merge_kuaishou_public_metrics
 from scripts.patch_kuaishou_public_metrics import check, patch
 
 
@@ -134,6 +135,28 @@ class KuaishouPublicMetricsPatchTests(unittest.TestCase):
             self.assertEqual(first["author"]["following_count"], 56)
             self.assertEqual(second["author"]["fans_count"], 1234)
             self.assertEqual(client.calls, 1)
+
+
+    def test_duplicate_observation_fills_only_missing_public_metrics(self):
+        target = {
+            "record_type": "comment",
+            "follower_count": None,
+            "following_count": None,
+            "likes": None,
+            "comment_reply_count": 2,
+        }
+        incoming = {
+            "record_type": "comment",
+            "follower_count": 100,
+            "following_count": 8,
+            "likes": 5,
+            "comment_reply_count": 99,
+        }
+        _merge_kuaishou_public_metrics(target, incoming)
+        self.assertEqual(target["follower_count"], 100)
+        self.assertEqual(target["following_count"], 8)
+        self.assertEqual(target["likes"], 5)
+        self.assertEqual(target["comment_reply_count"], 2)
 
     def test_normalizer_accepts_public_kuaishou_aliases(self):
         comment = normalize_record(

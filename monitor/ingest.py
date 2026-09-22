@@ -143,6 +143,22 @@ def _merge_source_keywords(target: dict, incoming: dict) -> None:
     target["source_keyword"] = "；".join(merged)
 
 
+def _merge_kuaishou_public_metrics(target: dict, incoming: dict) -> None:
+    """Fill missing public counters from another observation of the same entity.
+
+    Search/detail files can contain the same Kuaishou content or comment with
+    different field completeness. Never replace a non-empty value here; this is
+    only a completeness merge inside one ingest cycle.
+    """
+    for field in ("follower_count", "following_count"):
+        if target.get(field) in (None, "") and incoming.get(field) not in (None, ""):
+            target[field] = incoming[field]
+    if str(target.get("record_type") or "") == "comment":
+        for field in ("likes", "comment_reply_count"):
+            if target.get(field) in (None, "") and incoming.get(field) not in (None, ""):
+                target[field] = incoming[field]
+
+
 def _query_hits(record: dict) -> list[dict]:
     hits = []
     for hit in record.get("query_hits") or []:
@@ -569,6 +585,7 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             if key in candidate_consolidated:
                 _merge_source_keywords(candidate_consolidated[key], rec)
                 _merge_query_audit(candidate_consolidated[key], rec)
+                _merge_kuaishou_public_metrics(candidate_consolidated[key], rec)
                 duplicate_skipped += 1
                 if rec.get("record_type") == "comment":
                     duplicate_comment_skipped += 1
@@ -641,6 +658,8 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         if key in consolidated:
             _merge_source_keywords(consolidated[key], rec)
             _merge_query_audit(consolidated[key], rec)
+            if platform == "ks":
+                _merge_kuaishou_public_metrics(consolidated[key], rec)
             duplicate_skipped += 1
             if rec.get("record_type") == "comment":
                 duplicate_comment_skipped += 1
