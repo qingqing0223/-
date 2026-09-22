@@ -136,19 +136,19 @@ def _patch_store(text: str) -> str:
     video_start, video_end = _function_bounds(text, "update_kuaishou_video")
     video = text[video_start:video_end]
     video_injection = (
-        f'    # {MARKER}: keep only public aggregate creator counters in JSONL output\\n'
+        f'    # {MARKER}: keep only public aggregate creator counters in JSONL output\n'
         '    if str(os.getenv("KUAISHOU_PUBLIC_METRICS", "")).strip().lower() in {"1", "true", "yes", "on"} '
-        'and str(getattr(config, "SAVE_DATA_OPTION", "")).lower() == "jsonl":\\n'
-        '        follower_count = user_info.get("follower_count")\\n'
-        '        if follower_count is None:\\n'
-        '            follower_count = user_info.get("fans_count")\\n'
-        '        following_count = user_info.get("following_count")\\n'
-        '        if following_count is None:\\n'
-        '            following_count = user_info.get("follow_count")\\n'
-        '        if follower_count is not None and follower_count != "":\\n'
-        '            save_content_item["follower_count"] = follower_count\\n'
-        '        if following_count is not None and following_count != "":\\n'
-        '            save_content_item["following_count"] = following_count\\n'
+        'and str(getattr(config, "SAVE_DATA_OPTION", "")).lower() == "jsonl":\n'
+        '        follower_count = user_info.get("follower_count")\n'
+        '        if follower_count is None:\n'
+        '            follower_count = user_info.get("fans_count")\n'
+        '        following_count = user_info.get("following_count")\n'
+        '        if following_count is None:\n'
+        '            following_count = user_info.get("follow_count")\n'
+        '        if follower_count is not None and follower_count != "":\n'
+        '            save_content_item["follower_count"] = follower_count\n'
+        '        if following_count is not None and following_count != "":\n'
+        '            save_content_item["following_count"] = following_count\n'
     )
     patched_video = _inject_before_logger(video, video_injection, "update_kuaishou_video")
     text = text[:video_start] + patched_video + text[video_end:]
@@ -156,17 +156,17 @@ def _patch_store(text: str) -> str:
     comment_start, comment_end = _function_bounds(text, "update_ks_video_comment")
     comment = text[comment_start:comment_end]
     comment_injection = (
-        f'    # {MARKER}: preserve the public comment-like counter already returned by the API\\n'
+        f'    # {MARKER}: preserve the public comment-like counter already returned by the API\n'
         '    if str(os.getenv("KUAISHOU_PUBLIC_METRICS", "")).strip().lower() in {"1", "true", "yes", "on"} '
-        'and str(getattr(config, "SAVE_DATA_OPTION", "")).lower() == "jsonl":\\n'
-        '        public_like_count = None\\n'
-        '        for key in ("realLikedCount", "likedCount", "likeCount", "like_count", "liked_count", "real_liked_count"):\\n'
-        '            value = comment_item.get(key)\\n'
-        '            if value is not None and value != "":\\n'
-        '                public_like_count = value\\n'
-        '                break\\n'
-        '        if public_like_count is not None:\\n'
-        '            save_comment_item["like_count"] = str(public_like_count)\\n'
+        'and str(getattr(config, "SAVE_DATA_OPTION", "")).lower() == "jsonl":\n'
+        '        public_like_count = None\n'
+        '        for key in ("realLikedCount", "likedCount", "likeCount", "like_count", "liked_count", "real_liked_count"):\n'
+        '            value = comment_item.get(key)\n'
+        '            if value is not None and value != "":\n'
+        '                public_like_count = value\n'
+        '                break\n'
+        '        if public_like_count is not None:\n'
+        '            save_comment_item["like_count"] = str(public_like_count)\n'
     )
     patched_comment = _inject_before_logger(comment, comment_injection, "update_ks_video_comment")
     text = text[:comment_start] + patched_comment + text[comment_end:]
