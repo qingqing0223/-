@@ -95,27 +95,74 @@ def _core_methods(indent: str) -> str:
     )
 
 
+def _insert_after_matching_line(text: str, *, contains: str, insertion: str, after_contains: str | None = None) -> str:
+    """Insert one line using the indentation of the matched source line.
+
+    MediaCrawler has changed indentation/nesting in the Kuaishou search loop
+    across revisions.  The patch should follow the code shape instead of
+    requiring one exact whitespace layout.
+    """
+    lines = text.splitlines(keepends=True)
+    for idx, line in enumerate(lines):
+        if contains not in line:
+            continue
+        target_idx = idx
+        if after_contains is not None:
+            base_indent = len(line) - len(line.lstrip())
+            for j in range(idx + 1, len(lines)):
+                candidate = lines[j]
+                if candidate.strip():
+                    indent = len(candidate) - len(candidate.lstrip())
+                    if indent <= base_indent:
+                        break
+                if after_contains in candidate:
+                    target_idx = j
+                    break
+            else:
+                continue
+            if target_idx == idx:
+                continue
+        indent_text = lines[target_idx][: len(lines[target_idx]) - len(lines[target_idx].lstrip())]
+        lines.insert(target_idx + 1, indent_text + insertion + "\n")
+        return "".join(lines)
+    raise RuntimeError(f"Kuaishou patch anchor not found: {contains}")
+
+
+def _insert_before_return_in_method(text: str, class_name: str, method_name: str, return_expr: str, insertion: str) -> str:
+    start, end, _ = _method_bounds(text, class_name, method_name)
+    segment = text[start:end]
+    lines = segment.splitlines(keepends=True)
+    for idx, line in enumerate(lines):
+        if line.strip() == return_expr:
+            indent_text = line[: len(line) - len(line.lstrip())]
+            lines.insert(idx, indent_text + insertion + "\n")
+            return text[:start] + "".join(lines) + text[end:]
+    raise RuntimeError(f"{class_name}.{method_name}: return anchor not found: {return_expr}")
+
+
 def _patch_core(text: str) -> str:
     if MARKER not in text:
         start, _, indent = _method_bounds(text, "KuaishouCrawler", "get_video_info_task")
         text = text[:start] + _core_methods(indent) + "\n" + text[start:]
 
-    search_call = "                    await self._enrich_public_profile_metrics(video_detail)\n"
-    if search_call not in text:
-        needle = (
-            '                for video_detail in videos_res.get("feeds", []):\n'
-            '                    video_id_list.append(video_detail.get("photo", {}).get("id"))\n'
+    search_marker = "await self._enrich_public_profile_metrics(video_detail)"
+    if search_marker not in text:
+        text = _insert_after_matching_line(
+            text,
+            contains='for video_detail in videos_res.get("feeds", [])',
+            after_contains="video_id_list.append(",
+            insertion=search_marker,
         )
-        if needle not in text:
-            raise RuntimeError("Kuaishou search feed loop shape changed; public-metrics patch not applied")
-        text = text.replace(needle, needle + search_call, 1)
 
-    detail_call = "                await self._enrich_public_profile_metrics(detail)\n"
-    if detail_call not in text:
-        needle = "                return detail\n            except DataFetchError as ex:\n"
-        if needle not in text:
-            raise RuntimeError("Kuaishou detail return shape changed; public-metrics patch not applied")
-        text = text.replace(needle, detail_call + "                return detail\n            except DataFetchError as ex:\n", 1)
+    detail_marker = "await self._enrich_public_profile_metrics(detail)"
+    if detail_marker not in text:
+        text = _insert_before_return_in_method(
+            text,
+            "KuaishouCrawler",
+            "get_video_info_task",
+            "return detail",
+            detail_marker,
+        )
     return text
 
 

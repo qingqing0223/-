@@ -13,6 +13,9 @@ class _Proc:
     def __init__(self, returncode: int):
         self.returncode = returncode
 
+    def wait(self, timeout=None):
+        return self.returncode
+
 
 class KuaishouRealtimeDetailIsolationTests(unittest.TestCase):
     def setUp(self):
@@ -60,7 +63,10 @@ class KuaishouRealtimeDetailIsolationTests(unittest.TestCase):
                 "kuaishou_realtime_detail_budget_seconds": 120,
                 "kuaishou_realtime_max_comments_per_video": 100,
             }
-            with patch.object(run_single_platform.subprocess, "run", side_effect=[_Proc(1), _Proc(0)]) as mocked:
+            with (
+                patch.object(run_single_platform, "_kuaishou_cdp_preflight", return_value=(True, "ok")),
+                patch.object(run_single_platform.subprocess, "Popen", side_effect=[_Proc(1), _Proc(0)]) as mocked,
+            ):
                 rc, attempts = patched(
                     cfg,
                     "ks",

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,19 +16,39 @@ TEXT_SUFFIXES = {
 class RetiredPlatformCleanupTests(unittest.TestCase):
     def test_retired_platform_has_no_tracked_text_references(self):
         hits = []
-        for path in ROOT.rglob("*"):
-            if not path.is_file():
-                continue
-            if ".git" in path.parts or "__pycache__" in path.parts:
-                continue
-            if path.suffix.lower() not in TEXT_SUFFIXES:
+        proc = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if proc.returncode == 0:
+            relative_paths = [
+                Path(item.decode("utf-8", errors="replace"))
+                for item in proc.stdout.split(b"\\0")
+                if item
+            ]
+        else:
+            # Fallback for source archives without .git metadata.  Ignore local
+            # dependency/cache trees because this test is about repository code.
+            ignored = {".git", "__pycache__", "node_modules", "tmp", ".venv", "venv"}
+            relative_paths = [
+                path.relative_to(ROOT)
+                for path in ROOT.rglob("*")
+                if path.is_file() and not any(part in ignored for part in path.parts)
+            ]
+
+        for relative in relative_paths:
+            path = ROOT / relative
+            if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
                 continue
             try:
                 text = path.read_text(encoding="utf-8", errors="replace")
             except Exception:
                 continue
             if RETIRED_CODE in text.lower() or RETIRED_CN in text:
-                hits.append(path.relative_to(ROOT).as_posix())
+                hits.append(relative.as_posix())
         self.assertEqual(hits, [], "retired platform references remain: " + " | ".join(hits))
 
 
