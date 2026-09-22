@@ -11,6 +11,7 @@ from .keyword_pack import apply_keyword_pack
 from pipeline.io_utils import write_json
 from dashboard_adapter.suqi_pusher import deliver_with_outbox
 from .zhihu_submission import export_zhihu_submission
+from .douyin_submission import export_douyin_submission
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -54,12 +55,22 @@ def run_one_cycle(cfg: dict) -> dict:
         # rows before any analysis-stage classifier is considered.
         if run.platform == "zhihu" and files:
             export = export_zhihu_submission(
-                files, cfg, ROOT, str(cfg.get("submission_node_id") or "zhihu01")
+                files,
+                cfg,
+                ROOT,
+                str(cfg.get("submission_node_id") or "zhihu01"),
+            )
+        elif run.platform in {"dy", "douyin"} and files:
+            export = export_douyin_submission(
+                files,
+                cfg,
+                ROOT,
+                str(cfg.get("submission_node_id") or "dy01"),
             )
         else:
             export = None
 
-        if export is not None:
+        if run.platform == "zhihu" and export is not None:
             ingests.append({
                 "platform": "zhihu",
                 "monitoring_start_time": monitoring_start_time,

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 import json
@@ -185,15 +185,45 @@ def _install_douyin_realtime_policy() -> None:
                 stderr_log,
                 batch_size=batch_size,
             )
+        crawler_runner._promotion_week_dy_last_detail_results = []
+
+        # Douyin search mode already fetches comments for discovered videos.
+        # Temporarily disable the extra per-candidate detail subprocess layer,
+        # because repeated persistent-browser launches may fail with
+        # TargetClosedError when search mode already collects the required comments.
+        if bool(cfg.get("dy_realtime_disable_detail_recovery", False)):
+            with stdout_log.open("a", encoding="utf-8") as out:
+                out.write(
+                    "\n[monitor] DOUYIN_REALTIME_DETAIL_DISABLED "
+                    "search_comments_preserved=yes\n"
+                )
+            return 0, 0
+
         if not candidates:
             return 0, 0
 
-        budget_seconds = max(30, min(int(cfg.get("douyin_realtime_detail_budget_seconds", 120)), 180))
-        realtime_comment_cap = max(20, min(int(cfg.get("douyin_realtime_max_comments_per_video", 300)), 2000))
+        # Prefer the platform-code-prefixed keys used by the production config.
+        # Keep old douyin_* keys as backward-compatible fallbacks for tests/old configs.
+        budget_seconds = max(30, min(int(cfg.get(
+            "dy_realtime_detail_budget_seconds",
+            cfg.get("douyin_realtime_detail_budget_seconds", 120),
+        )), 180))
+
+        configured_candidate_timeout = max(10, min(int(cfg.get(
+            "dy_realtime_candidate_timeout_seconds",
+            cfg.get("douyin_realtime_candidate_timeout_seconds", 60),
+        )), 180))
+
+        realtime_comment_cap = max(20, min(int(cfg.get(
+            "dy_realtime_max_comments_per_video",
+            cfg.get("douyin_realtime_max_comments_per_video", 300),
+        )), 2000))
+
         deadline = time.monotonic() + budget_seconds
         attempts = 0
         success_count = 0
         first_failure_rc: int | None = None
+        detail_results: list[dict[str, object]] = []
 
         for identifier in candidates:
             remaining = deadline - time.monotonic()
@@ -201,6 +231,20 @@ def _install_douyin_realtime_policy() -> None:
                 with stdout_log.open("a", encoding="utf-8") as out:
                     out.write("\n[monitor] DOUYIN_REALTIME_DETAIL_BUDGET_EXHAUSTED before next candidate\n")
                 break
+
+            # Do not allow one candidate to consume the whole realtime detail budget.
+            # When multiple candidates exist, reserve roughly half the budget for
+            # another candidate while respecting the configured timeout ceiling.
+            fairness_slots = 2 if len(candidates) > 1 else 1
+            fair_timeout = max(20, budget_seconds // fairness_slots)
+            timeout_seconds = max(
+                5,
+                min(
+                    configured_candidate_timeout,
+                    fair_timeout,
+                    int(remaining),
+                ),
+            )
 
             cmd = [
                 "uv", "run", "main.py",
@@ -218,7 +262,8 @@ def _install_douyin_realtime_policy() -> None:
             with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
                 out.write(
                     f"\n[monitor] DOUYIN_REALTIME_DETAIL candidate={attempts + 1}/{len(candidates)} "
-                    f"budget_remaining={int(remaining)}s comment_cap={realtime_comment_cap}\n"
+                    f"id={identifier} budget_remaining={int(remaining)}s "
+                    f"candidate_timeout={timeout_seconds}s comment_cap={realtime_comment_cap}\n"
                 )
                 try:
                     proc = subprocess.run(
@@ -227,18 +272,31 @@ def _install_douyin_realtime_policy() -> None:
                         stdout=out,
                         stderr=err,
                         text=True,
-                        timeout=max(5, int(remaining)),
+                        timeout=timeout_seconds,
                     )
                 except subprocess.TimeoutExpired:
                     out.write(
-                        "\n[monitor] DOUYIN_REALTIME_DETAIL_BUDGET_EXHAUSTED "
+                        f"\n[monitor] DOUYIN_REALTIME_DETAIL_CANDIDATE_TIMEOUT "
+                        f"id={identifier} timeout={timeout_seconds}s "
                         "partial_rows_preserved=yes\n"
                     )
                     attempts += 1
-                    break
+                    detail_results.append({
+                        "identifier": identifier,
+                        "success": False,
+                        "reason": "timeout",
+                    })
+                    continue
 
             attempts += 1
-            if proc.returncode == 0:
+            candidate_success = proc.returncode == 0
+            detail_results.append({
+                "identifier": identifier,
+                "success": candidate_success,
+                "reason": "ok" if candidate_success else f"rc={proc.returncode}",
+            })
+
+            if candidate_success:
                 success_count += 1
                 with stdout_log.open("a", encoding="utf-8") as out:
                     out.write("[monitor] DOUYIN_REALTIME_DETAIL_CANDIDATE_SUCCESS\n")
@@ -251,6 +309,15 @@ def _install_douyin_realtime_policy() -> None:
                     f"[monitor] DOUYIN_REALTIME_DETAIL_CANDIDATE_FAILED rc={proc.returncode}; "
                     "continuing_with_next_candidate=yes\n"
                 )
+
+        crawler_runner._promotion_week_dy_last_detail_results = detail_results
+
+        with stdout_log.open("a", encoding="utf-8") as out:
+            out.write(
+                f"[monitor] DOUYIN_REALTIME_DETAIL_SUMMARY "
+                f"attempted={attempts} success={success_count} "
+                f"unattempted={max(0, len(candidates) - attempts)}\n"
+            )
 
         if success_count > 0:
             return 0, attempts

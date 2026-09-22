@@ -456,8 +456,15 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
 
     monitor_comments_enabled = str(cfg.get("get_comment", "no")).lower() in {"yes", "true", "1", "y", "t"}
     realtime_mode = bool(cfg.get("realtime_mode", False))
-    search_get_comment = "no" if realtime_mode else str(cfg.get("get_comment", "no"))
-    search_get_sub_comment = "no" if realtime_mode else str(cfg.get("get_sub_comment", "no"))
+
+    # Douyin: fetch comments in the same search browser process.
+    # This avoids reopening the same persistent profile once per detail candidate.
+    if realtime_mode and code == "dy":
+        search_get_comment = str(cfg.get("get_comment", "no"))
+        search_get_sub_comment = str(cfg.get("get_sub_comment", "no"))
+    else:
+        search_get_comment = "no" if realtime_mode else str(cfg.get("get_comment", "no"))
+        search_get_sub_comment = "no" if realtime_mode else str(cfg.get("get_sub_comment", "no"))
     realtime_notes_default = 20 if code in {"bili", "wb"} else int(cfg.get("realtime_discovery_max_notes_count", 60))
     notes_limit = (
         max(1, int(cfg.get(
@@ -655,7 +662,33 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 stderr_log,
                 batch_size=int(cfg.get("realtime_detail_batch_size", 4)),
             )
-            _mark_queue_batch(queue, recovery_candidates, recovery_rc == 0)
+            # Douyin realtime detail can stop before all selected candidates
+            # are attempted. Mark only candidates that were actually executed.
+            dy_detail_results = (
+                globals().pop("_promotion_week_dy_last_detail_results", None)
+                if code == "dy"
+                else None
+            )
+
+            if code == "dy" and isinstance(dy_detail_results, list):
+                for result in dy_detail_results:
+                    if not isinstance(result, dict):
+                        continue
+                    identifier = str(result.get("identifier") or "")
+                    if not identifier:
+                        continue
+                    _mark_queue_batch(
+                        queue,
+                        [identifier],
+                        bool(result.get("success")),
+                    )
+            else:
+                _mark_queue_batch(
+                    queue,
+                    recovery_candidates,
+                    recovery_rc == 0,
+                )
+
             if recovery_rc not in (0, None):
                 rc = recovery_rc
             content_files = find_content_jsonl(output_dir)
