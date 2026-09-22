@@ -46,9 +46,7 @@ try {
 }
 
 if (-not $env:DASHSCOPE_API_KEY) {
-    Write-Host "ERROR: DASHSCOPE_API_KEY is not set in this PowerShell session." -ForegroundColor Red
-    Write-Host "Set it locally first, then rerun this script." -ForegroundColor Yellow
-    exit 3
+    Write-Host "DASHSCOPE_API_KEY is not set. Collection/update will continue; attitude classification is optional for collection-only Kuaishou nodes." -ForegroundColor Yellow
 }
 
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -71,6 +69,7 @@ if (Test-Path $Config) {
 }
 
 $head = (git rev-parse HEAD).Trim()
+$currentBranch = (git branch --show-current).Trim()
 if ($LASTEXITCODE -eq 0 -and $head) {
     git branch $backup $head 2>$null
 }
@@ -91,7 +90,13 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 git fetch origin | Out-Host
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-git switch -C main origin/main | Out-Host
+# Keep the dedicated Kuaishou validation branch when this updater is launched
+# from it; otherwise retain the historical main-branch behavior.
+$targetBranch = "main"
+if ($currentBranch -eq "kuaishou-v3-maoweijie") {
+    $targetBranch = "kuaishou-v3-maoweijie"
+}
+git switch -C $targetBranch ("origin/" + $targetBranch) | Out-Host
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # Restore only the local config we intentionally preserved. Do not pop the
@@ -111,7 +116,7 @@ if ($localConfigBackup -and (Test-Path $localConfigBackup)) {
     }
 }
 
-Write-Host "Repository aligned with origin/main. Backup branch: $backup" -ForegroundColor Green
+Write-Host "Repository aligned with origin/$targetBranch. Backup branch: $backup" -ForegroundColor Green
 
 if (-not (Test-Path $Config)) {
     Write-Host "ERROR: machine-local config not found: $Config" -ForegroundColor Red
