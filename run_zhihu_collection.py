@@ -90,12 +90,19 @@ def run_one_cycle(cfg: dict, config_path: Path, node_id: str) -> dict:
 
     platform_cfg = _zhihu_platform_cfg(cfg)
 
-    # Pass A: the six formal campaign keywords.
+    # Pass A: broad topic discovery using the configured Zhihu keyword pack.
     keyword_run = run_platform(cfg, platform_cfg, cycle_root)
     raw_files = find_ingest_jsonl(
         Path(keyword_run.output_dir),
         include_comments=True,
     )
+
+    # Do not open a second browser/login flow when the campaign-keyword pass has
+    # already established that official login or verification is required.
+    blocked_by_official_auth = keyword_run.state in {
+        "VERIFY_REQUIRED",
+        "LOGIN_REQUIRED",
+    }
 
     # Pass B: explicitly query every catalogued priority account name. This does
     # not guess creator IDs; it searches public Zhihu results by the documented
@@ -105,7 +112,7 @@ def run_one_cycle(cfg: dict, config_path: Path, node_id: str) -> dict:
         build_key_account_search_config(cfg, ROOT)
     )
     key_account_search_run = None
-    if key_account_search_terms:
+    if key_account_search_terms and not blocked_by_official_auth:
         key_account_search_run = run_platform(
             key_account_search_cfg,
             platform_cfg,
@@ -121,7 +128,7 @@ def run_one_cycle(cfg: dict, config_path: Path, node_id: str) -> dict:
 
     key_accounts = _load_verified_key_accounts(cfg, config_path)
     creator_run = None
-    if key_accounts:
+    if key_accounts and not blocked_by_official_auth:
         creator_run = run_creator_platform(
             cfg,
             platform="zhihu",
@@ -140,16 +147,9 @@ def run_one_cycle(cfg: dict, config_path: Path, node_id: str) -> dict:
         )
         raw_files = sorted(dict.fromkeys(raw_files))
 
-    export = (
-        export_zhihu_submission(raw_files, cfg, ROOT, node_id)
-        if raw_files
-        else {
-            "accepted_rows": 0,
-            "excluded_rows": 0,
-            "classification": "not_run_collection_group_scope_only",
-            "output_dir": str(ROOT / "data_submissions" / "zhihu"),
-        }
-    )
+    # Export even a zero-hit/auth-blocked cycle so downstream delivery always
+    # receives the complete five-file package plus an auditable manifest.
+    export = export_zhihu_submission(raw_files, cfg, ROOT, node_id)
 
     result = {
         "platform": "zhihu",
