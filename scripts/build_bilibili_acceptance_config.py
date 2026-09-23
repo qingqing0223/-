@@ -5,15 +5,10 @@ from datetime import datetime
 import json
 from pathlib import Path
 
+from monitor.campaign_scope import POLICY_VERSION, CORE_KEYWORDS
 
-FORMAL_KEYWORDS = [
-    "2026年民族团结进步宣传周",
-    "首个民族团结进步宣传周",
-    "促进民族团结进步，奋进伟大复兴征程",
-    "民族团结进步倡议",
-    "民族团结进步宣传周主场活动",
-    "石榴花开——铸牢中华民族共同体意识",
-]
+
+FORMAL_KEYWORDS = list(CORE_KEYWORDS)
 
 
 def main() -> int:
@@ -41,6 +36,10 @@ def main() -> int:
     cfg["event_name"] = "2026年民族团结进步宣传周预热阶段舆情监测"
     cfg["monitoring_start_time"] = "2026-09-16T00:00:00+08:00"
     cfg["keywords"] = list(FORMAL_KEYWORDS)
+    cfg["campaign_search_expand"] = True
+    cfg["campaign_strict_admission"] = True
+    cfg["campaign_keyword_policy_version"] = POLICY_VERSION
+    cfg["realtime_supplemental_keywords_per_cycle"] = 5
     cfg["realtime_mode"] = True
     cfg["interval_seconds"] = 300
     cfg["get_comment"] = "yes"
