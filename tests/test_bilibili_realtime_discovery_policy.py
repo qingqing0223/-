@@ -13,6 +13,18 @@ class _Proc:
         self.returncode = returncode
 
 
+class _PopenProc:
+    def __init__(self, returncode: int = 0):
+        self.returncode = returncode
+        self.pid = 12345
+
+    def wait(self, timeout=None):
+        return self.returncode
+
+    def poll(self):
+        return self.returncode
+
+
 class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
     def test_realtime_bilibili_uses_platform_local_search_concurrency_and_limit(self):
         with tempfile.TemporaryDirectory() as td:
@@ -35,7 +47,7 @@ class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
                 "realtime_discovery_max_notes_count": 30,
             }
 
-            with mock.patch("monitor.crawler_runner.subprocess.run", return_value=_Proc(0)) as run_mock, \
+            with mock.patch("monitor.crawler_runner.subprocess.Popen", return_value=_PopenProc(0)) as popen_mock, \
                  mock.patch("monitor.crawler_runner.find_content_jsonl", return_value=[]), \
                  mock.patch("monitor.crawler_runner.find_comment_jsonl", return_value=[]):
                 result = crawler_runner.run_platform(
@@ -44,15 +56,15 @@ class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
                     run_root,
                 )
 
-            cmd = run_mock.call_args.args[0]
+            cmd = popen_mock.call_args.args[0]
             self.assertEqual(result.platform, "bili")
             self.assertIn("--crawler_max_notes_count", cmd)
             self.assertEqual(cmd[cmd.index("--crawler_max_notes_count") + 1], "20")
             self.assertIn("--max_concurrency_num", cmd)
             self.assertEqual(cmd[cmd.index("--max_concurrency_num") + 1], "4")
-            env = run_mock.call_args.kwargs["env"]
+            env = popen_mock.call_args.kwargs["env"]
             self.assertEqual(env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"], "1")
-            self.assertEqual(env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"], "5")
+            self.assertEqual(env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"], "3")
 
     def test_explicit_bilibili_overrides_still_win(self):
         with tempfile.TemporaryDirectory() as td:
@@ -77,7 +89,7 @@ class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
                 "bili_realtime_items_per_keyword": 7,
             }
 
-            with mock.patch("monitor.crawler_runner.subprocess.run", return_value=_Proc(0)) as run_mock, \
+            with mock.patch("monitor.crawler_runner.subprocess.Popen", return_value=_PopenProc(0)) as popen_mock, \
                  mock.patch("monitor.crawler_runner.find_content_jsonl", return_value=[]), \
                  mock.patch("monitor.crawler_runner.find_comment_jsonl", return_value=[]):
                 crawler_runner.run_platform(
@@ -86,10 +98,10 @@ class BilibiliRealtimeDiscoveryPolicyTests(unittest.TestCase):
                     run_root,
                 )
 
-            cmd = run_mock.call_args.args[0]
+            cmd = popen_mock.call_args.args[0]
             self.assertEqual(cmd[cmd.index("--crawler_max_notes_count") + 1], "40")
             self.assertEqual(cmd[cmd.index("--max_concurrency_num") + 1], "3")
-            env = run_mock.call_args.kwargs["env"]
+            env = popen_mock.call_args.kwargs["env"]
             self.assertEqual(env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"], "7")
 
     def test_bilibili_realtime_limits_detail_candidates_to_one_by_default(self):
