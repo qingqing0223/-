@@ -152,6 +152,22 @@ def _check_platform_config(path: Path) -> tuple[bool, str]:
         return False, f"{type(exc).__name__}: {exc}"
 
 
+def _check_runtime_platform(path: Path, platform: str) -> tuple[bool, str]:
+    try:
+        cfg = _load_json(path)
+        rows = [
+            x for x in (cfg.get("platforms") or [])
+            if str(x.get("code") or "") == platform
+        ]
+        if not rows:
+            return False, f"platform {platform!r} missing from runtime config"
+        if not any(bool(x.get("enabled", True)) for x in rows):
+            return False, f"platform {platform!r} exists but is disabled"
+        return True, f"runtime platform {platform!r} is present and enabled"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
+
+
 def _check_keywords(path: Path) -> tuple[bool, str]:
     try:
         cfg = _load_json(path)
@@ -254,6 +270,17 @@ def main() -> int:
         default=str(ROOT / "config" / "monitoring.windows.json"),
         help="Runtime monitoring config to validate for local MediaCrawler/data paths.",
     )
+    parser.add_argument(
+        "--runtime-only",
+        action="store_true",
+        help="Validate only the selected runtime config and local crawler; skip unrelated tracked templates.",
+    )
+    parser.add_argument(
+        "--platform",
+        choices=SUPPORTED_PLATFORMS,
+        default=None,
+        help="When set, require only this runtime platform to be enabled.",
+    )
     args = parser.parse_args()
     runtime_config = Path(args.config).resolve()
 
@@ -277,23 +304,28 @@ def main() -> int:
         required=False,
     )
 
-    json_files = (
-        "config/monitoring.windows.json",
-        "config/monitoring.student.windows.json",
-        "config/monitoring.region.windows.json",
-        "config/monitoring.multilingual.windows.json",
-        "config/multilingual_keywords.json",
-        "config/key_accounts.example.json",
-    )
-    for rel in json_files:
-        ok, detail = _check_json(ROOT / rel)
-        add(rel, ok, detail)
+    if not args.runtime_only:
+        json_files = (
+            "config/monitoring.windows.json",
+            "config/monitoring.student.windows.json",
+            "config/monitoring.region.windows.json",
+            "config/monitoring.multilingual.windows.json",
+            "config/multilingual_keywords.json",
+            "config/key_accounts.example.json",
+        )
+        for rel in json_files:
+            ok, detail = _check_json(ROOT / rel)
+            add(rel, ok, detail)
 
     runtime_ok, runtime_detail = _check_json(runtime_config)
     add(f"runtime config:{runtime_config}", runtime_ok, runtime_detail)
     if runtime_ok:
-        ok, detail = _check_platform_config(runtime_config)
-        add("runtime config seven-platform coverage", ok, detail)
+        if args.platform:
+            ok, detail = _check_runtime_platform(runtime_config, args.platform)
+            add(f"runtime platform:{args.platform}", ok, detail)
+        else:
+            ok, detail = _check_platform_config(runtime_config)
+            add("runtime config seven-platform coverage", ok, detail)
         matrix_ok, matrix_detail = _check_full_matrix(runtime_config)
         upgrade_prefix = f"{local_upgrade_detail}; " if ".local." in runtime_config.name else ""
         add("runtime config full monitoring matrix", matrix_ok, upgrade_prefix + matrix_detail)
@@ -302,17 +334,18 @@ def main() -> int:
         scope_ok, scope_detail = _check_monitoring_scope(runtime_config)
         add("runtime config monitoring scope", scope_ok, scope_detail)
 
-    for rel in (
-        "config/monitoring.windows.json",
-        "config/monitoring.student.windows.json",
-        "config/monitoring.region.windows.json",
-        "config/monitoring.multilingual.windows.json",
-    ):
-        path = ROOT / rel
-        ok, detail = _check_platform_config(path)
-        add(f"platform coverage:{rel}", ok, detail)
-        matrix_ok, matrix_detail = _check_full_matrix(path)
-        add(f"full matrix:{rel}", matrix_ok, matrix_detail)
+    if not args.runtime_only:
+        for rel in (
+            "config/monitoring.windows.json",
+            "config/monitoring.student.windows.json",
+            "config/monitoring.region.windows.json",
+            "config/monitoring.multilingual.windows.json",
+        ):
+            path = ROOT / rel
+            ok, detail = _check_platform_config(path)
+            add(f"platform coverage:{rel}", ok, detail)
+            matrix_ok, matrix_detail = _check_full_matrix(path)
+            add(f"full matrix:{rel}", matrix_ok, matrix_detail)
 
     try:
         runtime_cfg = _load_json(runtime_config)
@@ -321,8 +354,9 @@ def main() -> int:
         add("local MediaCrawler native-platform support", ok, detail)
         ok, detail = _check_mediacrawler_comment_cli(crawler_root)
         add("local MediaCrawler final comment/deep-paging CLI support", ok, detail)
-        ok, detail = _check_toutiao_adapter()
-        add("Toutiao project adapter", ok, detail)
+        if not args.runtime_only or args.platform in (None, "toutiao"):
+            ok, detail = _check_toutiao_adapter()
+            add("Toutiao project adapter", ok, detail)
     except Exception as exc:
         add("local MediaCrawler native-platform support", False, f"{type(exc).__name__}: {exc}")
         add("local MediaCrawler final comment/deep-paging CLI support", False, f"{type(exc).__name__}: {exc}")
