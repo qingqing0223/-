@@ -49,6 +49,8 @@ async def start(self):
                     urls=self.cookie_urls,
                 )
 
+            crawler_type_var.set(config.CRAWLER_TYPE)
+
 async def launch_browser(self, chromium, playwright_proxy, user_agent, headless=True):
         if config.SAVE_LOGIN_STATE:
             user_data_dir = "bili_user_data_dir"
@@ -68,6 +70,10 @@ async def launch_browser(self, chromium, playwright_proxy, user_agent, headless=
 '''
 
 LOGIN_SOURCE = '''import asyncio
+import functools
+import sys
+
+from tenacity import RetryError
 from tools import utils
 
 async def login_by_qrcode(self):
@@ -84,7 +90,22 @@ async def login_by_qrcode(self):
             selector=qrcode_img_selector
         )
         if not base64_qrcode_img:
-            return
+            utils.logger.info("[BilibiliLogin.login_by_qrcode] login failed , have not found qrcode please check ....")
+            sys.exit()
+
+        # show login qrcode
+        partial_show_qrcode = functools.partial(utils.show_qrcode, base64_qrcode_img)
+        asyncio.get_running_loop().run_in_executor(executor=None, func=partial_show_qrcode)
+
+        utils.logger.info(f"[BilibiliLogin.login_by_qrcode] Waiting for scan code login, remaining time is 20s")
+        try:
+            await self.check_login_state()
+        except RetryError:
+            utils.logger.info("[BilibiliLogin.login_by_qrcode] Login bilibili failed by qrcode login method ...")
+            sys.exit()
+
+        wait_redirect_seconds = 5
+        await asyncio.sleep(wait_redirect_seconds)
 '''
 
 
@@ -123,6 +144,14 @@ class BilibiliLoginResiliencePatchTests(unittest.TestCase):
             self.assertIn("for _bili_launch_attempt in range(2):", first_core)
             self.assertIn('wait_until="domcontentloaded"', first_core)
             self.assertIn("[BILIBILI_HOME_NAVIGATION_DEGRADED]", first_core)
+            self.assertIn("PROMOTION_WEEK_BILI_LOGIN_BOOTSTRAP", first_core)
+            self.assertIn("[BILIBILI_SESSION_BOOTSTRAP_OK]", first_core)
+            self.assertIn("BILIBILI_LOGIN_MANUAL_WAIT_V1", first_login)
+            self.assertIn("[BILIBILI_LOGIN_WAIT]", first_login)
+            self.assertIn("[BILIBILI_LOGIN_VERIFIED]", first_login)
+            self.assertNotIn("login failed , have not found qrcode please check", first_login)
+            self.assertIn("[BILIBILI_LOGIN_MANUAL_MODE]", first_login)
+            self.assertNotIn("official login UI unavailable; manual login required", first_login)
 
 
 if __name__ == "__main__":

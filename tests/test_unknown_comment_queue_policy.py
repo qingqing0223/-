@@ -33,7 +33,10 @@ class UnknownCommentQueueFallbackTests(unittest.TestCase):
     def test_unknown_count_is_queue_only_signal(self):
         fixtures = {
             "xhs": {"note_id": "x1", "comment_count": 0},
-            "bili": {"video_id": "b1", "comment_count": 0},
+            "bili": {
+                "video_id": "b1",
+                "title": "2026年民族团结进步宣传周",
+            },
             "wb": {"note_id": "w1", "comment_count": 0},
             "toutiao": {
                 "article_id": "t1",

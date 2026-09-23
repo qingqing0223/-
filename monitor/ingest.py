@@ -7,6 +7,7 @@ from pipeline.io_utils import read_jsonl, append_jsonl, read_json, write_json
 from pipeline.normalizer import normalize_record
 from pipeline.classifier import classify_records
 from pipeline.language_detector import is_minority_language
+from monitor.bilibili_policy import evaluate_bilibili_campaign_relevance
 
 
 COUNTRY_ONLY_REGION_LABELS = {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC", "CN"}
@@ -95,6 +96,22 @@ def _before_monitoring_start(rec: dict, monitoring_start_time: str) -> bool:
     return published < start
 
 
+def _existing_bili_content_ids(path: Path) -> set[str]:
+    """Return already-admitted Bilibili content IDs from prior cycles."""
+    ids: set[str] = set()
+    if not path.exists():
+        return ids
+    for row in read_jsonl(path):
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("record_type") or "").strip() == "comment":
+            continue
+        content_id = str(row.get("content_id") or "").strip()
+        if content_id:
+            ids.add(content_id)
+    return ids
+
+
 def load_seen(path: Path) -> set[str]:
     data = read_json(path, {"seen": []})
     return set(map(str, data.get("seen", [])))
@@ -141,11 +158,42 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
     filtered_before_start_content_records = 0
     region_by_key: dict[str, str] = {}
 
+    # Bilibili comments do not repeat the parent video's campaign text. Build a
+    # parent-content allowlist from both prior admitted output and this cycle's
+    # content files before processing comments.
+    valid_bili_content_ids: set[str] = set()
+    if platform == "bili":
+        valid_bili_content_ids.update(_existing_bili_content_ids(output_jsonl))
+        for scan_path in jsonl_files:
+            if "comment" in scan_path.name.lower():
+                continue
+            for scan_raw in read_jsonl(scan_path):
+                if not isinstance(scan_raw, dict):
+                    continue
+                scan_raw = _prepare_region_aliases(scan_raw)
+                scan_rec = normalize_record(
+                    scan_raw,
+                    source_file=scan_path.name,
+                    platform_hint=platform,
+                )
+                if not scan_rec or scan_rec.get("record_type") == "comment":
+                    continue
+                decision = evaluate_bilibili_campaign_relevance(scan_rec)
+                if not decision.valid:
+                    continue
+                if _before_monitoring_start(scan_rec, monitoring_start_time):
+                    continue
+                content_id = str(scan_rec.get("content_id") or "").strip()
+                if content_id:
+                    valid_bili_content_ids.add(content_id)
+
     raw_rows = 0
     raw_comment_rows = 0
     normalized_records = 0
     normalized_comment_records = 0
     normalization_dropped = 0
+    topic_filtered_content_records = 0
+    topic_filtered_comment_records = 0
     duplicate_skipped = 0
     duplicate_comment_skipped = 0
     duplicate_content_skipped = 0
@@ -161,6 +209,26 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             if not rec:
                 normalization_dropped += 1
                 continue
+
+            if platform == "bili":
+                if rec.get("record_type") == "comment":
+                    parent_content_id = str(rec.get("content_id") or "").strip()
+                    if not parent_content_id or parent_content_id not in valid_bili_content_ids:
+                        topic_filtered_comment_records += 1
+                        continue
+                    rec["is_valid_monitoring_data"] = True
+                    rec["invalid_reason"] = ""
+                    rec["topic_filter_reason"] = "parent_content_admitted"
+                else:
+                    decision = evaluate_bilibili_campaign_relevance(rec)
+                    rec["matched_keywords"] = list(decision.matched_keywords)
+                    rec["is_valid_monitoring_data"] = bool(decision.valid)
+                    rec["invalid_reason"] = "" if decision.valid else decision.reason
+                    rec["topic_filter_reason"] = decision.reason
+                    if not decision.valid:
+                        topic_filtered_content_records += 1
+                        continue
+
             normalized_records += 1
             if rec.get("record_type") == "comment":
                 normalized_comment_records += 1
@@ -225,6 +293,8 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
         "normalized_records": normalized_records,
         "normalized_comment_records": normalized_comment_records,
         "normalization_dropped": normalization_dropped,
+        "topic_filtered_content_records": topic_filtered_content_records,
+        "topic_filtered_comment_records": topic_filtered_comment_records,
         "duplicate_skipped": duplicate_skipped,
         "new_records": len(fresh),
         "filtered_before_start": filtered_before_start,

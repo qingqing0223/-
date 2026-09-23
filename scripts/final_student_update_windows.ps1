@@ -188,6 +188,18 @@ if ($Platform -eq "bili") {
         exit $LASTEXITCODE
     }
 
+    Write-Host "Applying Bilibili full local publisher/video/comment fields patch..." -ForegroundColor Cyan
+    python .\scripts\patch_bilibili_data_fields.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili data-fields patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_bilibili_data_fields.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili data-fields verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
     Write-Host "Applying Bilibili AV/AID detail comment recovery patch..." -ForegroundColor Cyan
     python .\scripts\patch_bilibili_comment_detail.py --root $MediaCrawlerRoot
     if ($LASTEXITCODE -ne 0) {

@@ -12,6 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from monitor.bilibili_policy import is_bilibili_campaign_relevant
+from monitor.campaign_scope import POLICY_VERSION, CORE_KEYWORDS, all_search_queries
+
 
 def _load(path: Path) -> dict:
     try:
@@ -258,6 +261,83 @@ def main() -> int:
     parent_integrity = round((parent_linked - orphan) / nested, 4) if nested else 1.0
     region_count = sum(regions.values())
 
+    required_content_fields = (
+        "video_id",
+        "title",
+        "create_time",
+        "creator_hash",
+        "nickname",
+        "video_play_count",
+        "liked_count",
+        "video_comment",
+        "video_share_count",
+        "video_favorite_count",
+        "video_danmaku",
+        "video_coin_count",
+        "bvid",
+        "category_name",
+        "duration",
+        "tags",
+        "creator_public_id",
+        "account_name",
+        "creator_profile_url",
+        "follower_count",
+        "following_count",
+    )
+    content_schema_complete = bool(content_rows) and all(
+        all(field in row for field in required_content_fields)
+        for row in content_rows
+    )
+    publisher_metrics_present = any(
+        row.get("follower_count") not in (None, "")
+        and row.get("following_count") not in (None, "")
+        for row in content_rows
+    )
+    nested_root_field_complete = all(
+        (
+            str(_first(row, "root_comment_id", "root_id", "root_rpid") or "").strip()
+            not in {"", "0", "None", "null"}
+        )
+        for row in comment_rows
+        if str(_first(
+            row,
+            "parent_comment_id",
+            "parent_id",
+            "parent",
+            "parent_rpid",
+        ) or "").strip() not in {"", "0", "None", "null"}
+    )
+
+    classified_path = root / "classified" / "classified_results.jsonl"
+    classified_rows = list(_iter_jsonl(classified_path) or []) if classified_path.exists() else []
+    classified_content = [
+        row for row in classified_rows
+        if str(row.get("record_type") or "") != "comment"
+    ]
+    classified_topic_clean = all(
+        is_bilibili_campaign_relevant(row)
+        for row in classified_content
+    )
+
+    classified_topic_metadata_complete = bool(classified_content) and all(
+        row.get("is_valid_monitoring_data") is True
+        and isinstance(row.get("matched_keywords"), list)
+        and bool(row.get("matched_keywords"))
+        and not str(row.get("invalid_reason") or "").strip()
+        for row in classified_content
+    )
+
+    expected_keywords = list(CORE_KEYWORDS)
+    formal_scope_config = (
+        str(cfg.get("monitoring_start_time") or "")
+        == "2026-09-16T00:00:00+08:00"
+        and list(cfg.get("keywords") or []) == expected_keywords
+        and bool(cfg.get("campaign_search_expand", False))
+        and bool(cfg.get("campaign_strict_admission", False))
+        and str(cfg.get("campaign_keyword_policy_version") or "") == POLICY_VERSION
+    )
+    expanded_query_count = len(all_search_queries())
+
     checks = {
         "crawler_success": str(run.get("state") or "") == "SUCCESS" and int(run.get("return_code") or 0) == 0,
         "realtime_cycle_within_300s": bool(status.get("realtime_cycle_within_target", False)),
@@ -275,6 +355,12 @@ def main() -> int:
         ),
         "public_coarse_ip_region_present": region_count > 0,
         "recent_comments_reached_ingest": int(ingest.get("classified_comment_records") or 0) > 0,
+        "formal_scope_config": formal_scope_config,
+        "content_schema_complete": content_schema_complete,
+        "publisher_metrics_present": publisher_metrics_present,
+        "nested_root_field_complete": nested_root_field_complete,
+        "classified_topic_clean": classified_topic_clean,
+        "classified_topic_metadata_complete": classified_topic_metadata_complete,
     }
 
     # A quiet realtime cycle can legitimately have no nested replies among the
@@ -295,6 +381,12 @@ def main() -> int:
         checks["public_coarse_ip_region_present"],
         checks["nested_capability_observed_recent_cycles"],
         checks["nested_capability_parent_integrity"],
+        checks["formal_scope_config"],
+        checks["content_schema_complete"],
+        checks["publisher_metrics_present"],
+        checks["nested_root_field_complete"],
+        checks["classified_topic_clean"],
+        checks["classified_topic_metadata_complete"],
     ])
 
     out = {
@@ -325,6 +417,10 @@ def main() -> int:
             "recent_regions": dict(recent_regions.most_common()),
             "content_files": [str(p) for p in content_files],
             "comment_files": [str(p) for p in comment_files],
+            "required_content_fields": list(required_content_fields),
+            "content_schema_complete": content_schema_complete,
+            "publisher_metrics_present": publisher_metrics_present,
+            "nested_root_field_complete": nested_root_field_complete,
         },
         "nested_capability_history": nested_history,
         "ingest": {
@@ -333,6 +429,12 @@ def main() -> int:
             "filtered_before_start_comment_records": ingest.get("filtered_before_start_comment_records", 0),
             "region_records": ingest.get("region_records", 0),
             "classification_degraded": ingest.get("classification_degraded", False),
+        },
+        "keyword_policy": {
+            "policy_version": POLICY_VERSION,
+            "core_keyword_count": len(expected_keywords),
+            "expanded_search_query_count": expanded_query_count,
+            "search_broad_admission_strict": True,
         },
         "checks": checks,
         "note": "Public coarse platform-displayed region labels only; real network IP and precise location are rejected.",
