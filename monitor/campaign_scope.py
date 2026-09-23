@@ -55,13 +55,16 @@ COMBINATION_QUERIES = (
 RELATED_RECOVERY_QUERIES = (
     "民族团结进步促进法 宣传周",
     "民族团结进步促进法 2026",
+    "民族团结进步促进法 9月21日 27日",
     "铸牢中华民族共同体意识 宣传周",
     "铸牢中华民族共同体意识 2026",
     "铸牢中华民族共同体意识 主场活动",
+    "铸牢中华民族共同体意识 9月21日 27日",
     "石榴花开 宣传周",
     "石榴花开 2026",
     "石榴花开 主场活动",
     "石榴花开 9月21日",
+    "石榴花开 9月21日 27日",
 )
 
 _TEXT_FIELDS = (
@@ -96,6 +99,24 @@ _EVENT_CONTEXT_MARKERS = (
     "2026",
     "首个",
     "宣传周",
+    "主场活动",
+    "主题宣传片",
+    "9月21日",
+    "9月22日",
+    "9月23日",
+    "9月24日",
+    "9月25日",
+    "9月26日",
+    "9月27日",
+    "9月21日至27日",
+    "9月21日-27日",
+    "9月21—27日",
+    "9月21-27日",
+)
+
+_CURRENT_EVENT_ANCHORS = (
+    "2026",
+    "首个",
     "主场活动",
     "主题宣传片",
     "9月21日",
@@ -198,6 +219,10 @@ def _has_current_event_context(text: str) -> bool:
     return any(_compact(marker) in text for marker in _EVENT_CONTEXT_MARKERS)
 
 
+def _has_independent_current_anchor(text: str) -> bool:
+    return any(_compact(marker) in text for marker in _CURRENT_EVENT_ANCHORS)
+
+
 def _mentions_only_older_year(text: str) -> bool:
     if "2026" in text:
         return False
@@ -248,7 +273,7 @@ def evaluate_campaign_relevance(row: dict) -> CampaignDecision:
         "团结进步倡议",
         "民族团结进取宣传周",
     )
-    if any(alias in text for alias in broad_aliases) and _has_current_event_context(text):
+    if any(alias in text for alias in broad_aliases) and _has_independent_current_anchor(text):
         return CampaignDecision(True, "alias_plus_event_context", matched)
 
     # Combination rules: broad words are never sufficient in isolation.
