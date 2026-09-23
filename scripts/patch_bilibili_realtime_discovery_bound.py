@@ -5,7 +5,7 @@ import ast
 import json
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_BILI_REALTIME_DISCOVERY_V2"
+MARKER = "PROMOTION_WEEK_BILI_SEARCH_SCOPE_V3"
 
 
 def read(path: Path) -> str:
@@ -51,27 +51,23 @@ def _patch_search_call(segment: str) -> str:
     call_indent = lines[call_idx][: len(lines[call_idx]) - len(lines[call_idx].lstrip())]
     arg_indent = call_indent + "    "
     marker = (
-        f'{call_indent}# {MARKER}: realtime search uses newest-first ordering and the formal window.\n'
-        f'{call_indent}_bili_realtime = (\n'
-        f'{arg_indent}os.environ.get("PROMOTION_WEEK_BILI_REALTIME_DISCOVERY", "").strip() == "1"\n'
-        f'{call_indent})\n'
+        f'{call_indent}# {MARKER}: newest-first formal-window search.\n'
+        f'{call_indent}# Realtime and one-time backfill share the same formal\n'
+        f'{call_indent}# monitoring window; only realtime applies fan-out limits.\n'
         f'{call_indent}_bili_order = (\n'
         f'{arg_indent}SearchOrderType.LAST_PUBLISH\n'
-        f'{arg_indent}if _bili_realtime\n'
-        f'{arg_indent}and os.environ.get("PROMOTION_WEEK_BILI_SEARCH_ORDER", "").strip().lower() == "pubdate"\n'
+        f'{arg_indent}if os.environ.get("PROMOTION_WEEK_BILI_SEARCH_ORDER", "").strip().lower() == "pubdate"\n'
         f'{arg_indent}else SearchOrderType.DEFAULT\n'
         f'{call_indent})\n'
         f'{call_indent}try:\n'
-        f'{arg_indent}_bili_pubtime_begin_s = (\n'
-        f'{arg_indent}    max(0, int(os.environ.get("PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S", "0") or 0))\n'
-        f'{arg_indent}    if _bili_realtime else 0\n'
+        f'{arg_indent}_bili_pubtime_begin_s = max(\n'
+        f'{arg_indent}    0, int(os.environ.get("PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S", "0") or 0)\n'
         f'{arg_indent})\n'
         f'{call_indent}except Exception:\n'
         f'{arg_indent}_bili_pubtime_begin_s = 0\n'
         f'{call_indent}try:\n'
-        f'{arg_indent}_bili_pubtime_end_s = (\n'
-        f'{arg_indent}    max(0, int(os.environ.get("PROMOTION_WEEK_BILI_PUBTIME_END_S", "0") or 0))\n'
-        f'{arg_indent}    if _bili_realtime else 0\n'
+        f'{arg_indent}_bili_pubtime_end_s = max(\n'
+        f'{arg_indent}    0, int(os.environ.get("PROMOTION_WEEK_BILI_PUBTIME_END_S", "0") or 0)\n'
         f'{arg_indent})\n'
         f'{call_indent}except Exception:\n'
         f'{arg_indent}_bili_pubtime_end_s = 0\n'
@@ -176,7 +172,7 @@ def patch_core(root: Path) -> None:
 def check(root: Path) -> dict:
     core = root / "media_platform/bilibili/core.py"
     result = {
-        "patch_version": 2,
+        "patch_version": 3,
         "core_exists": core.exists(),
         "realtime_env_gate": False,
         "per_keyword_bound": False,
@@ -211,8 +207,8 @@ def check(root: Path) -> dict:
             and "pubtime_end_s=_bili_pubtime_end_s" in segment
         )
         result["historical_default_preserved"] = (
-            "_bili_order = SearchOrderType.DEFAULT" in segment
-            or "else SearchOrderType.DEFAULT" in segment
+            "else SearchOrderType.DEFAULT" in segment
+            and 'PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S' in segment
         )
         result["ok"] = all([
             result["realtime_env_gate"],
@@ -229,8 +225,8 @@ def check(root: Path) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(
         description=(
-            "Patch Bilibili realtime discovery so it is newest-first, constrained "
-            "to the formal monitoring window, and bounded per keyword."
+            "Patch Bilibili search so realtime and exhaustive backfill share the formal "
+            "monitoring window; realtime alone is bounded per keyword."
         )
     )
     ap.add_argument("--root", required=True)
@@ -253,7 +249,7 @@ def main() -> int:
     print(json.dumps({
         "root": str(root),
         **result,
-        "purpose": "bilibili_realtime_pubdate_window_and_bounded_fanout",
+        "purpose": "bilibili_formal_window_backfill_plus_bounded_realtime_fanout",
     }, ensure_ascii=False, indent=2))
     return 0 if result.get("ok") else 3
 
