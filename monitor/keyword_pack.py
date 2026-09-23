@@ -56,23 +56,8 @@ def load_keyword_pack(path: Path, include_unverified: bool = False) -> tuple[lis
 
 
 def apply_keyword_pack(cfg: dict, config_path: Path) -> dict:
-    pack_name = str(cfg.get("keyword_pack_file") or "").strip()
-    if not pack_name:
-        return cfg
-
-    pack_path = Path(pack_name)
-    if not pack_path.is_absolute():
-        candidate = config_path.parent / pack_path
-        if candidate.exists():
-            pack_path = candidate
-        else:
-            pack_path = Path.cwd() / pack_path
-
-    extra, meta = load_keyword_pack(
-        pack_path,
-        include_unverified=bool(cfg.get("include_unverified_keywords", False)),
-    )
     base = _dedupe(list(cfg.get("keywords") or []))
+
     campaign_extra = []
     campaign_meta = {
         "enabled": False,
@@ -87,6 +72,31 @@ def apply_keyword_pack(cfg: dict, config_path: Path) -> dict:
             "search_query_count": len(campaign_extra),
         }
 
+    pack_name = str(cfg.get("keyword_pack_file") or "").strip()
+    extra = []
+    if pack_name:
+        pack_path = Path(pack_name)
+        if not pack_path.is_absolute():
+            candidate = config_path.parent / pack_path
+            if candidate.exists():
+                pack_path = candidate
+            else:
+                pack_path = Path.cwd() / pack_path
+
+        extra, meta = load_keyword_pack(
+            pack_path,
+            include_unverified=bool(cfg.get("include_unverified_keywords", False)),
+        )
+    else:
+        meta = {
+            "ok": True,
+            "path": "",
+            "loaded": {},
+            "skipped": {},
+            "keyword_count": 0,
+            "note": "no multilingual keyword pack configured",
+        }
+
     cfg["keywords"] = _dedupe(base + campaign_extra + extra)
     cfg["keyword_pack_status"] = {
         **meta,
@@ -94,3 +104,4 @@ def apply_keyword_pack(cfg: dict, config_path: Path) -> dict:
         "effective_keyword_count": len(cfg["keywords"]),
     }
     return cfg
+
