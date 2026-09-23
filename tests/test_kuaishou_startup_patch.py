@@ -31,8 +31,9 @@ class KuaishouStartupPatchTests(unittest.TestCase):
             patch_core(root)
             first = core.read_text(encoding="utf-8")
             self.assertIn(MARKER, first)
-            self.assertIn('wait_until="domcontentloaded"', first)
-            self.assertIn("for navigation_attempt in range(2):", first)
+            self.assertIn('wait_until="commit"', first)
+            self.assertIn('wait_for_load_state("domcontentloaded", timeout=12000)', first)
+            self.assertIn('"kuaishou.com" not in current_url', first)
             self.assertEqual(first.count('await self.context_page.goto(f"{self.index_url}?isHome=1")'), 1)
             self.assertTrue(check(root)["ok"])
 
