@@ -54,8 +54,8 @@ def main() -> int:
 
     cfg["bili_realtime_discovery_max_notes_count"] = 20
     cfg["bili_realtime_search_concurrency"] = 4
-    cfg["bili_realtime_items_per_keyword"] = 5
-    cfg["bili_realtime_search_timeout_seconds"] = 120
+    cfg["bili_realtime_items_per_keyword"] = 3
+    cfg["bili_realtime_search_timeout_seconds"] = 150
     cfg["bili_realtime_detail_max_items_per_cycle"] = 2
     cfg["bili_realtime_detail_budget_seconds"] = 70
     cfg["bili_realtime_candidate_timeout_seconds"] = 70
