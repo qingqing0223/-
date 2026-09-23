@@ -630,27 +630,14 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     deep_queue_pending = 0
     try:
         search_env = None
-        if realtime_mode and code in {"bili", "wb", "xhs", "ks"}:
+        if code == "bili" or (
+            realtime_mode and code in {"wb", "xhs", "ks"}
+        ):
             search_env = os.environ.copy()
             if code == "bili":
-                try:
-                    realtime_items_per_keyword = max(
-                        1,
-                        min(
-                            int(cfg.get("bili_realtime_items_per_keyword", 5)),
-                            20,
-                        ),
-                    )
-                except Exception:
-                    realtime_items_per_keyword = 5
-                search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
-                search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
-                    realtime_items_per_keyword
-                )
-                # Realtime Bilibili discovery is sorted by publication time and
-                # bounded to the configured formal monitoring window.  This is
-                # discovery-only; ingest still performs the authoritative
-                # monitoring_start_time filter.
+                # Both realtime and the one-time historical catch-up are scoped
+                # to the formal monitoring window. Realtime additionally applies
+                # a per-keyword fan-out bound; historical catch-up does not.
                 search_env["PROMOTION_WEEK_BILI_SEARCH_ORDER"] = "pubdate"
                 start_text = str(cfg.get("monitoring_start_time") or "").strip()
                 if start_text:
@@ -666,6 +653,22 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                     except Exception:
                         pass
                 search_env["PROMOTION_WEEK_BILI_PUBTIME_END_S"] = str(int(time.time()))
+
+                if realtime_mode:
+                    try:
+                        realtime_items_per_keyword = max(
+                            1,
+                            min(
+                                int(cfg.get("bili_realtime_items_per_keyword", 5)),
+                                20,
+                            ),
+                        )
+                    except Exception:
+                        realtime_items_per_keyword = 5
+                    search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
+                    search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
+                        realtime_items_per_keyword
+                    )
             elif code == "wb":
                 # Realtime Weibo search uses snippets only; full-text enrichment
                 # remains in the historical/backfill path.
