@@ -11,11 +11,21 @@ from scripts import patch_bilibili_realtime_discovery_bound as patch
 CORE = '''import asyncio
 from typing import Dict, List
 
-class C:
+class BilibiliCrawler:
     async def search_by_keywords(self):
         for keyword in ["k"]:
+            page = 1
+            bili_limit_count = 20
             while True:
-                video_list: List[Dict] = []
+                videos_res = await self.bili_client.search_video_by_keyword(
+                    keyword=keyword,
+                    page=page,
+                    page_size=bili_limit_count,
+                    order=SearchOrderType.DEFAULT,
+                    pubtime_begin_s=0,  # Publish date start timestamp
+                    pubtime_end_s=0,  # Publish date end timestamp
+                )
+                video_list: List[Dict] = videos_res.get("result")
                 if not video_list:
                     utils.logger.info(f"[BilibiliCrawler.search_by_keywords] No more videos for '{keyword}', moving to next keyword.")
                     break
@@ -46,6 +56,9 @@ class BilibiliRealtimeDiscoveryBoundPatchTests(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertIn("PROMOTION_WEEK_BILI_REALTIME_DISCOVERY", first)
             self.assertIn("PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD", first)
+            self.assertIn("PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S", first)
+            self.assertIn("PROMOTION_WEEK_BILI_PUBTIME_END_S", first)
+            self.assertIn("SearchOrderType.LAST_PUBLISH", first)
             self.assertIn("video_list = video_list[:_bili_realtime_items_per_keyword]", first)
 
 
