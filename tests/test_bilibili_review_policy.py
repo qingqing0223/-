@@ -18,9 +18,13 @@ class BilibiliReviewPolicyTests(unittest.TestCase):
         self.assertTrue(is_bilibili_campaign_relevant({
             "title": "2026年民族团结进步宣传周主场活动",
         }))
-        self.assertTrue(is_bilibili_campaign_relevant({
+        self.assertFalse(is_bilibili_campaign_relevant({
             "title": "石榴花开",
             "desc": "铸牢中华民族共同体意识",
+        }))
+        self.assertTrue(is_bilibili_campaign_relevant({
+            "title": "石榴花开",
+            "desc": "2026年民族团结进步宣传周相关活动，铸牢中华民族共同体意识",
         }))
         self.assertFalse(is_bilibili_campaign_relevant({
             "title": "国家网络安全宣传周启动",
