@@ -65,7 +65,7 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host ""
 Write-Host "[1/3] Running preflight on isolated formal-scope config..." -ForegroundColor Cyan
-python .\scripts\preflight.py --config $TestConfig
+python .\scripts\preflight.py --config $TestConfig --runtime-only --platform bili
 if ($LASTEXITCODE -ne 0) {
     Write-Host "BILIBILI ACCEPTANCE BLOCKED: preflight failed." -ForegroundColor Red
     exit $LASTEXITCODE
