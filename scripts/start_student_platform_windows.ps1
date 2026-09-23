@@ -153,8 +153,8 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     # platform-local concurrency without changing other platforms or historical backfill.
     Set-ConfigProperty $cfgObj "bili_realtime_discovery_max_notes_count" 20
     Set-ConfigProperty $cfgObj "bili_realtime_search_concurrency" 4
-    Set-ConfigProperty $cfgObj "bili_realtime_items_per_keyword" 5
-    Set-ConfigProperty $cfgObj "bili_realtime_search_timeout_seconds" 120
+    Set-ConfigProperty $cfgObj "bili_realtime_items_per_keyword" 3
+    Set-ConfigProperty $cfgObj "bili_realtime_search_timeout_seconds" 150
     Set-ConfigProperty $cfgObj "bili_realtime_detail_budget_seconds" 70
     Set-ConfigProperty $cfgObj "bili_realtime_candidate_timeout_seconds" 100
     Set-ConfigProperty $cfgObj "bili_realtime_max_comments_per_video" 20
