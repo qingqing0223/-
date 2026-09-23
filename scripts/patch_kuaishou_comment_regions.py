@@ -370,7 +370,41 @@ async def _ks_h5_comment_payload(client, photo_id):
 
 def _ks_h5_root_fallback(payload):
     roots = _ks_h5_named_comment_lists(payload, {"rootComments", "rootCommentsV2"})
-    return [_ks_normalize_h5_comment(item) for item in roots if isinstance(item, dict)]
+    normalized = []
+    for item in roots:
+        if not isinstance(item, dict):
+            continue
+        row = _ks_normalize_h5_comment(item)
+        root_id = str(row.get("comment_id") or "").strip()
+        if root_id:
+            subs = _ks_h5_sub_fallback(payload, root_id)
+            if subs:
+                row["commentCount"] = len(subs)
+                row["subCommentCount"] = len(subs)
+                row["hasSubComments"] = True
+        normalized.append(row)
+    return normalized
+
+
+def _ks_h5_public_comment_count(payload, roots=None):
+    if isinstance(payload, dict):
+        for key in ("commentCount", "commentCountV2", "totalCommentCount", "commentsCount"):
+            value = payload.get(key)
+            if value not in (None, ""):
+                try:
+                    return int(value)
+                except Exception:
+                    pass
+    roots = roots or []
+    total = len(roots)
+    for root in roots:
+        if not isinstance(root, dict):
+            continue
+        try:
+            total += max(0, int(root.get("commentCount") or root.get("subCommentCount") or 0))
+        except Exception:
+            pass
+    return total
 
 
 def _ks_h5_sub_fallback(payload, root_comment_id):
@@ -439,14 +473,15 @@ async def _ks_h5_comment_fallback_response(client, photo_id, root_comment_id="")
         return {"result": 1, "pcursorV2": "no_more", "subCommentsV2": comments}
 
     comments = _ks_h5_root_fallback(payload)
+    public_count = _ks_h5_public_comment_count(payload, comments)
     utils.logger.info(
         f"[KS_COMMENT_H5_FETCH_FALLBACK] label=root photo={photo_id} "
-        f"comments={len(comments)}"
+        f"roots={len(comments)} public_comment_count={public_count}"
     )
     return {
         "result": 1,
         "pcursorV2": "no_more",
-        "commentCountV2": len(comments),
+        "commentCountV2": public_count,
         "rootCommentsV2": comments,
     }
 '''
