@@ -95,5 +95,8 @@
   "ks_realtime_discovery_max_notes_count": 20,
   "ks_realtime_items_per_keyword": 4,
   "ks_realtime_search_timeout_seconds": 120,
-  "ks_realtime_detail_max_items_per_cycle": 4
+  "ks_realtime_detail_max_items_per_cycle": 4,
+  "ks_realtime_failed_retry_base_seconds": 600,
+  "ks_realtime_failed_retry_cap_seconds": 3600,
+  "ks_realtime_empty_retry_seconds": 1800
 }
