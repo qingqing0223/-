@@ -390,7 +390,11 @@ def _classify_state(
         return "SOFT_EMPTY"
 
     if (
-        ("xhs_realtime_search_timeout" in text or "toutiao_realtime_search_timeout" in text)
+        (
+            "xhs_realtime_search_timeout" in text
+            or "toutiao_realtime_search_timeout" in text
+            or "ks_realtime_search_timeout" in text
+        )
         and content_row_count > 0
     ):
         return "PARTIAL_SUCCESS"
@@ -522,7 +526,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     deep_queue_pending = 0
     try:
         search_env = None
-        if realtime_mode and code in {"bili", "wb", "xhs"}:
+        if realtime_mode and code in {"bili", "wb", "xhs", "ks"}:
             search_env = os.environ.copy()
             if code == "bili":
                 try:
@@ -556,6 +560,19 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                     xhs_items_per_keyword
                 )
 
+            if code == "ks":
+                search_env["PROMOTION_WEEK_KS_REALTIME"] = "1"
+                try:
+                    ks_items_per_keyword = max(
+                        1,
+                        min(int(cfg.get("ks_realtime_items_per_keyword", 5)), 10),
+                    )
+                except Exception:
+                    ks_items_per_keyword = 5
+                search_env["PROMOTION_WEEK_KS_REALTIME_ITEMS_PER_KEYWORD"] = str(
+                    ks_items_per_keyword
+                )
+
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             search_timeout = None
             if realtime_mode and code == "wb":
@@ -570,6 +587,14 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 try:
                     search_timeout = max(60, min(
                         int(cfg.get("xhs_realtime_search_timeout_seconds", 120)),
+                        150,
+                    ))
+                except Exception:
+                    search_timeout = 120
+            elif realtime_mode and code == "ks":
+                try:
+                    search_timeout = max(60, min(
+                        int(cfg.get("ks_realtime_search_timeout_seconds", 120)),
                         150,
                     ))
                 except Exception:
@@ -615,6 +640,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 timeout_marker = {
                     "wb": "WB_REALTIME_SEARCH_TIMEOUT",
                     "xhs": "XHS_REALTIME_SEARCH_TIMEOUT",
+                    "ks": "KS_REALTIME_SEARCH_TIMEOUT",
                     "toutiao": "TOUTIAO_REALTIME_SEARCH_TIMEOUT",
                     "zhihu": "ZHIHU_REALTIME_SEARCH_TIMEOUT",
                 }.get(code, "REALTIME_SEARCH_TIMEOUT")
