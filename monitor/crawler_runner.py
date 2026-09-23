@@ -46,6 +46,39 @@ def _tail_text(*paths: Path, max_chars: int = 16000) -> str:
     return "\n".join(parts).lower()
 
 
+def _terminate_realtime_search_tree(proc: subprocess.Popen) -> None:
+    """Terminate uv + MediaCrawler + browser descendants after a realtime search timeout.
+
+    On Windows, subprocess.run(timeout=...) only guarantees that the immediate
+    uv launcher is stopped. A surviving Python/Chrome child can keep Bilibili's
+    persistent browser profile locked, which makes the subsequent detail/comment
+    subprocess fail immediately. Kill the whole process tree before deep-comment
+    recovery starts.
+    """
+    if proc.poll() is not None:
+        return
+    try:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+                timeout=10,
+            )
+        else:
+            proc.kill()
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+    try:
+        proc.wait(timeout=10)
+    except Exception:
+        pass
+
+
 def _log_line_has_markers(
     paths: tuple[Path, ...] | list[Path],
     *markers: str,
@@ -777,21 +810,45 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 except Exception:
                     search_timeout = 150
             try:
-                proc = subprocess.run(
-                    cmd,
-                    cwd=search_cwd,
-                    stdout=out,
-                    stderr=err,
-                    text=True,
-                    env=search_env,
-                    timeout=search_timeout,
-                )
-                rc = proc.returncode
+                if realtime_mode and code == "bili" and search_timeout is not None:
+                    popen_kwargs = {
+                        "cwd": search_cwd,
+                        "stdout": out,
+                        "stderr": err,
+                        "text": True,
+                        "env": search_env,
+                    }
+                    if os.name == "nt":
+                        popen_kwargs["creationflags"] = getattr(
+                            subprocess, "CREATE_NEW_PROCESS_GROUP", 0
+                        )
+                    bili_search_proc = subprocess.Popen(cmd, **popen_kwargs)
+                    try:
+                        bili_search_proc.wait(timeout=search_timeout)
+                    except subprocess.TimeoutExpired:
+                        _terminate_realtime_search_tree(bili_search_proc)
+                        # Allow Chrome's persistent-profile lock files to settle
+                        # before the deep-comment subprocess reuses the profile.
+                        time.sleep(1.0)
+                        raise
+                    rc = bili_search_proc.returncode
+                else:
+                    proc = subprocess.run(
+                        cmd,
+                        cwd=search_cwd,
+                        stdout=out,
+                        stderr=err,
+                        text=True,
+                        env=search_env,
+                        timeout=search_timeout,
+                    )
+                    rc = proc.returncode
                 status = "ok" if rc == 0 else "failed"
             except subprocess.TimeoutExpired:
-                # Realtime discovery is intentionally bounded.  subprocess.run()
-                # terminates the child on timeout; any JSONL rows already flushed
-                # remain usable and are ingested below.
+                # Realtime discovery is intentionally bounded. Any JSONL rows
+                # already flushed remain usable. For Bilibili the whole uv /
+                # Python / Chrome process tree has already been terminated so
+                # the persistent profile can be reused by detail recovery.
                 rc = 124
                 status = "failed"
                 timeout_marker = {
@@ -802,9 +859,14 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                     "toutiao": "TOUTIAO_REALTIME_SEARCH_TIMEOUT",
                     "zhihu": "ZHIHU_REALTIME_SEARCH_TIMEOUT",
                 }.get(code, "REALTIME_SEARCH_TIMEOUT")
+                cleanup_note = (
+                    " process_tree_terminated=yes; profile_lock_released=yes;"
+                    if code == "bili"
+                    else ""
+                )
                 err.write(
-                    f"\n[monitor] {timeout_marker} timeout={search_timeout}s; "
-                    "partial_jsonl_preserved=yes\n"
+                    f"\n[monitor] {timeout_marker} timeout={search_timeout}s;"
+                    f"{cleanup_note} partial_jsonl_preserved=yes\n"
                 )
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
