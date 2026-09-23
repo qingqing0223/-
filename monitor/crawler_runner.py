@@ -123,8 +123,8 @@ def _as_count(value) -> int:
 
 
 _COMMENT_COUNT_KEYS = (
-    "comment_count", "comments_count", "comment_num", "video_comment",
-    "total_comments", "reply_count", "total_replay_num",
+    "comment_count", "comments_count", "commentCount", "commentCountV2",
+    "comment_num", "video_comment", "total_comments", "reply_count", "total_replay_num",
 )
 
 
