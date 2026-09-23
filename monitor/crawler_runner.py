@@ -712,12 +712,12 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                         realtime_items_per_keyword = max(
                             1,
                             min(
-                                int(cfg.get("bili_realtime_items_per_keyword", 5)),
+                                int(cfg.get("bili_realtime_items_per_keyword", 3)),
                                 20,
                             ),
                         )
                     except Exception:
-                        realtime_items_per_keyword = 5
+                        realtime_items_per_keyword = 3
                     search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
                     search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
                         realtime_items_per_keyword
@@ -759,12 +759,12 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                     search_timeout = max(
                         60,
                         min(
-                            int(cfg.get("bili_realtime_search_timeout_seconds", 120)),
+                            int(cfg.get("bili_realtime_search_timeout_seconds", 150)),
                             150,
                         ),
                     )
                 except Exception:
-                    search_timeout = 120
+                    search_timeout = 150
             elif realtime_mode and code == "wb":
                 try:
                     search_timeout = max(60, min(
