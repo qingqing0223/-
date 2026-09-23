@@ -171,19 +171,19 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     source_keyword = _first(raw, "source_keyword", "keyword", "search_keyword")
 
     likes = _first(
-        raw, "likes", "like_count", "liked_count", "digg_count", "thumbs_count",
-        "voteup_count", "total_liked", "comment_like_count"
+        raw, "likes", "like_count", "liked_count", "likeCount", "realLikeCount",
+        "digg_count", "thumbs_count", "voteup_count", "total_liked", "comment_like_count"
     )
     comments = _first(
-        raw, "comments", "comment_count", "comments_count", "comment_num",
-        "video_comment", "total_replay_num", "total_comments", "reply_count"
+        raw, "comments", "comment_count", "comments_count", "commentCount", "commentCountV2",
+        "comment_num", "video_comment", "total_replay_num", "total_comments", "reply_count"
     )
     shares = _first(
-        raw, "shares", "share_count", "shared_count", "repost_count", "forward_count",
+        raw, "shares", "share_count", "shareCount", "shared_count", "repost_count", "forward_count",
         "video_share_count", "total_forwards"
     )
-    views = _first(raw, "views", "view_count", "play_count", "video_play_count", "viewd_count")
-    favorites = _first(raw, "favorites", "favorite_count", "video_favorite_count", "collected_count")
+    views = _first(raw, "views", "view_count", "viewCount", "play_count", "video_play_count", "viewd_count")
+    favorites = _first(raw, "favorites", "favorite_count", "favoriteCount", "video_favorite_count", "collected_count")
     danmaku = _first(raw, "danmaku", "danmaku_count", "video_danmaku")
     coins = _first(raw, "coins", "coin_count", "video_coin_count")
 

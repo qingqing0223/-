@@ -287,6 +287,18 @@ if ($Platform -eq "ks") {
         Write-Host "ERROR: Kuaishou comment hierarchy verification failed. Monitor will NOT start." -ForegroundColor Red
         exit $LASTEXITCODE
     }
+
+    Write-Host "Applying Kuaishou video/comment engagement persistence patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_engagement_fields.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou engagement persistence patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    python .\scripts\patch_kuaishou_engagement_fields.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou engagement persistence verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 Write-Host ""

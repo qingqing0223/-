@@ -163,6 +163,50 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Write-Host "Local config upgraded to final five-minute realtime + queued deep-comment matrix." -ForegroundColor Green
 }
 
+if ($Platform -eq "ks") {
+    $ksCfgObj = Get-Content $resolvedConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+    $KsMediaCrawlerRoot = [string]$ksCfgObj.media_crawler_root
+    if (-not $KsMediaCrawlerRoot) {
+        $KsMediaCrawlerRoot = "E:\MediaCrawler_clean"
+    }
+
+    Write-Host "Applying Kuaishou comment transport/region recovery patch..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_kuaishou_comment_regions.py --root $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou comment recovery patch failed." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    & $PythonExe .\scripts\patch_kuaishou_comment_regions.py --root $KsMediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou comment recovery verification failed." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Kuaishou comment-count + nested parent/root patch..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_kuaishou_comment_hierarchy.py --root $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou comment hierarchy patch failed." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    & $PythonExe .\scripts\patch_kuaishou_comment_hierarchy.py --root $KsMediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou comment hierarchy verification failed." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "Applying Kuaishou video/comment engagement persistence patch..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_kuaishou_engagement_fields.py --root $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou engagement persistence patch failed." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+    & $PythonExe .\scripts\patch_kuaishou_engagement_fields.py --root $KsMediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Kuaishou engagement persistence verification failed." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
+
 try {
     $existing = Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {
         $_.Name -match "python" -and $_.CommandLine -and
