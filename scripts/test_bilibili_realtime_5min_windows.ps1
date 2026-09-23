@@ -64,7 +64,7 @@ python .\scripts\verify_mediacrawler_public_regions.py --root $EffectiveMediaCra
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host ""
-Write-Host "[1/3] Running preflight on isolated formal-scope config..." -ForegroundColor Cyan
+Write-Host "[1/4] Running preflight on isolated formal-scope config..." -ForegroundColor Cyan
 python .\scripts\preflight.py --config $TestConfig --runtime-only --platform bili
 if ($LASTEXITCODE -ne 0) {
     Write-Host "BILIBILI ACCEPTANCE BLOCKED: preflight failed." -ForegroundColor Red
@@ -72,7 +72,16 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host ""
-Write-Host "[2/3] Running one real bounded Bilibili cycle..." -ForegroundColor Cyan
+Write-Host "[2/4] Verifying reusable Bilibili login session..." -ForegroundColor Cyan
+Write-Host "This step is outside the five-minute acceptance clock." -ForegroundColor Yellow
+& .\scripts\bootstrap_bilibili_session_windows.ps1 -Config $TestConfig -MediaCrawlerRoot $EffectiveMediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "BILIBILI ACCEPTANCE BLOCKED: login/session bootstrap failed." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
+Write-Host ""
+Write-Host "[3/4] Running one real bounded Bilibili cycle..." -ForegroundColor Cyan
 python .\run_student_platform_final.py --platform bili --config $TestConfig --once
 $runCode = $LASTEXITCODE
 if ($runCode -ne 0) {
@@ -81,7 +90,7 @@ if ($runCode -ne 0) {
 }
 
 Write-Host ""
-Write-Host "[3/3] Inspecting realtime SLA, comments, hierarchy and public region..." -ForegroundColor Cyan
+Write-Host "[4/4] Inspecting realtime SLA, comments, hierarchy and public region..." -ForegroundColor Cyan
 python .\scripts\inspect_bilibili_acceptance.py --config $TestConfig
 $inspectCode = $LASTEXITCODE
 
