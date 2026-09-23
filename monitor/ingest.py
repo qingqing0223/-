@@ -8,6 +8,17 @@ from pipeline.normalizer import normalize_record
 from pipeline.classifier import classify_records
 from pipeline.language_detector import is_minority_language
 
+# ----小红书业务过滤配置（仅xhs平台生效）----
+MONITOR_START_TS_MS = 1789430400000  # 2026‑09‑16 00:00 北京时间 毫秒
+FILTER_KEYWORDS = [
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "促进民族团结进步，奋进伟大复兴征程",
+    "民族团结进步倡议",
+    "民族团结进步宣传周主场活动",
+    "石榴花开——铸牢中华民族共同体意识"
+]
+
 
 COUNTRY_ONLY_REGION_LABELS = {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC", "CN"}
 
@@ -157,6 +168,21 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
             if is_comment_file:
                 raw_comment_rows += 1
             raw = _prepare_region_aliases(raw)
+
+            # --------小红书笔记过滤：仅xhs、非评论文件生效 --------
+            if platform == "xhs" and not is_comment_file:
+                note_ts = raw.get("time", 0)            
+                if note_ts < MONITOR_START_TS_MS:
+                    continue
+
+                title = raw.get("title", "") or ""
+                desc = raw.get("desc", "") or ""
+                full_text = title + desc
+                hit = any(k in full_text for k in FILTER_KEYWORDS)
+                if not hit:
+                    continue
+        # ---------------------------------------------------
+
             rec = normalize_record(raw, source_file=path.name, platform_hint=platform)
             if not rec:
                 normalization_dropped += 1
