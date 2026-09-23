@@ -50,7 +50,8 @@
       "enabled": true
     },
     {
-      "code": "toutiao", "name": "今日头条",
+      "code": "toutiao",
+      "name": "今日头条",
       "enabled": true
     },
     {
@@ -67,5 +68,10 @@
     "民族团结进步宣传周主场活动",
     "石榴花开——铸牢中华民族共同体意识"
   ],
-  "results_date_mode": "auto"
+  "results_date_mode": "auto",
+  "kuaishou_realtime_detail_budget_seconds": 120,
+  "kuaishou_realtime_candidate_timeout_seconds": 60,
+  "kuaishou_realtime_max_comments_per_video": 300,
+  "kuaishou_collect_public_profile_metrics": true,
+  "cdp_debug_port": 9222
 }
