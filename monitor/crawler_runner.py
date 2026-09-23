@@ -8,6 +8,7 @@ import subprocess
 import time
 
 from monitor.bilibili_policy import is_bilibili_campaign_relevant
+from monitor.campaign_scope import select_realtime_queries
 
 
 @dataclass
@@ -564,6 +565,25 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
 
     monitor_comments_enabled = str(cfg.get("get_comment", "no")).lower() in {"yes", "true", "1", "y", "t"}
     realtime_mode = bool(cfg.get("realtime_mode", False))
+    search_keywords = list(cfg.get("keywords") or [])
+    if realtime_mode and bool(cfg.get("campaign_search_expand", False)):
+        try:
+            supplemental_per_cycle = max(
+                0,
+                int(cfg.get(
+                    f"{code}_realtime_supplemental_keywords_per_cycle",
+                    cfg.get("realtime_supplemental_keywords_per_cycle", 5),
+                )),
+            )
+        except Exception:
+            supplemental_per_cycle = 5
+        cadence = max(60, int(cfg.get("interval_seconds", 300)))
+        bucket = int(time.time() // cadence)
+        search_keywords = select_realtime_queries(
+            search_keywords,
+            supplemental_count=supplemental_per_cycle,
+            bucket=bucket,
+        )
     search_get_comment = "no" if realtime_mode else str(cfg.get("get_comment", "no"))
     search_get_sub_comment = "no" if realtime_mode else str(cfg.get("get_sub_comment", "no"))
     realtime_notes_default = 20 if code in {"bili", "wb"} else int(cfg.get("realtime_discovery_max_notes_count", 60))
@@ -592,7 +612,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
             "uv", "run", "--project", str(cfg["media_crawler_root"]),
             "python", str(repo_root / "scripts" / "toutiao_crawler.py"),
             "--mode", "search",
-            "--keywords", ",".join(cfg["keywords"]),
+            "--keywords", ",".join(search_keywords),
             "--save-data-path", str(output_dir),
             "--profile-dir", str(profile_dir),
             "--max-notes", str(notes_limit),
@@ -605,7 +625,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
             "--platform", code,
             "--lt", cfg.get("login_type", "qrcode"),
             "--type", "search",
-            "--keywords", ",".join(cfg["keywords"]),
+            "--keywords", ",".join(search_keywords),
             "--crawler_max_notes_count", str(notes_limit),
             "--max_concurrency_num", str(search_concurrency),
             "--get_comment", search_get_comment,
