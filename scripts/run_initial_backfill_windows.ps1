@@ -44,6 +44,38 @@ Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "This pass performs natural-end historical search + first-level comments + nested comments." -ForegroundColor Yellow
 Write-Host "It may take longer than five minutes. Run it once before starting the five-minute realtime watchdog." -ForegroundColor Yellow
 
+if ($Platform -eq "bili") {
+    $MediaCrawlerRoot = [string]$cfg.media_crawler_root
+    if (-not $MediaCrawlerRoot -or -not (Test-Path (Join-Path $MediaCrawlerRoot "main.py"))) {
+        Write-Host "ERROR: invalid media_crawler_root: $MediaCrawlerRoot" -ForegroundColor Red
+        exit 3
+    }
+
+    Write-Host "Preparing Bilibili full backfill patch stack..." -ForegroundColor Cyan
+    $patches = @(
+        "patch_bilibili_login_resilience.py",
+        "patch_bilibili_data_fields.py",
+        "patch_bilibili_comment_detail.py",
+        "patch_bilibili_network_resilience.py",
+        "patch_bilibili_realtime_comment_bounds.py",
+        "patch_bilibili_realtime_comment_order.py",
+        "patch_bilibili_realtime_discovery_bound.py"
+    )
+    foreach ($patch in $patches) {
+        python (Join-Path ".\scripts" $patch) --root $MediaCrawlerRoot
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        python (Join-Path ".\scripts" $patch) --root $MediaCrawlerRoot --check
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
+    python .\scripts\patch_mediacrawler_public_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\verify_mediacrawler_public_regions.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Bilibili full backfill will use the formal monitoring window, natural-end video search, all first-level comments, and all nested replies subject only to the large safety caps." -ForegroundColor Green
+}
+
 try {
     python .\run_single_platform.py --platform $Platform --config $temp --once
     exit $LASTEXITCODE
