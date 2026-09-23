@@ -88,9 +88,20 @@ if (Test-Path $log) {
     $logText = Get-Content $log -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
 }
 
-$verified = $logText -match "BILIBILI_SESSION_BOOTSTRAP_OK"
-$timedOut = $logText -match "manual official login timed out"
-$required = $logText -match "BILIBILI_LOGIN_REQUIRED"
+# Windows PowerShell 5.1 may wrap native stderr records while Tee-Object
+# serializes them, even splitting our success marker across physical lines
+# (for example BILIBILI_SESSION_BOO + newline + TSTRAP_OK). Match against a
+# whitespace-normalized copy so display wrapping cannot turn a successful
+# official login into a false NOT VERIFIED result.
+$normalizedLogText = ($logText -replace "\s+", "")
+$loginVerifiedMarker = $normalizedLogText -match "BILIBILI_LOGIN_VERIFIED"
+$bootstrapOkMarker = $normalizedLogText -match "BILIBILI_SESSION_BOOTSTRAP_OK"
+$verified = $bootstrapOkMarker -or (($rc -eq 0) -and $loginVerifiedMarker)
+
+$timedOut = $normalizedLogText -match "manualofficiallogintimedout"
+$required = $normalizedLogText -match "BILIBILI_LOGIN_REQUIRED"
+
+Write-Host ("Bootstrap verification: rc={0}, login_verified={1}, bootstrap_ok={2}" -f $rc, $loginVerifiedMarker, $bootstrapOkMarker) -ForegroundColor DarkGray
 
 if ($rc -ne 0 -or -not $verified) {
     Write-Host ""
