@@ -13,6 +13,7 @@ from monitor.campaign_scope import (
     RELATED_RECOVERY_QUERIES,
     all_search_queries,
     evaluate_campaign_relevance,
+    matched_campaign_terms,
     select_realtime_queries,
 )
 from monitor.keyword_pack import apply_keyword_pack
@@ -76,6 +77,15 @@ class CampaignScopePolicyTests(unittest.TestCase):
         self.assertEqual(len(first), len(CORE_KEYWORDS) + 5)
         self.assertEqual(len(second), len(CORE_KEYWORDS) + 5)
         self.assertNotEqual(first, second)
+
+    def test_matched_keywords_include_combination_queries(self):
+        row = {
+            "title": "2026年民族团结进步主题宣传片正式发布",
+            "desc": "宣传周主场活动同步启动",
+        }
+        matched = matched_campaign_terms(row)
+        self.assertIn("民族团结进步 主题宣传片", matched)
+        self.assertIn("民族团结进步 主场活动", matched)
 
     def test_search_broad_admission_strict(self):
         direct = evaluate_campaign_relevance({
