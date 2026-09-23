@@ -7,6 +7,8 @@ import os
 import subprocess
 import time
 
+from monitor.bilibili_policy import is_bilibili_campaign_relevant
+
 
 @dataclass
 class PlatformRun:
@@ -157,6 +159,8 @@ def _detail_recovery_candidates(platform: str, content_files: list[Path], max_it
     candidates = []
     seen = set()
     for row in _iter_jsonl(content_files):
+        if platform == "bili" and not is_bilibili_campaign_relevant(row):
+            continue
         if _visible_comment_count(row) <= 0:
             continue
         identifier = _detail_identifier(platform, row)
@@ -194,6 +198,10 @@ def _update_queue_from_content(platform: str, content_files: list[Path], queue: 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     items = queue.setdefault("items", {})
     for row in _iter_jsonl(content_files):
+        # Bilibili search is intentionally broad, but only topic-relevant
+        # content enters the persistent comment queue.
+        if platform == "bili" and not is_bilibili_campaign_relevant(row):
+            continue
         identifier = _detail_identifier(platform, row)
         if not identifier:
             continue
@@ -489,6 +497,7 @@ def _classify_state(
             "xhs_realtime_search_timeout" in text
             or "toutiao_realtime_search_timeout" in text
             or "ks_realtime_search_timeout" in text
+            or "bili_realtime_search_timeout" in text
         )
         and content_row_count > 0
     ):
@@ -638,6 +647,25 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
                     realtime_items_per_keyword
                 )
+                # Realtime Bilibili discovery is sorted by publication time and
+                # bounded to the configured formal monitoring window.  This is
+                # discovery-only; ingest still performs the authoritative
+                # monitoring_start_time filter.
+                search_env["PROMOTION_WEEK_BILI_SEARCH_ORDER"] = "pubdate"
+                start_text = str(cfg.get("monitoring_start_time") or "").strip()
+                if start_text:
+                    try:
+                        start_dt = datetime.fromisoformat(
+                            start_text.replace("Z", "+00:00")
+                        )
+                        if start_dt.tzinfo is None:
+                            start_dt = start_dt.replace(tzinfo=timezone.utc)
+                        search_env["PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S"] = str(
+                            int(start_dt.timestamp())
+                        )
+                    except Exception:
+                        pass
+                search_env["PROMOTION_WEEK_BILI_PUBTIME_END_S"] = str(int(time.time()))
             elif code == "wb":
                 # Realtime Weibo search uses snippets only; full-text enrichment
                 # remains in the historical/backfill path.
@@ -670,7 +698,18 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
 
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             search_timeout = None
-            if realtime_mode and code == "wb":
+            if realtime_mode and code == "bili":
+                try:
+                    search_timeout = max(
+                        60,
+                        min(
+                            int(cfg.get("bili_realtime_search_timeout_seconds", 120)),
+                            150,
+                        ),
+                    )
+                except Exception:
+                    search_timeout = 120
+            elif realtime_mode and code == "wb":
                 try:
                     search_timeout = max(60, min(
                         int(cfg.get("wb_realtime_search_timeout_seconds", 150)),
@@ -733,6 +772,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 rc = 124
                 status = "failed"
                 timeout_marker = {
+                    "bili": "BILI_REALTIME_SEARCH_TIMEOUT",
                     "wb": "WB_REALTIME_SEARCH_TIMEOUT",
                     "xhs": "XHS_REALTIME_SEARCH_TIMEOUT",
                     "ks": "KS_REALTIME_SEARCH_TIMEOUT",
