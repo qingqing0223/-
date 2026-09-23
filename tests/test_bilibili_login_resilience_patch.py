@@ -150,6 +150,8 @@ class BilibiliLoginResiliencePatchTests(unittest.TestCase):
             self.assertIn("[BILIBILI_LOGIN_WAIT]", first_login)
             self.assertIn("[BILIBILI_LOGIN_VERIFIED]", first_login)
             self.assertNotIn("login failed , have not found qrcode please check", first_login)
+            self.assertIn("[BILIBILI_LOGIN_MANUAL_MODE]", first_login)
+            self.assertNotIn("official login UI unavailable; manual login required", first_login)
 
 
 if __name__ == "__main__":
