@@ -202,6 +202,9 @@ def _update_queue_from_content(platform: str, content_files: list[Path], queue: 
             "first_seen_at": now,
             "last_seen_at": now,
             "last_deep_crawled_at": "",
+            "last_deep_attempt_at": "",
+            "last_deep_outcome": "",
+            "next_retry_at": "",
             "visible_comment_count": 0,
             "retry_count": 0,
         })
@@ -214,39 +217,127 @@ def _update_queue_from_content(platform: str, content_files: list[Path], queue: 
             item["visible_comment_count"] = max(int(item.get("visible_comment_count") or 0), visible)
 
 
+def _parse_queue_timestamp(value) -> float:
+    text = str(value or "").strip()
+    if not text:
+        return 0.0
+    try:
+        return datetime.fromisoformat(text.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return 0.0
+
+
+def _queue_iso_after(seconds: int) -> str:
+    seconds = max(0, int(seconds))
+    return datetime.fromtimestamp(
+        time.time() + seconds,
+        tz=timezone.utc,
+    ).isoformat(timespec="seconds")
+
+
 def _select_queue_candidates(queue: dict, max_items: int, refresh_seconds: int) -> list[str]:
+    """Select deep-comment candidates without letting EMPTY/TIMEOUT rows monopolize the queue.
+
+    Priority is intentionally breadth-first:
+    1) never-attempted candidates;
+    2) cooled-down failed candidates;
+    3) cooled-down empty candidates;
+    4) previously successful candidates whose normal refresh interval elapsed.
+
+    next_retry_at is independent of the normal successful refresh interval. This
+    prevents a small set of EMPTY/TIMEOUT videos from being retried every five-minute
+    cycle while newly discovered videos wait behind them indefinitely.
+    """
     now = time.time()
     eligible = []
     for identifier, item in (queue.get("items") or {}).items():
         visible = int(item.get("visible_comment_count") or 0)
         if visible <= 0:
             continue
-        last = str(item.get("last_deep_crawled_at") or "")
-        last_ts = 0.0
-        if last:
-            try:
-                last_ts = datetime.fromisoformat(last.replace("Z", "+00:00")).timestamp()
-            except Exception:
-                last_ts = 0.0
-        if last_ts and now - last_ts < refresh_seconds:
+
+        next_retry_ts = _parse_queue_timestamp(item.get("next_retry_at"))
+        if next_retry_ts and next_retry_ts > now:
             continue
-        eligible.append((0 if not last else 1, -visible, last_ts, identifier))
+
+        last_success_ts = _parse_queue_timestamp(item.get("last_deep_crawled_at"))
+        if last_success_ts and now - last_success_ts < refresh_seconds:
+            continue
+
+        last_attempt_ts = _parse_queue_timestamp(item.get("last_deep_attempt_at"))
+        outcome = str(item.get("last_deep_outcome") or "").strip().lower()
+        retry_count = max(0, int(item.get("retry_count") or 0))
+
+        if not last_attempt_ts:
+            priority = 0
+        elif outcome in {"timeout", "failed"}:
+            priority = 1
+        elif outcome == "empty":
+            priority = 2
+        else:
+            priority = 3
+
+        eligible.append((
+            priority,
+            retry_count,
+            last_attempt_ts,
+            -visible,
+            identifier,
+        ))
+
     eligible.sort()
     return [row[-1] for row in eligible[:max_items]]
 
 
-def _mark_queue_batch(queue: dict, candidates: list[str], success: bool) -> None:
+def _mark_queue_outcome(
+    queue: dict,
+    candidates: list[str],
+    outcome: str,
+    *,
+    failed_retry_base_seconds: int = 600,
+    failed_retry_cap_seconds: int = 3600,
+    empty_retry_seconds: int = 1800,
+) -> None:
+    """Persist a per-candidate deep-comment outcome with retry backoff."""
+    outcome = str(outcome or "").strip().lower()
+    if outcome not in {"success", "empty", "failed", "timeout"}:
+        raise ValueError(f"unsupported deep queue outcome: {outcome!r}")
+
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     items = queue.get("items") or {}
     for identifier in candidates:
         item = items.get(identifier)
         if not isinstance(item, dict):
             continue
-        if success:
+
+        item["last_deep_attempt_at"] = now
+        item["last_deep_outcome"] = outcome
+
+        if outcome == "success":
             item["last_deep_crawled_at"] = now
             item["retry_count"] = 0
-        else:
-            item["retry_count"] = int(item.get("retry_count") or 0) + 1
+            item["next_retry_at"] = ""
+            continue
+
+        if outcome == "empty":
+            item["retry_count"] = 0
+            item["next_retry_at"] = _queue_iso_after(empty_retry_seconds)
+            continue
+
+        retry_count = int(item.get("retry_count") or 0) + 1
+        item["retry_count"] = retry_count
+        delay = min(
+            max(60, int(failed_retry_cap_seconds)),
+            max(60, int(failed_retry_base_seconds)) * (2 ** max(0, retry_count - 1)),
+        )
+        item["next_retry_at"] = _queue_iso_after(delay)
+
+
+def _mark_queue_batch(queue: dict, candidates: list[str], success: bool) -> None:
+    _mark_queue_outcome(
+        queue,
+        candidates,
+        "success" if success else "failed",
+    )
 
 
 def _queue_pending_count(queue: dict, refresh_seconds: int) -> int:
