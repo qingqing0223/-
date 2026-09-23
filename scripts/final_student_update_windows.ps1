@@ -264,42 +264,54 @@ if ($Platform -eq "toutiao") {
 }
 
 if ($Platform -eq "ks") {
+    Write-Host "Configuring Kuaishou browser lifecycle (self-launched CDP; no external 9222 dependency)..." -ForegroundColor Cyan
+    & .\scripts\enable_mediacrawler_cdp.ps1 -MediaCrawlerRoot $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying Kuaishou startup resilience patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying Kuaishou session/login resilience patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_login_resilience.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_kuaishou_login_resilience.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
     Write-Host "Applying Kuaishou public comment-region recovery patch..." -ForegroundColor Cyan
     python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou public comment-region patch failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot --check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou public comment-region verification failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host "Applying Kuaishou comment-count + nested parent/root patch..." -ForegroundColor Cyan
     python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou comment hierarchy patch failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     python .\scripts\patch_kuaishou_comment_hierarchy.py --root $MediaCrawlerRoot --check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou comment hierarchy verification failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host "Applying Kuaishou video/comment engagement persistence patch..." -ForegroundColor Cyan
     python .\scripts\patch_kuaishou_engagement_fields.py --root $MediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou engagement persistence patch failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     python .\scripts\patch_kuaishou_engagement_fields.py --root $MediaCrawlerRoot --check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou engagement persistence verification failed. Monitor will NOT start." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying Kuaishou public follower/following/comment-like metrics patch..." -ForegroundColor Cyan
+    python .\scripts\patch_kuaishou_creator_trial_safety.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_kuaishou_creator_trial_safety.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    python .\scripts\patch_kuaishou_public_metrics.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    python .\scripts\patch_kuaishou_public_metrics.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    $env:KUAISHOU_PUBLIC_METRICS = "1"
 }
+
 
 Write-Host ""
 Write-Host "FINAL build completed and verified." -ForegroundColor Green
