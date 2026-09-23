@@ -43,11 +43,21 @@ $env:KUAISHOU_PUBLIC_METRICS = ""
 $env:PROMOTION_WEEK_KS_REALTIME = "1"
 $env:PROMOTION_WEEK_KS_REALTIME_ITEMS_PER_KEYWORD = "1"
 
+$oldErrorActionPreference = $ErrorActionPreference
+$rc = 1
 try {
     Push-Location $MediaCrawlerRoot
-    & uv run main.py --platform ks --lt qrcode --type search --keywords $keyword --crawler_max_notes_count 20 --max_concurrency_num 1 --get_comment no --get_sub_comment no --save_data_option jsonl --save_data_path $stateRoot 2>&1 | Tee-Object -FilePath $log
-    $rc = $LASTEXITCODE
-    Pop-Location
+    try {
+        # Windows PowerShell 5.1 wraps native stderr as NativeCommandError when
+        # ErrorActionPreference=Stop. MediaCrawler writes normal INFO logs to
+        # stderr, so temporarily allow native stderr through the merged stream.
+        $ErrorActionPreference = "Continue"
+        & uv run main.py --platform ks --lt qrcode --type search --keywords $keyword --crawler_max_notes_count 20 --max_concurrency_num 1 --get_comment no --get_sub_comment no --save_data_option jsonl --save_data_path $stateRoot 2>&1 | Tee-Object -FilePath $log
+        $rc = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $oldErrorActionPreference
+        Pop-Location
+    }
 } finally {
     $env:KUAISHOU_PUBLIC_METRICS = $oldPublicMetrics
     $env:PROMOTION_WEEK_KS_REALTIME = $oldRealtime
