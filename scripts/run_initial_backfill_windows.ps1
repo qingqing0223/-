@@ -33,6 +33,23 @@ Set-Prop $cfg "ingest_comments" $true
 Set-Prop $cfg "detail_comment_recovery" $true
 Set-Prop $cfg "detail_comment_recovery_max_items" 100000
 Set-Prop $cfg "detail_comment_recovery_batch_size" 10
+Set-Prop $cfg "campaign_search_expand" $true
+Set-Prop $cfg "campaign_strict_admission" $true
+Set-Prop $cfg "campaign_keyword_policy_version" "promotion_week_search_v2_20260923"
+Set-Prop $cfg "realtime_supplemental_keywords_per_cycle" 5
+Set-Prop $cfg "keywords" @(
+    "民族团结进步宣传周",
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "民族团结进步宣传周启动",
+    "民族团结进步宣传周活动",
+    "民族团结进步宣传周主场活动",
+    "2026年民族团结进步宣传周主场活动",
+    "民族团结进步宣传周主题宣传片",
+    "民族团结进步倡议",
+    "民族团结进步倡议书",
+    "促进民族团结进步，奋进伟大复兴征程"
+)
 
 $temp = Join-Path ([System.IO.Path]::GetTempPath()) ("promotion_week_backfill_" + $Platform + "_" + [guid]::NewGuid().ToString("N") + ".json")
 $json = $cfg | ConvertTo-Json -Depth 100
