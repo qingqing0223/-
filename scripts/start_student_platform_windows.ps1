@@ -167,44 +167,61 @@ if ($Platform -eq "ks") {
     $ksCfgObj = Get-Content $resolvedConfig -Raw -Encoding UTF8 | ConvertFrom-Json
     $KsMediaCrawlerRoot = [string]$ksCfgObj.media_crawler_root
     if (-not $KsMediaCrawlerRoot) {
-        $KsMediaCrawlerRoot = "E:\MediaCrawler_clean"
+        Write-Host "ERROR: media_crawler_root is missing from $resolvedConfig" -ForegroundColor Red
+        exit 40
     }
+    if (-not (Test-Path (Join-Path $KsMediaCrawlerRoot "main.py"))) {
+        Write-Host "ERROR: MediaCrawler root is invalid: $KsMediaCrawlerRoot" -ForegroundColor Red
+        exit 41
+    }
+
+    Write-Host "Configuring Kuaishou browser lifecycle (self-launched CDP; no external 9222 dependency)..." -ForegroundColor Cyan
+    & .\scripts\enable_mediacrawler_cdp.ps1 -MediaCrawlerRoot $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying Kuaishou startup resilience patch..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_kuaishou_startup_resilience.py --root $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & $PythonExe .\scripts\patch_kuaishou_startup_resilience.py --root $KsMediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying Kuaishou session/login resilience patch..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_kuaishou_login_resilience.py --root $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & $PythonExe .\scripts\patch_kuaishou_login_resilience.py --root $KsMediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host "Applying Kuaishou comment transport/region recovery patch..." -ForegroundColor Cyan
     & $PythonExe .\scripts\patch_kuaishou_comment_regions.py --root $KsMediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou comment recovery patch failed." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     & $PythonExe .\scripts\patch_kuaishou_comment_regions.py --root $KsMediaCrawlerRoot --check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou comment recovery verification failed." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host "Applying Kuaishou comment-count + nested parent/root patch..." -ForegroundColor Cyan
     & $PythonExe .\scripts\patch_kuaishou_comment_hierarchy.py --root $KsMediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou comment hierarchy patch failed." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     & $PythonExe .\scripts\patch_kuaishou_comment_hierarchy.py --root $KsMediaCrawlerRoot --check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou comment hierarchy verification failed." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host "Applying Kuaishou video/comment engagement persistence patch..." -ForegroundColor Cyan
     & $PythonExe .\scripts\patch_kuaishou_engagement_fields.py --root $KsMediaCrawlerRoot
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou engagement persistence patch failed." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     & $PythonExe .\scripts\patch_kuaishou_engagement_fields.py --root $KsMediaCrawlerRoot --check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Kuaishou engagement persistence verification failed." -ForegroundColor Red
-        exit $LASTEXITCODE
-    }
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Applying Kuaishou public follower/following/comment-like metrics patch..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_kuaishou_creator_trial_safety.py --root $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & $PythonExe .\scripts\patch_kuaishou_creator_trial_safety.py --root $KsMediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    & $PythonExe .\scripts\patch_kuaishou_public_metrics.py --root $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & $PythonExe .\scripts\patch_kuaishou_public_metrics.py --root $KsMediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    $env:KUAISHOU_PUBLIC_METRICS = "1"
+    Write-Host "Kuaishou full patch stack verified: startup/login/comments/nested hierarchy/video likes/comment likes/follower/following." -ForegroundColor Green
 }
 
 try {
