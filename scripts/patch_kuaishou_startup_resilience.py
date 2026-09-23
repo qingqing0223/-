@@ -3,16 +3,9 @@ from __future__ import annotations
 import argparse
 import ast
 import json
-import re
 from pathlib import Path
 
-MARKER = "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V5"
-LEGACY_MARKERS = (
-    "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V1",
-    "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V2",
-    "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V3",
-    "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V4",
-)
+MARKER = "PROMOTION_WEEK_KS_STARTUP_RESILIENCE_V6"
 
 
 def _read(path: Path) -> str:
@@ -22,28 +15,6 @@ def _read(path: Path) -> str:
 def _write(path: Path, text: str) -> None:
     ast.parse(text, filename=str(path))
     path.write_text(text, encoding="utf-8")
-
-
-def _resilient_block(indent: str) -> str:
-    i1, i2, i3, i4 = indent, indent + "    ", indent + "        ", indent + "            "
-    return (
-        f'{i1}# {MARKER}: do not wait for every homepage resource to finish.\n'
-        f'{i1}# Slow ads/static assets can keep Playwright\'s default "load" event pending.\n'
-        f'{i1}home_url = f"{{self.index_url}}?isHome=1"\n'
-        f'{i1}for navigation_attempt in range(2):\n'
-        f'{i2}try:\n'
-        f'{i3}await self.context_page.goto(\n'
-        f'{i4}home_url, wait_until="domcontentloaded", timeout=45000\n'
-        f'{i3})\n'
-        f'{i3}break\n'
-        f'{i2}except Exception as exc:\n'
-        f'{i3}if navigation_attempt >= 1:\n'
-        f'{i4}raise\n'
-        f'{i3}utils.logger.warning(\n'
-        f'{i4}f"[KuaishouCrawler.start] homepage navigation failed once: {{type(exc).__name__}}: {{exc}}; retrying"\n'
-        f'{i3})\n'
-        f'{i3}await asyncio.sleep(2)\n'
-    )
 
 
 def _line_bounds(text: str, index: int) -> tuple[int, int]:
@@ -69,12 +40,56 @@ def _startup_window(text: str, path: Path) -> tuple[int, int]:
     return start, end
 
 
-def _raw_goto_matches(window: str) -> list[re.Match[str]]:
-    pattern = re.compile(
-        r'(?m)^(?P<indent>[ \t]*)await\s+self\.context_page\.goto\(\s*'
-        r'f["\']\{self\.index_url\}\?isHome=1["\']\s*\)\s*\r?\n?'
+def _indent_for_window(window: str) -> str:
+    for line in window.splitlines():
+        if line.strip():
+            return line[: len(line) - len(line.lstrip())]
+    return "            "
+
+
+def _resilient_block(indent: str) -> str:
+    i1 = indent
+    i2 = indent + "    "
+    i3 = indent + "        "
+    i4 = indent + "            "
+    return (
+        f'{i1}# {MARKER}: use response commit as the hard startup boundary.\n'
+        f'{i1}# Kuaishou can keep DOMContentLoaded pending or abort a second goto even when\n'
+        f'{i1}# the browser has already reached kuaishou.com.  Treat DOM readiness as best-effort.\n'
+        f'{i1}home_url = f"{{self.index_url}}?isHome=1"\n'
+        f'{i1}try:\n'
+        f'{i2}await self.context_page.goto(\n'
+        f'{i3}home_url, wait_until="commit", timeout=20000\n'
+        f'{i2})\n'
+        f'{i1}except Exception as exc:\n'
+        f'{i2}current_url = str(self.context_page.url or "")\n'
+        f'{i2}if "kuaishou.com" not in current_url:\n'
+        f'{i3}utils.logger.warning(\n'
+        f'{i4}f"[KuaishouCrawler.start] homepage commit failed: {{type(exc).__name__}}: {{exc}}; retrying base URL once"\n'
+        f'{i3})\n'
+        f'{i3}try:\n'
+        f'{i4}await self.context_page.goto(\n'
+        f'{i4}    self.index_url, wait_until="commit", timeout=15000\n'
+        f'{i4})\n'
+        f'{i3}except Exception as retry_exc:\n'
+        f'{i4}current_url = str(self.context_page.url or "")\n'
+        f'{i4}if "kuaishou.com" not in current_url:\n'
+        f'{i4}    raise\n'
+        f'{i4}utils.logger.warning(\n'
+        f'{i4}    f"[KuaishouCrawler.start] base URL retry raised after site commit: {{type(retry_exc).__name__}}: {{retry_exc}}; continuing"\n'
+        f'{i4})\n'
+        f'{i2}else:\n'
+        f'{i3}utils.logger.warning(\n'
+        f'{i4}f"[KuaishouCrawler.start] homepage goto raised after site commit: {{type(exc).__name__}}: {{exc}}; continuing"\n'
+        f'{i3})\n'
+        f'{i1}try:\n'
+        f'{i2}await self.context_page.wait_for_load_state("domcontentloaded", timeout=12000)\n'
+        f'{i1}except Exception as exc:\n'
+        f'{i2}utils.logger.warning(\n'
+        f'{i3}f"[KuaishouCrawler.start] DOM readiness is still pending: {{type(exc).__name__}}: {{exc}}; continuing with loaded page state"\n'
+        f'{i2})\n'
+        f'{i1}await asyncio.sleep(2)\n'
     )
-    return list(pattern.finditer(window))
 
 
 def patch_core(root: Path) -> None:
@@ -82,46 +97,25 @@ def patch_core(root: Path) -> None:
     text = _read(path)
     start, end = _startup_window(text, path)
     window = text[start:end]
-    resilient = 'wait_until="domcontentloaded"' in window and "for navigation_attempt in range(2):" in window
-    if resilient:
-        if MARKER in window:
-            return
-        upgraded = window
-        for legacy in LEGACY_MARKERS:
-            if legacy in upgraded:
-                upgraded = upgraded.replace(legacy, MARKER, 1)
-                break
-        else:
-            first_nonempty = next((ln for ln in upgraded.splitlines() if ln.strip()), "")
-            indent = first_nonempty[: len(first_nonempty) - len(first_nonempty.lstrip(" \t"))]
-            upgraded = f"{indent}# {MARKER}: adopted existing resilient Kuaishou homepage navigation.\n" + upgraded
-        _write(path, text[:start] + upgraded + text[end:])
+
+    if MARKER in window and 'wait_until="commit"' in window:
         return
 
-    matches = _raw_goto_matches(window)
-    if not matches:
-        raise RuntimeError(f"{path}: startup window has neither resilient navigation nor raw homepage goto")
-    indent = matches[0].group("indent")
-    pieces, cursor = [], 0
-    for idx, match in enumerate(matches):
-        pieces.append(window[cursor:match.start()])
-        if idx == 0:
-            pieces.append(_resilient_block(indent))
-        cursor = match.end()
-    pieces.append(window[cursor:])
-    _write(path, text[:start] + "".join(pieces) + text[end:])
+    indent = _indent_for_window(window)
+    replacement = _resilient_block(indent)
+    _write(path, text[:start] + replacement + text[end:])
 
 
 def check(root: Path) -> dict:
     path = root / "media_platform/kuaishou/core.py"
     result = {
-        "patch_version": 5,
+        "patch_version": 6,
         "core_exists": path.exists(),
         "marker_present": False,
-        "domcontentloaded_present": False,
-        "retry_present": False,
+        "commit_navigation_present": False,
+        "best_effort_dom_present": False,
+        "site_commit_tolerance_present": False,
         "startup_window_valid": False,
-        "raw_homepage_goto_remaining": None,
         "ok": False,
     }
     if not path.exists():
@@ -132,18 +126,29 @@ def check(root: Path) -> dict:
         start, end = _startup_window(text, path)
         window = text[start:end]
         result["marker_present"] = MARKER in window
-        result["domcontentloaded_present"] = 'wait_until="domcontentloaded"' in window
-        result["retry_present"] = "for navigation_attempt in range(2):" in window
-        result["raw_homepage_goto_remaining"] = len(_raw_goto_matches(window))
+        result["commit_navigation_present"] = 'wait_until="commit"' in window
+        result["best_effort_dom_present"] = (
+            'wait_for_load_state("domcontentloaded", timeout=12000)' in window
+        )
+        result["site_commit_tolerance_present"] = (
+            '"kuaishou.com" not in current_url' in window
+            and "homepage goto raised after site commit" in window
+        )
         result["startup_window_valid"] = True
-        result["ok"] = bool(result["marker_present"] and result["domcontentloaded_present"] and result["retry_present"] and result["raw_homepage_goto_remaining"] == 0)
+        result["ok"] = all([
+            result["marker_present"],
+            result["commit_navigation_present"],
+            result["best_effort_dom_present"],
+            result["site_commit_tolerance_present"],
+            result["startup_window_valid"],
+        ])
     except Exception:
         pass
     return result
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Patch Kuaishou startup homepage navigation resilience.")
+    ap = argparse.ArgumentParser(description="Patch Kuaishou startup navigation so partial homepage loads do not abort collection.")
     ap.add_argument("--root", required=True)
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
@@ -153,9 +158,21 @@ def main() -> int:
             patch_core(root)
         result = check(root)
     except Exception as exc:
-        print(json.dumps({"ok": False, "patch_version": 5, "root": str(root), "error": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False, indent=2))
+        print(json.dumps(
+            {"ok": False, "patch_version": 6, "root": str(root), "error": f"{type(exc).__name__}: {exc}"},
+            ensure_ascii=False,
+            indent=2,
+        ))
         return 2
-    print(json.dumps({"root": str(root), **result, "purpose": "startup_window_scoped_duplicate_tolerant_kuaishou_homepage_retry"}, ensure_ascii=False, indent=2))
+    print(json.dumps(
+        {
+            "root": str(root),
+            **result,
+            "purpose": "commit_bounded_kuaishou_homepage_navigation_with_best_effort_dom",
+        },
+        ensure_ascii=False,
+        indent=2,
+    ))
     return 0 if result.get("ok") else 3
 
 
