@@ -98,6 +98,7 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
         attempted: list[str] = []
         successful: list[str] = []
         empty: list[str] = []
+        timed_out: list[str] = []
         failed: list[str] = []
         first_failure_rc: int | None = None
 
@@ -151,7 +152,7 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                 except subprocess.TimeoutExpired:
                     _terminate_process_tree(proc)
                     _rollback_jsonl(output_dir, snapshot)
-                    failed.append(identifier)
+                    timed_out.append(identifier)
                     if first_failure_rc is None:
                         first_failure_rc = 124
                     out.write(
@@ -193,7 +194,19 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                         "rc=0 comments_persisted=no; candidate_remains_retryable=yes\n"
                     )
 
-        store_outcome(candidates, attempted, successful, empty, failed)
+        store_outcome(candidates, attempted, successful, empty, failed + timed_out)
+        outcome = getattr(crawler_runner, "_promotion_week_last_detail_outcome", None)
+        if isinstance(outcome, dict) and outcome.get("platform") == "ks":
+            outcome["timed_out"] = list(timed_out)
+            outcome["failed_retry_base_seconds"] = int(
+                cfg.get("ks_realtime_failed_retry_base_seconds", 600)
+            )
+            outcome["failed_retry_cap_seconds"] = int(
+                cfg.get("ks_realtime_failed_retry_cap_seconds", 3600)
+            )
+            outcome["empty_retry_seconds"] = int(
+                cfg.get("ks_realtime_empty_retry_seconds", 1800)
+            )
         if successful:
             return 0, len(attempted)
         if first_failure_rc is not None:
@@ -206,13 +219,48 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
             if list(outcome.get("requested") or []) == list(candidates):
                 successful = list(outcome.get("successful") or [])
                 empty = list(outcome.get("empty") or [])
-                failed = list(outcome.get("failed") or [])
+                timed_out = list(outcome.get("timed_out") or [])
+                failed_all = list(outcome.get("failed") or [])
+                timed_out_set = set(timed_out)
+                failed = [item for item in failed_all if item not in timed_out_set]
+
+                failed_retry_base = max(
+                    300, int(outcome.get("failed_retry_base_seconds") or 600)
+                )
+                failed_retry_cap = max(
+                    failed_retry_base,
+                    int(outcome.get("failed_retry_cap_seconds") or 3600),
+                )
+                empty_retry = max(
+                    600, int(outcome.get("empty_retry_seconds") or 1800)
+                )
+
                 if successful:
-                    original_mark(queue, successful, True)
+                    crawler_runner._mark_queue_outcome(queue, successful, "success")
                 if empty:
-                    original_mark(queue, empty, False)
+                    crawler_runner._mark_queue_outcome(
+                        queue,
+                        empty,
+                        "empty",
+                        empty_retry_seconds=empty_retry,
+                    )
+                if timed_out:
+                    crawler_runner._mark_queue_outcome(
+                        queue,
+                        timed_out,
+                        "timeout",
+                        failed_retry_base_seconds=failed_retry_base,
+                        failed_retry_cap_seconds=failed_retry_cap,
+                    )
                 if failed:
-                    original_mark(queue, failed, False)
+                    crawler_runner._mark_queue_outcome(
+                        queue,
+                        failed,
+                        "failed",
+                        failed_retry_base_seconds=failed_retry_base,
+                        failed_retry_cap_seconds=failed_retry_cap,
+                    )
+
                 setattr(crawler_runner, "_promotion_week_last_detail_outcome", None)
                 return
         original_mark(queue, candidates, success)
@@ -563,6 +611,16 @@ def main():
         )
         cfg["kuaishou_realtime_max_comments_per_video"] = min(
             300, max(50, int(cfg.get("kuaishou_realtime_max_comments_per_video", 200)))
+        )
+        cfg["ks_realtime_failed_retry_base_seconds"] = max(
+            300, int(cfg.get("ks_realtime_failed_retry_base_seconds", 600))
+        )
+        cfg["ks_realtime_failed_retry_cap_seconds"] = max(
+            cfg["ks_realtime_failed_retry_base_seconds"],
+            int(cfg.get("ks_realtime_failed_retry_cap_seconds", 3600)),
+        )
+        cfg["ks_realtime_empty_retry_seconds"] = max(
+            600, int(cfg.get("ks_realtime_empty_retry_seconds", 1800))
         )
         try:
             configured_classifier = int(cfg.get("classifier_concurrency", 4))
