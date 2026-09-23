@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .campaign_scope import POLICY_VERSION, all_search_queries
+
 
 def _dedupe(items: list[str]) -> list[str]:
     out = []
@@ -71,6 +73,24 @@ def apply_keyword_pack(cfg: dict, config_path: Path) -> dict:
         include_unverified=bool(cfg.get("include_unverified_keywords", False)),
     )
     base = _dedupe(list(cfg.get("keywords") or []))
-    cfg["keywords"] = _dedupe(base + extra)
-    cfg["keyword_pack_status"] = meta
+    campaign_extra = []
+    campaign_meta = {
+        "enabled": False,
+        "policy_version": "",
+        "search_query_count": 0,
+    }
+    if bool(cfg.get("campaign_search_expand", False)):
+        campaign_extra = all_search_queries()
+        campaign_meta = {
+            "enabled": True,
+            "policy_version": POLICY_VERSION,
+            "search_query_count": len(campaign_extra),
+        }
+
+    cfg["keywords"] = _dedupe(base + campaign_extra + extra)
+    cfg["keyword_pack_status"] = {
+        **meta,
+        "campaign_search": campaign_meta,
+        "effective_keyword_count": len(cfg["keywords"]),
+    }
     return cfg
