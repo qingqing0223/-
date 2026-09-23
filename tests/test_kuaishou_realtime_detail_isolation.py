@@ -122,6 +122,57 @@ class KuaishouRealtimeDetailIsolationTests(unittest.TestCase):
                 stdout.read_text(encoding="utf-8"),
             )
 
+    def test_empty_candidate_is_deferred_after_clean_zero_comment_result(self):
+        run_single_platform._install_kuaishou_unknown_comment_queue_fallback()
+        patched = crawler_runner._run_detail_comment_recovery
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            stdout = root / "stdout.log"
+            stderr = root / "stderr.log"
+            stdout.write_text("", encoding="utf-8")
+            stderr.write_text("", encoding="utf-8")
+            queue = {
+                "version": 1,
+                "items": {
+                    "v1": {
+                        "visible_comment_count": 1,
+                        "retry_count": 0,
+                        "last_deep_crawled_at": "",
+                        "last_deep_attempt_at": "",
+                        "last_deep_outcome": "",
+                        "next_retry_at": "",
+                    },
+                    "v2": {
+                        "visible_comment_count": 1,
+                        "retry_count": 0,
+                        "last_deep_crawled_at": "",
+                        "last_deep_attempt_at": "",
+                        "last_deep_outcome": "",
+                        "next_retry_at": "",
+                    },
+                },
+            }
+            cfg = self._cfg(td)
+            cfg["ks_realtime_empty_retry_seconds"] = 1800
+
+            with patch.object(run_single_platform.subprocess, "Popen", return_value=_Proc(0)):
+                rc, attempts = patched(
+                    cfg, "ks", ["v1"], root, stdout, stderr, batch_size=1
+                )
+
+            self.assertEqual(rc, 0)
+            self.assertEqual(attempts, 1)
+            crawler_runner._mark_queue_batch(queue, ["v1"], True)
+
+            self.assertEqual(queue["items"]["v1"]["last_deep_outcome"], "empty")
+            self.assertTrue(queue["items"]["v1"]["next_retry_at"])
+            self.assertEqual(
+                crawler_runner._select_queue_candidates(
+                    queue, max_items=2, refresh_seconds=900
+                ),
+                ["v2"],
+            )
+
     def test_persisted_content_and_comments_make_failed_tail_partial_success(self):
         run_single_platform._install_kuaishou_precise_failure_classifier()
         with tempfile.TemporaryDirectory() as td:
