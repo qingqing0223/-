@@ -178,6 +178,7 @@ if ($Platform -eq "bili") {
 
     $biliPatches = @(
         "patch_bilibili_login_resilience.py",
+        "patch_bilibili_data_fields.py",
         "patch_bilibili_comment_detail.py",
         "patch_bilibili_network_resilience.py",
         "patch_bilibili_realtime_comment_bounds.py",
@@ -193,7 +194,13 @@ if ($Platform -eq "bili") {
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
-    Write-Host "Bilibili patch stack verified: login/network/detail/nested-order/realtime-window." -ForegroundColor Green
+    Write-Host "Applying/verifying public coarse-region persistence patch for Bilibili..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_mediacrawler_public_regions.py --root $BiliMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & $PythonExe .\scripts\verify_mediacrawler_public_regions.py --root $BiliMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Bilibili patch stack verified: login/network/full-local-fields/public-region/detail/nested-order/realtime-window." -ForegroundColor Green
 }
 
 if ($Platform -eq "ks") {
