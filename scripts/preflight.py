@@ -13,6 +13,16 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from monitor.campaign_scope import (
+    POLICY_VERSION,
+    CORE_KEYWORDS,
+    ALIASES,
+    COMBINATION_QUERIES,
+    RELATED_RECOVERY_QUERIES,
+    TYPO_RECOVERY_TERMS,
+    all_search_queries,
+)
+
 SUQI_ROOT = Path(r"E:\Real-time-situation-map\yuqing-v1\03_live_system")
 SUPPORTED_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "toutiao", "zhihu")
 MEDIACRAWLER_PLATFORMS = ("xhs", "dy", "ks", "bili", "wb", "zhihu")
@@ -20,14 +30,7 @@ EXPECTED_EVENT_ID = "promotion_week_2026_preheat"
 EXPECTED_EVENT_NAME = "2026年民族团结进步宣传周预热阶段舆情监测"
 EXPECTED_MONITORING_START_TIME = "2026-09-16T00:00:00+08:00"
 
-REQUIRED_KEYWORDS = (
-    "2026年民族团结进步宣传周",
-    "首个民族团结进步宣传周",
-    "促进民族团结进步，奋进伟大复兴征程",
-    "民族团结进步倡议",
-    "民族团结进步宣传周主场活动",
-    "石榴花开——铸牢中华民族共同体意识",
-)
+REQUIRED_KEYWORDS = CORE_KEYWORDS
 FULL_MATRIX_VALUES = {
     "search_until_exhausted": True,
     "crawler_max_notes_count": 100000,
@@ -37,6 +40,10 @@ FULL_MATRIX_VALUES = {
     "get_sub_comment": "yes",
     "ingest_comments": True,
     "max_concurrency_num": 1,
+    "campaign_search_expand": True,
+    "campaign_strict_admission": True,
+    "campaign_keyword_policy_version": POLICY_VERSION,
+    "realtime_supplemental_keywords_per_cycle": 5,
 }
 
 
@@ -99,7 +106,7 @@ def _upgrade_local_full_matrix(path: Path) -> tuple[bool, str]:
             changed = True
         if changed:
             _write_json(path, cfg)
-            return True, "local config upgraded to final full matrix + six campaign keywords"
+            return True, f"local config upgraded to full matrix + {len(REQUIRED_KEYWORDS)} core keywords + broad-search policy {POLICY_VERSION}"
         return False, "local config already final"
     except Exception as exc:
         return False, f"upgrade failed: {type(exc).__name__}: {exc}"
@@ -152,7 +159,7 @@ def _check_keywords(path: Path) -> tuple[bool, str]:
         missing = [kw for kw in REQUIRED_KEYWORDS if kw not in actual]
         if missing:
             return False, "missing campaign keywords: " + " | ".join(missing)
-        return True, "6/6 campaign keywords present"
+        return True, f"{len(REQUIRED_KEYWORDS)}/{len(REQUIRED_KEYWORDS)} core campaign keywords present; runtime expands to {len(all_search_queries())} reviewed search queries"
     except Exception as exc:
         return False, f"{type(exc).__name__}: {exc}"
 
@@ -291,7 +298,7 @@ def main() -> int:
         upgrade_prefix = f"{local_upgrade_detail}; " if ".local." in runtime_config.name else ""
         add("runtime config full monitoring matrix", matrix_ok, upgrade_prefix + matrix_detail)
         kw_ok, kw_detail = _check_keywords(runtime_config)
-        add("runtime config six campaign keywords", kw_ok, kw_detail)
+        add("runtime config campaign keyword policy", kw_ok, kw_detail)
         scope_ok, scope_detail = _check_monitoring_scope(runtime_config)
         add("runtime config monitoring scope", scope_ok, scope_detail)
 
