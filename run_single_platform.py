@@ -628,6 +628,48 @@ def main():
             configured_classifier = 4
         cfg["classifier_concurrency"] = max(configured_classifier, 12)
 
+    if args.platform == "bili" and bool(cfg.get("realtime_mode", False)):
+        # Keep realtime Bilibili bounded. Search is newest-first and filtered to
+        # monitoring_start_time by the MediaCrawler patch/environment installed
+        # in monitor.crawler_runner.
+        cfg["bili_realtime_discovery_max_notes_count"] = min(
+            40,
+            max(20, int(cfg.get("bili_realtime_discovery_max_notes_count", 20))),
+        )
+        cfg["bili_realtime_search_concurrency"] = min(
+            4,
+            max(1, int(cfg.get("bili_realtime_search_concurrency", 4))),
+        )
+        cfg["bili_realtime_items_per_keyword"] = min(
+            8,
+            max(1, int(cfg.get("bili_realtime_items_per_keyword", 5))),
+        )
+        cfg["bili_realtime_search_timeout_seconds"] = min(
+            150,
+            max(60, int(cfg.get("bili_realtime_search_timeout_seconds", 120))),
+        )
+        cfg["bili_realtime_detail_max_items_per_cycle"] = min(
+            3,
+            max(1, int(cfg.get("bili_realtime_detail_max_items_per_cycle", 2))),
+        )
+        cfg["bili_realtime_detail_budget_seconds"] = min(
+            90,
+            max(45, int(cfg.get("bili_realtime_detail_budget_seconds", 70))),
+        )
+        cfg["bili_realtime_candidate_timeout_seconds"] = min(
+            100,
+            max(30, int(cfg.get("bili_realtime_candidate_timeout_seconds", 70))),
+        )
+        cfg["bili_realtime_max_comments_per_video"] = min(
+            50,
+            max(10, int(cfg.get("bili_realtime_max_comments_per_video", 20))),
+        )
+        try:
+            configured_classifier = int(cfg.get("classifier_concurrency", 4))
+        except Exception:
+            configured_classifier = 4
+        cfg["classifier_concurrency"] = max(configured_classifier, 12)
+
     if args.platform == "dy" and bool(cfg.get("realtime_mode", False)):
         # Keep Douyin's live loop on a start-to-start five-minute cadence.
         # Historical exhaustive crawling remains a separate backfill job.
