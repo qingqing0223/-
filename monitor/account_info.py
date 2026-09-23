@@ -14,6 +14,7 @@ TABLE5_FIELDS = (
     "account_name",
     "profile_url",
     "account_type",
+    "ip_location",
     "followers",
     "following",
     "region",
@@ -281,13 +282,16 @@ def build_table5_account_rows(
     latest_rows = _latest_classified_rows(classified_path)
     profiles = _load_profile_rows(raw_files)
 
-    # Preserve the existing configured-account behavior for every
-    # other platform. WB additionally includes every observed publisher.
+    # Preserve configured-account behavior for every platform. Weibo
+    # and Bilibili additionally include publishers actually observed in valid
+    # Table-1 content. Bilibili uses the already-anonymized author_id/name; no
+    # private profile lookup is required.
     accounts = configured_accounts
     catalog: dict[str, str] = {}
 
-    if platform == "wb":
-        catalog = _load_key_account_catalog()
+    if platform in {"wb", "bili"}:
+        if platform == "wb":
+            catalog = _load_key_account_catalog()
         discovered = _discover_accounts(
             platform,
             latest_rows,
@@ -344,6 +348,17 @@ def build_table5_account_rows(
             or _clean(profile.get("auth_info"))
         )
         region = _clean(profile.get("region")) or _clean(account.get("region"))
+        ip_location = (
+            _clean(profile.get("ip_location"))
+            or _clean(account.get("ip_location"))
+        )
+        if not ip_location:
+            for post in reversed(posts):
+                candidate = _clean(post.get("ip_location"))
+                if candidate:
+                    ip_location = candidate
+                    break
+
 
         followers = profile.get("followers")
         if followers in ("", None):
@@ -369,6 +384,7 @@ def build_table5_account_rows(
             "account_name": account_name,
             "profile_url": profile_url,
             "account_type": account_type,
+            "ip_location": ip_location,
             "followers": followers if followers not in ("", None) else None,
             "following": following if following not in ("", None) else None,
             "region": region,
@@ -377,7 +393,10 @@ def build_table5_account_rows(
                 bool(catalog_type)
                 or bool(account.get("is_key_account", False))
             ) if platform == "wb" else bool(
-                account.get("is_key_account", True)
+                account.get(
+                    "is_key_account",
+                    False if platform == "bili" else True,
+                )
             ),
             "related_post_count": len(posts),
             "views": None if platform == "wb" else views,
