@@ -12,7 +12,7 @@
   "soft_empty_cooldown_seconds": 3600,
   "network_error_cooldown_seconds": 300,
   "max_parallel_platforms": 1,
-  "classifier_concurrency": 4,
+  "classifier_concurrency": 12,
   "login_type": "qrcode",
   "realtime_mode": true,
   "realtime_discovery_max_notes_count": 60,
@@ -87,9 +87,13 @@
     "民族团结进步宣传周主场活动",
     "石榴花开——铸牢中华民族共同体意识"
   ],
-  "kuaishou_realtime_detail_budget_seconds": 120,
-  "kuaishou_realtime_candidate_timeout_seconds": 60,
-  "kuaishou_realtime_max_comments_per_video": 300,
+  "kuaishou_realtime_detail_budget_seconds": 105,
+  "kuaishou_realtime_candidate_timeout_seconds": 45,
+  "kuaishou_realtime_max_comments_per_video": 200,
   "kuaishou_collect_public_profile_metrics": true,
-  "cdp_debug_port": 9222
+  "cdp_debug_port": 9222,
+  "ks_realtime_discovery_max_notes_count": 20,
+  "ks_realtime_items_per_keyword": 4,
+  "ks_realtime_search_timeout_seconds": 120,
+  "ks_realtime_detail_max_items_per_cycle": 4
 }
