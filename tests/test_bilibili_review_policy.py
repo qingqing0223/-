@@ -8,6 +8,7 @@ from unittest import mock
 
 from monitor import crawler_runner
 from monitor.bilibili_policy import is_bilibili_campaign_relevant
+from monitor.campaign_scope import CORE_KEYWORDS, all_search_queries, select_realtime_queries
 from monitor.unknown_comment_queue_policy import install_unknown_comment_count_fallback
 from scripts.patch_bilibili_realtime_discovery_bound import check, patch_core
 
@@ -29,6 +30,46 @@ class BilibiliReviewPolicyTests(unittest.TestCase):
             "title": "普通美食探店",
             "source_keyword": "民族团结进步宣传周",
         }))
+
+    def test_new_keyword_policy_search_broad_admission_strict(self):
+        self.assertEqual(len(CORE_KEYWORDS), 11)
+        expanded = all_search_queries()
+        self.assertGreater(len(expanded), len(CORE_KEYWORDS))
+        self.assertIn("民族团结宣传周", expanded)
+        self.assertIn("民族团结进取宣传周", expanded)
+        self.assertIn("民族团结进步 主题宣传片", expanded)
+        self.assertIn("石榴花开 宣传周", expanded)
+
+        self.assertTrue(is_bilibili_campaign_relevant({
+            "title": "民族团结进步宣传周主题宣传片发布",
+        }))
+        self.assertTrue(is_bilibili_campaign_relevant({
+            "title": "民族团结宣传周主场活动",
+        }))
+        self.assertTrue(is_bilibili_campaign_relevant({
+            "title": "石榴花开",
+            "desc": "2026年9月21日民族团结进步宣传周相关活动",
+        }))
+
+        self.assertFalse(is_bilibili_campaign_relevant({
+            "title": "石榴花开",
+            "desc": "铸牢中华民族共同体意识日常宣传",
+        }))
+        self.assertFalse(is_bilibili_campaign_relevant({
+            "title": "2025年民族团结进步宣传周回顾",
+        }))
+        self.assertFalse(is_bilibili_campaign_relevant({
+            "title": "民族团结进步宣传月活动",
+        }))
+
+        realtime = select_realtime_queries(
+            expanded,
+            supplemental_count=5,
+            bucket=0,
+        )
+        for keyword in CORE_KEYWORDS:
+            self.assertIn(keyword, realtime)
+        self.assertLess(len(realtime), len(expanded))
 
     def test_bili_explicit_zero_is_not_promoted_to_unknown_probe(self):
         with tempfile.TemporaryDirectory() as td:
