@@ -97,6 +97,7 @@ jobs:
         run: |
           $paths = @(
             'scripts/test_kuaishou_realtime_5min_windows.ps1',
+            'scripts/test_kuaishou_known_nested_windows.ps1',
             'scripts/test_douyin_realtime_5min_windows.ps1',
             'scripts/test_remaining_platform_realtime_5min_windows.ps1',
             'scripts/check_public_region_acceptance_windows.ps1',
