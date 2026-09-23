@@ -542,6 +542,34 @@ def main():
     if args.platform == "wb":
         cfg["collection_only"] = True
 
+    if args.platform == "ks" and bool(cfg.get("realtime_mode", False)):
+        # Kuaishou returns a fixed page of up to 20 results per keyword.
+        # Slice each page so all six keywords leave room for deep comments.
+        cfg["ks_realtime_discovery_max_notes_count"] = 20
+        cfg["ks_realtime_items_per_keyword"] = min(
+            6, max(2, int(cfg.get("ks_realtime_items_per_keyword", 4)))
+        )
+        cfg["ks_realtime_search_timeout_seconds"] = min(
+            150, max(75, int(cfg.get("ks_realtime_search_timeout_seconds", 120)))
+        )
+        cfg["ks_realtime_detail_max_items_per_cycle"] = min(
+            6, max(2, int(cfg.get("ks_realtime_detail_max_items_per_cycle", 4)))
+        )
+        cfg["kuaishou_realtime_detail_budget_seconds"] = min(
+            120, max(75, int(cfg.get("kuaishou_realtime_detail_budget_seconds", 105)))
+        )
+        cfg["kuaishou_realtime_candidate_timeout_seconds"] = min(
+            60, max(30, int(cfg.get("kuaishou_realtime_candidate_timeout_seconds", 45)))
+        )
+        cfg["kuaishou_realtime_max_comments_per_video"] = min(
+            300, max(50, int(cfg.get("kuaishou_realtime_max_comments_per_video", 200)))
+        )
+        try:
+            configured_classifier = int(cfg.get("classifier_concurrency", 4))
+        except Exception:
+            configured_classifier = 4
+        cfg["classifier_concurrency"] = max(configured_classifier, 12)
+
     if args.platform == "dy" and bool(cfg.get("realtime_mode", False)):
         # Keep Douyin's live loop on a start-to-start five-minute cadence.
         # Historical exhaustive crawling remains a separate backfill job.
