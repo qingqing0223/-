@@ -30,8 +30,11 @@ const notes = [
   ['公开文章链接限制', data.canonical_url_limitation],
   ['POMS文件格式', data.poms_json_note],
   ['帐号统计口径', data.account_metrics_note], ['CSV导入', data.csv_note],
-  ['时间与空值', '所有时间为北京时间(+08:00)。未知单元格为空；数值0仅代表可靠取得的真实零值。'],
-  ['评论表说明', '表2、表4仅保留结构，当前公开来源未取得评论。'],
+  ['数值占位说明', data.zero_placeholder_note],
+  ['公开互动量说明', data.interaction_placeholder_note],
+  ['帐号关联ID说明', data.account_id_note],
+  ['原始证据保留', data.raw_preservation_note],
+  ['评论表说明', data.comment_note],
 ];
 intro.getRangeByIndexes(0, 0, notes.length, 2).values = notes;
 intro.getRange(`A1:B${notes.length}`).format.font = {name: 'Arial', size: 11};
@@ -72,14 +75,15 @@ for (let i = 0; i < data.sheets.length; i++) {
     if (/时间/.test(headers[c]) && values.length > 1) {
       // Excel timestamps have no timezone; encode Beijing wall time as a serial.
       const cells = sheet.getRangeByIndexes(1, c, values.length - 1, 1);
-      cells.values = data.tables[i].map(row => [row[c] ? Date.parse(row[c]) / 86400000 + 25569 + 8 / 24 : null]);
+      cells.values = data.tables[i].map(row => [Number.isFinite(Date.parse(row[c])) ? Date.parse(row[c]) / 86400000 + 25569 + 8 / 24 : row[c]]);
       cells.setNumberFormat('yyyy-mm-dd hh:mm:ss');
       column.format.columnWidth = 25;
     }
     if (/标题|正文|关键词|链接/.test(headers[c])) column.format.columnWidth = 65;
   }
   if (values.length > 1) range.format.autofitRows();
-  if (i !== 0) range.format.rowHeight = 30;
+  // Keep long local account IDs and explicit source-status text readable.
+  if (i === 2 || i === 3) range.format.rowHeight = 30;
   header.format.rowHeight = 44;
   sheet.freezePanes.freezeRows(1);
   sheet.freezePanes.freezeColumns(1);

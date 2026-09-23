@@ -1,0 +1,128 @@
+{
+  "schema_version": 4,
+  "platform": "wechat_mp",
+  "monitoring_start_time": "2026-09-21T09:00:00+08:00",
+  "monitoring_end_time": "2026-09-21T17:00:00+08:00",
+  "batch_id": "2026-09-21_wechatmp02",
+  "exported_at": "2026-09-21T22:00:59+08:00",
+  "total_candidates": 16,
+  "valid_articles": 15,
+  "invalid_articles": 0,
+  "pending_review_articles": 1,
+  "accounts": 15,
+  "keyword_coverage": {
+    "民族团结进步倡议": "SUCCESS",
+    "2026年民族宣传周主场活动": "SUCCESS",
+    "民族团结进步宣传周主题宣传片": "SUCCESS",
+    "促进民族团结进步，奋进伟大复兴征程": "SUCCESS"
+  },
+  "search_acceptance_complete": true,
+  "table_counts": [
+    16,
+    0,
+    15,
+    0,
+    15
+  ],
+  "collector": {
+    "status": "SUCCESS",
+    "run_id": "20260921_215430_632412",
+    "keyword_stats": {
+      "民族团结进步倡议": {
+        "status": "SUCCESS",
+        "attempted": true,
+        "requests": 10,
+        "pages": 10,
+        "raw_hits": 87,
+        "unique_hits": 87,
+        "new_unique": 87,
+        "next_page": 11,
+        "stop_reason": "natural_end"
+      },
+      "2026年民族宣传周主场活动": {
+        "status": "SUCCESS",
+        "attempted": true,
+        "requests": 10,
+        "pages": 10,
+        "raw_hits": 92,
+        "unique_hits": 92,
+        "new_unique": 92,
+        "next_page": 11,
+        "stop_reason": "natural_end"
+      },
+      "民族团结进步宣传周主题宣传片": {
+        "status": "SUCCESS",
+        "attempted": true,
+        "requests": 10,
+        "pages": 10,
+        "raw_hits": 96,
+        "unique_hits": 95,
+        "new_unique": 94,
+        "next_page": 11,
+        "stop_reason": "natural_end"
+      },
+      "促进民族团结进步，奋进伟大复兴征程": {
+        "status": "SUCCESS",
+        "attempted": true,
+        "requests": 10,
+        "pages": 10,
+        "raw_hits": 84,
+        "unique_hits": 83,
+        "new_unique": 77,
+        "next_page": 11,
+        "stop_reason": "natural_end"
+      }
+    },
+    "keyword_coverage": {
+      "民族团结进步倡议": "SUCCESS",
+      "2026年民族宣传周主场活动": "SUCCESS",
+      "民族团结进步宣传周主题宣传片": "SUCCESS",
+      "促进民族团结进步，奋进伟大复兴征程": "SUCCESS"
+    },
+    "per_keyword_status": {
+      "民族团结进步倡议": "SUCCESS",
+      "2026年民族宣传周主场活动": "SUCCESS",
+      "民族团结进步宣传周主题宣传片": "SUCCESS",
+      "促进民族团结进步，奋进伟大复兴征程": "SUCCESS"
+    },
+    "per_keyword": {
+      "民族团结进步倡议": 87,
+      "2026年民族宣传周主场活动": 92,
+      "民族团结进步宣传周主题宣传片": 95,
+      "促进民族团结进步，奋进伟大复兴征程": 83
+    },
+    "per_keyword_pages": {
+      "民族团结进步倡议": 10,
+      "2026年民族宣传周主场活动": 10,
+      "民族团结进步宣传周主题宣传片": 10,
+      "促进民族团结进步，奋进伟大复兴征程": 10
+    },
+    "all_keywords_executed": true,
+    "search_acceptance_complete": true,
+    "canonical_attempted": 350,
+    "canonical_resolved": 0,
+    "blocked_stage": null,
+    "errors": [],
+    "scope_audit": {
+      "total_unique": 350,
+      "total_candidates": 16,
+      "valid_articles": 15,
+      "invalid_articles": 0,
+      "pending_review_articles": 1,
+      "review_reasons": {
+        "发布时间晚于本批次监测结束时间": 198,
+        "缺少本次2026年民族团结进步宣传周的明确上下文，待人工核验": 1,
+        "发布时间早于正式监测开始时间": 136
+      }
+    }
+  },
+  "limitations": "平台公开数据源暂不提供/当前未获取：完整评论、楼中楼、IP属地、可靠完整互动量、帐号ID、粉丝量及关注量。未知值留空。",
+  "content_note": "正文列为公开搜索摘要。表1保留正式关键词实际命中且时间合格的全部候选，标记是/否/待核验及原因。时间不合格或无搜索命中证据的记录另存审计文件；原始记录不丢弃。表3/5仍按明确有效文章统计。",
+  "canonical_url_limitation": "canonical URL仅通过正常公开页面及结果点击尽力解析；无法取得时保留搜狗公开跳转链接，不视为采集失败。链接可能过期，不使用非公开接口，不绕过验证码。",
+  "poms_json_note": "table1_batch.json至table5_batch.json按POMS批量接口的英文键名和字段顺序输出JSON数组。matched_keywords为数组，明确有效/无效为true/false，待核验为null且保留具体原因；CSV/XLSX仍显示待核验。未取得的账号ID和指标保留null，空评论表为[]。接口示例中的0不替代未知值。服务端必须支持这些null；文档未明确其可空约束，若拒收须调整服务端，不能伪造账号ID或将未知值改为0。",
+  "identity_note": "优先真实公众号canonical URL；否则规范化标题+帐号（可靠绝对日期用于区分重发）。回退标识可能无法区分同账号同名文章。",
+  "account_metrics_note": "相关发文量为本节点已采集有效文章数。互动汇总仅在该帐号全部已采集文章均有对应可靠指标时计算，不代表帐号全量。",
+  "csv_note": "CSV不含单元格类型；Excel请用配套XLSX，或导入CSV时将ID列指定为文本。危险公式前缀已转义。",
+  "content_export_at": "2026-09-21T22:00:59+08:00",
+  "metrics_export_at": "2026-09-21T22:00:59+08:00"
+}

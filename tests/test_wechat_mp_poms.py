@@ -53,8 +53,8 @@ class PomsTests(unittest.TestCase):
             tables = generated[0]
             self.assertEqual(tables[0][0]["publisher_account_id"], "000123456789012345678901")
             self.assertEqual(tables[0][1]["title"], "@地方宣传周")
-            self.assertIsNone(tables[0][1]["is_valid_monitoring_data"])
-            self.assertIsNone(tables[2][0]["view_or_play_count"])
+            self.assertFalse(tables[0][1]["is_valid_monitoring_data"])
+            self.assertEqual(tables[2][0]["view_or_play_count"], 0)
             self.assertEqual(tables[2][0]["like_count"], 0)
 
     def test_missing_source_does_not_create_fake_arrays(self):

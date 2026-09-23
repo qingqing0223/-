@@ -49,6 +49,7 @@ def collect_session(config: dict, keywords: list[str]) -> dict:
     manual_wait = int(config.get("wechat_mp_manual_verify_wait_seconds", config.get("wechat_manual_verify_wait_seconds", 600)))
     delay = max(1.0, float(config.get("wechat_mp_keyword_delay_seconds", 5)))
     current_keyword = None
+    fresh_observations = 0
 
     def result(status: str) -> dict:
         public_stats = {k: {name: value for name, value in s.items() if name not in ("seen_ids", "page_hits")} for k, s in stats.items()}
@@ -62,7 +63,8 @@ def collect_session(config: dict, keywords: list[str]) -> dict:
                 "all_keywords_executed": all_attempted, "search_acceptance_complete": complete,
                 "canonical_attempted": session["canonical_index"],
                 "canonical_resolved": sum(bool(r.get("canonical_url")) for r in session["records"]),
-                "blocked_stage": session.get("blocked_stage"), "errors": session["errors"]}
+                 "blocked_stage": session.get("blocked_stage"), "errors": session["errors"],
+                 "fresh_observations": fresh_observations}
 
     def save(status: str = "RUNNING") -> None:
         session["updated_at"] = now_cn().isoformat(timespec="seconds")
@@ -114,6 +116,7 @@ def collect_session(config: dict, keywords: list[str]) -> dict:
                     session["blocked_stage"] = None
                     page_errors = []
                     batch = dom._extract_records(page, keyword, max_results - s["unique_hits"], page_errors)
+                    fresh_observations += len(batch)
                     for r in batch:
                         r["search_page_url"] = url
                     raw_count = len(batch)
@@ -157,6 +160,11 @@ def collect_session(config: dict, keywords: list[str]) -> dict:
                     else:
                         s.update(status="ERROR", stop_reason="in_progress")
                     save()
+                    # Optional isolated node sink: publish durable page candidates
+                    # before URL enrichment, later keywords, or a human captcha wait.
+                    on_page = config.get("wechat_mp_on_page")
+                    if callable(on_page):
+                        on_page(batch, result("PARTIAL"))
                     print(f"[wechat_mp] {keyword}: {s['status']}, 页数={s['pages']}, 原始命中={s['raw_hits']}, 去重新增={s['new_unique']}", flush=True)
                     if s["stop_reason"] != "in_progress":
                         break

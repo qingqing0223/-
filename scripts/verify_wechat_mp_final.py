@@ -13,6 +13,8 @@ sys.path.insert(0, str(ROOT))
 from wechat.mp_export import FIELDS, FILES, SHEETS, WORKBOOK
 from wechat.mp_poms import POMS_FIELDS
 from wechat.mp_records import START, assess_record, time_problem
+from wechat.mp_display import empty, normalize_tables
+from wechat.mp_poms import validate_schema
 
 EXPECTED_KEYWORDS = ["2026年民族团结进步宣传周", "首个民族团结进步宣传周", "促进民族团结进步，奋进伟大复兴征程", "民族团结进步倡议", "民族团结进步宣传周主场活动", "石榴花开——铸牢中华民族共同体意识"]
 
@@ -22,9 +24,11 @@ def verify_export(directory: Path) -> dict:
     rows = [json.loads(line) for line in (directory / "search_contents.jsonl").read_text(encoding="utf-8").splitlines() if line]
     assert len({r["content_id"] for r in rows}) == len(rows), "duplicate IDs"
     assert all(r.get("matched_keywords") for r in rows), "missing keywords"
-    book = load_workbook(directory / WORKBOOK, data_only=False)
-    assert book.sheetnames == ["说明与统计", *SHEETS], book.sheetnames
     summary = json.loads((directory / "summary.json").read_text(encoding="utf-8"))
+    book = load_workbook(directory / summary.get("workbook_file", WORKBOOK), data_only=False)
+    assert book.sheetnames == ["说明与统计", *SHEETS], book.sheetnames
+    normalized = summary.get("display_normalization_version") == 2
+    all_batches = []
     assert all(not time_problem(r, summary["monitoring_start_time"], summary.get("monitoring_end_time")) for r in rows), "out-of-time monitoring candidate"
     for cell, key in (("B2", "monitoring_start_time"), ("B5", "content_export_at"), ("B6", "metrics_export_at")):
         expected = datetime.fromisoformat(summary[key]).replace(tzinfo=None)
@@ -42,6 +46,8 @@ def verify_export(directory: Path) -> dict:
         for cells, csv_row in zip(populated, data[1:]):
             for col, cell in enumerate(cells):
                 assert cell.data_type != "f", (name, cell.coordinate)
+                if normalized:
+                    assert not empty(cell.value), (name, cell.coordinate, "empty data cell")
                 if "编号" in fields[col] or "ID" in fields[col]:
                     assert cell.number_format == "@", (name, cell.coordinate)
                     assert cell.value is None or isinstance(cell.value, str)
@@ -66,9 +72,10 @@ def verify_export(directory: Path) -> dict:
                 assert json.loads(csv_row[12]) == original["matched_keywords"]
                 assessed = assess_record(original, summary["monitoring_start_time"], end=summary.get("monitoring_end_time"))
                 assert csv_row[14] == assessed["review_status"]
-                assert csv_row[15] == assessed["invalid_reason"]
+                assert csv_row[15] == (assessed["invalid_reason"] or ("无" if normalized else ""))
         batches = json.loads((directory / f"table{index+1}_batch.json").read_text(encoding="utf-8"))
         assert isinstance(batches, list) and len(batches) == len(data) - 1
+        all_batches.append(batches)
         for obj, cells in zip(batches, populated):
             assert list(obj) == POMS_FIELDS[index]
             for field, cell in zip(POMS_FIELDS[index], cells):
@@ -79,8 +86,14 @@ def verify_export(directory: Path) -> dict:
                 elif field == "matched_keywords":
                     assert obj[field] == json.loads(cell.value)
                 elif field.startswith("is_"):
-                    assert obj[field] is {"是": True, "否": False, "待核验": None}[cell.value]
+                    assert obj[field] is {"是": True, "否": False, "待核验": False if normalized else None}[cell.value]
+                elif field.endswith("_count"):
+                    assert type(obj[field]) is int and obj[field] == cell.value
     book.close()
+    if normalized:
+        validate_schema(all_batches)
+        account_ids = {r["account_name"]: r["account_id"] for r in all_batches[4]}
+        assert all(r["publisher_account_id"] == account_ids[r["account_name"]] for r in all_batches[0] if r["account_name"] in account_ids)
     assert counts[0] == len(rows), "JSONL / CSV row mismatch"
     assert summary["total_candidates"] == len(rows)
     for label, field in (("是", "valid_articles"), ("否", "invalid_articles"), ("待核验", "pending_review_articles")):

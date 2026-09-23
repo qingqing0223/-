@@ -1,0 +1,3521 @@
+{
+  "observed_at": "2026-09-22T22:53:27+08:00",
+  "server_name": "wechat_mcp",
+  "server_version": "0.1.3",
+  "protocol_version": "2025-03-26",
+  "tools": [
+    {
+      "name": "wechat_get_hot_search_list",
+      "description": "获取微信视频号热榜；当前不支持翻页。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "items": {
+            "description": "微信视频号热榜条目",
+            "items": {
+              "properties": {
+                "rank": {
+                  "description": "热榜排名",
+                  "type": "integer"
+                },
+                "keyword": {
+                  "description": "热点标题或热榜词",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "rank",
+                "keyword"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "items",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_user_info_by_user_id",
+      "description": "根据微信视频号用户 ID 获取用户信息；用户已提供合法 user_id 时直接使用。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "user_id": {
+            "description": "微信视频号用户 ID；只支持以 v2_ 开头、以 @finder 结尾的账号 ID；用户已提供时原样使用，否则可从作品详情、用户发布作品列表、评论或评论回复结果中的 author.user_id 或 reply_to_user_id 复制；如果不是 v2_...@finder，不要传。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "user_id": {
+            "description": "微信视频号用户 ID；不可用时为空字符串",
+            "type": "string"
+          },
+          "name": {
+            "description": "用户昵称；不可用时为空字符串",
+            "type": "string"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "用户头像链接；当前不可用时为 null"
+          },
+          "bio": {
+            "description": "用户简介；不可用时为空字符串",
+            "type": "string"
+          },
+          "gender": {
+            "description": "用户性别",
+            "enum": [
+              "male",
+              "female",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "ip_location": {
+            "description": "用户 IP 属地；没有 IP 属地时为空字符串",
+            "type": "string"
+          },
+          "location": {
+            "description": "用户资料地区；没有资料地区时为空字符串",
+            "type": "string"
+          },
+          "original_content_count": {
+            "description": "原创内容数量",
+            "type": "integer"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "avatar_url",
+          "bio",
+          "gender",
+          "ip_location",
+          "location",
+          "original_content_count",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_user_info_by_url",
+      "description": "根据微信视频号作品链接（视频或图文）或分享文案解析作者后获取用户信息。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "description": "微信视频号作品链接（视频或图文），或包含该链接的分享文案；例如 https://weixin.qq.com/sph/ANxgB9MB8i，或“帮我看下这个作品 https://weixin.qq.com/sph/ANxgB9MB8i”。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "user_id": {
+            "description": "微信视频号用户 ID；不可用时为空字符串",
+            "type": "string"
+          },
+          "name": {
+            "description": "用户昵称；不可用时为空字符串",
+            "type": "string"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "用户头像链接；当前不可用时为 null"
+          },
+          "bio": {
+            "description": "用户简介；不可用时为空字符串",
+            "type": "string"
+          },
+          "gender": {
+            "description": "用户性别",
+            "enum": [
+              "male",
+              "female",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "ip_location": {
+            "description": "用户 IP 属地；没有 IP 属地时为空字符串",
+            "type": "string"
+          },
+          "location": {
+            "description": "用户资料地区；没有资料地区时为空字符串",
+            "type": "string"
+          },
+          "original_content_count": {
+            "description": "原创内容数量",
+            "type": "integer"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "avatar_url",
+          "bio",
+          "gender",
+          "ip_location",
+          "location",
+          "original_content_count",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_user_posted_videos_by_user_id",
+      "description": "根据微信视频号用户 ID 获取用户发布作品列表（含视频和图文）；用户已提供合法 user_id 时直接使用，支持 page_token 翻页。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "user_id": {
+            "description": "微信视频号用户 ID；只支持以 v2_ 开头、以 @finder 结尾的账号 ID；用户已提供时原样使用，否则可从作品详情、用户发布作品列表、评论或评论回复结果中的 author.user_id 或 reply_to_user_id 复制；如果不是 v2_...@finder，不要传。",
+            "type": "string"
+          },
+          "page_token": {
+            "default": "",
+            "description": "微信视频号用户发布作品列表分页令牌；首次请求留空，继续翻页时必须将上一次返回的完整 next_page_token 原样传入，作为 page_token 使用；只能用于同一微信视频号用户发布作品分页链路；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "items": {
+            "description": "当前页用户发布作品列表，包含视频和图文",
+            "items": {
+              "properties": {
+                "object_id": {
+                  "description": "微信视频号作品对象 ID",
+                  "type": "string"
+                },
+                "object_nonce_id": {
+                  "description": "微信视频号对象 nonce ID",
+                  "type": "string"
+                },
+                "encrypted_object_id": {
+                  "description": "微信视频号作品加密 ID；不可用时为空字符串",
+                  "type": "string"
+                },
+                "content_type": {
+                  "description": "内容类型；视频返回 video，图文返回 image",
+                  "enum": [
+                    "video",
+                    "image"
+                  ],
+                  "type": "string"
+                },
+                "description": {
+                  "description": "作品描述；不可用时为空字符串",
+                  "type": "string"
+                },
+                "topic_tags": {
+                  "description": "作品文案中的话题标签；无话题时为空数组；每项只返回 name",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "description": "话题标签名称",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "cover_image_url": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "视频封面或图文首图缩略资源链接；当前不可用时为 null"
+                },
+                "video": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "video_url": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "微信视频号视频资源链接；用于后续下载或转附件处理，不保证可直接播放；不可用时为 null"
+                        },
+                        "duration_ms": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "视频时长，单位毫秒；当前不可用时为 null"
+                        },
+                        "width": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "视频宽度，像素；当前不可用时为 null"
+                        },
+                        "height": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "视频高度，像素；当前不可用时为 null"
+                        }
+                      },
+                      "required": [
+                        "video_url",
+                        "duration_ms",
+                        "width",
+                        "height"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "视频资源信息；当前不可用时为 null"
+                },
+                "images": {
+                  "description": "图文作品按顺序返回图片资源；视频作品为空数组",
+                  "items": {
+                    "properties": {
+                      "url": {
+                        "description": "微信视频号图文图片资源链接",
+                        "type": "string"
+                      },
+                      "width": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "图片宽度；当前不可用时为 null"
+                      },
+                      "height": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "图片高度；当前不可用时为 null"
+                      }
+                    },
+                    "required": [
+                      "url",
+                      "width",
+                      "height"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "publish_time": {
+                  "description": "发布时间，秒级 Unix 时间戳",
+                  "type": "integer"
+                },
+                "collect_count": {
+                  "description": "收藏数",
+                  "type": "integer"
+                },
+                "comment_count": {
+                  "description": "评论数",
+                  "type": "integer"
+                },
+                "author": {
+                  "properties": {
+                    "user_id": {
+                      "description": "作者微信视频号用户 ID；仅 v2_...@finder 可用于用户信息或用户发布作品列表工具；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "作者昵称；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "avatar_url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "作者头像链接；当前不可用时为 null"
+                    }
+                  },
+                  "required": [
+                    "user_id",
+                    "name",
+                    "avatar_url"
+                  ],
+                  "type": "object",
+                  "description": "作者信息"
+                }
+              },
+              "required": [
+                "object_id",
+                "object_nonce_id",
+                "encrypted_object_id",
+                "content_type",
+                "description",
+                "topic_tags",
+                "cover_image_url",
+                "video",
+                "images",
+                "publish_time",
+                "collect_count",
+                "comment_count",
+                "author"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_page_token": {
+            "description": "微信视频号用户发布作品列表分页令牌；首次请求留空，继续翻页时必须将上一次返回的完整 next_page_token 原样传入，作为 page_token 使用；只能用于同一微信视频号用户发布作品分页链路；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "items",
+          "next_page_token",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_user_posted_videos_by_url",
+      "description": "根据微信视频号作品链接（视频或图文）或分享文案解析作者后获取用户发布作品列表（含视频和图文），支持 page_token 翻页。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "description": "微信视频号作品链接（视频或图文），或包含该链接的分享文案；例如 https://weixin.qq.com/sph/ANxgB9MB8i，或“帮我看下这个作品 https://weixin.qq.com/sph/ANxgB9MB8i”。",
+            "type": "string"
+          },
+          "page_token": {
+            "default": "",
+            "description": "微信视频号用户发布作品列表分页令牌；首次请求留空，继续翻页时必须将上一次返回的完整 next_page_token 原样传入，作为 page_token 使用；只能用于同一微信视频号用户发布作品分页链路；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "items": {
+            "description": "当前页用户发布作品列表，包含视频和图文",
+            "items": {
+              "properties": {
+                "object_id": {
+                  "description": "微信视频号作品对象 ID",
+                  "type": "string"
+                },
+                "object_nonce_id": {
+                  "description": "微信视频号对象 nonce ID",
+                  "type": "string"
+                },
+                "encrypted_object_id": {
+                  "description": "微信视频号作品加密 ID；不可用时为空字符串",
+                  "type": "string"
+                },
+                "content_type": {
+                  "description": "内容类型；视频返回 video，图文返回 image",
+                  "enum": [
+                    "video",
+                    "image"
+                  ],
+                  "type": "string"
+                },
+                "description": {
+                  "description": "作品描述；不可用时为空字符串",
+                  "type": "string"
+                },
+                "topic_tags": {
+                  "description": "作品文案中的话题标签；无话题时为空数组；每项只返回 name",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "description": "话题标签名称",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "cover_image_url": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "视频封面或图文首图缩略资源链接；当前不可用时为 null"
+                },
+                "video": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "video_url": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "微信视频号视频资源链接；用于后续下载或转附件处理，不保证可直接播放；不可用时为 null"
+                        },
+                        "duration_ms": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "视频时长，单位毫秒；当前不可用时为 null"
+                        },
+                        "width": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "视频宽度，像素；当前不可用时为 null"
+                        },
+                        "height": {
+                          "anyOf": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "视频高度，像素；当前不可用时为 null"
+                        }
+                      },
+                      "required": [
+                        "video_url",
+                        "duration_ms",
+                        "width",
+                        "height"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "视频资源信息；当前不可用时为 null"
+                },
+                "images": {
+                  "description": "图文作品按顺序返回图片资源；视频作品为空数组",
+                  "items": {
+                    "properties": {
+                      "url": {
+                        "description": "微信视频号图文图片资源链接",
+                        "type": "string"
+                      },
+                      "width": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "图片宽度；当前不可用时为 null"
+                      },
+                      "height": {
+                        "anyOf": [
+                          {
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "图片高度；当前不可用时为 null"
+                      }
+                    },
+                    "required": [
+                      "url",
+                      "width",
+                      "height"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "publish_time": {
+                  "description": "发布时间，秒级 Unix 时间戳",
+                  "type": "integer"
+                },
+                "collect_count": {
+                  "description": "收藏数",
+                  "type": "integer"
+                },
+                "comment_count": {
+                  "description": "评论数",
+                  "type": "integer"
+                },
+                "author": {
+                  "properties": {
+                    "user_id": {
+                      "description": "作者微信视频号用户 ID；仅 v2_...@finder 可用于用户信息或用户发布作品列表工具；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "作者昵称；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "avatar_url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "作者头像链接；当前不可用时为 null"
+                    }
+                  },
+                  "required": [
+                    "user_id",
+                    "name",
+                    "avatar_url"
+                  ],
+                  "type": "object",
+                  "description": "作者信息"
+                }
+              },
+              "required": [
+                "object_id",
+                "object_nonce_id",
+                "encrypted_object_id",
+                "content_type",
+                "description",
+                "topic_tags",
+                "cover_image_url",
+                "video",
+                "images",
+                "publish_time",
+                "collect_count",
+                "comment_count",
+                "author"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_page_token": {
+            "description": "微信视频号用户发布作品列表分页令牌；首次请求留空，继续翻页时必须将上一次返回的完整 next_page_token 原样传入，作为 page_token 使用；只能用于同一微信视频号用户发布作品分页链路；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "items",
+          "next_page_token",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_video_comment_replies_by_comment_id",
+      "description": "根据同一条视频的 object_id、object_nonce_id 和一级评论 comment_id 获取评论回复；用户已提供完整合法的 ID 组合时直接使用；已有作品链接、encrypted_object_id 或完整 object_id + object_nonce_id 组合但缺少必需 ID 时，按已有输入调用相应工具，从作品详情结果或一级评论结果补全；缺少作品定位信息时向用户索取；不要传回复项的 comment_id。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "object_id": {
+            "description": "微信视频号视频的 object_id，例如 14882122090270235141；用户已提供时直接使用，否则可从作品详情或一级评论结果获取；获取评论或评论回复时请与同一条视频的 object_nonce_id 一起原样传入。",
+            "type": "string"
+          },
+          "object_nonce_id": {
+            "description": "微信视频号视频的 object_nonce_id，例如 12801331239707625908_0_39_0_0；用户已提供时直接使用，否则可从作品详情或一级评论结果获取；获取评论或评论回复时请与同一条视频的 object_id 一起原样传入。",
+            "type": "string"
+          },
+          "comment_id": {
+            "description": "微信视频号一级评论 ID，例如 14941641522352032263；用户已提供时直接使用，否则从一级评论结果 items[].comment_id 复制；不要传回复项的 comment_id。",
+            "type": "string"
+          },
+          "page_token": {
+            "default": "",
+            "description": "评论回复分页令牌；首次请求留空，继续翻页时必须将上一页返回的完整 next_page_token 原样传回；只能用于同一微信视频号、同一一级评论的回复分页链路。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "object_id",
+          "object_nonce_id",
+          "comment_id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "items": {
+            "description": "当前页评论回复列表；过滤后可能为空数组",
+            "items": {
+              "properties": {
+                "comment_id": {
+                  "description": "微信视频号评论回复自身 ID；不是一级评论 ID，不要作为评论回复入口输入。",
+                  "type": "string"
+                },
+                "content": {
+                  "description": "评论回复内容",
+                  "type": "string"
+                },
+                "publish_time": {
+                  "description": "评论回复发布时间，秒级 Unix 时间戳",
+                  "type": "integer"
+                },
+                "like_count": {
+                  "description": "点赞数",
+                  "type": "integer"
+                },
+                "ip_location": {
+                  "description": "评论回复发布时的 IP 属地；没有时为空字符串",
+                  "type": "string"
+                },
+                "reply_to_comment_id": {
+                  "description": "被回复评论 ID；直接回复一级评论时为该一级评论 ID",
+                  "type": "string"
+                },
+                "reply_to_user_id": {
+                  "description": "被回复用户 ID；可能是 @finder 或 @stranger；仅 v2_...@finder 可用于用户信息工具；不可用时为空字符串",
+                  "type": "string"
+                },
+                "reply_to_user_name": {
+                  "description": "被回复用户昵称；不可用时为空字符串",
+                  "type": "string"
+                },
+                "author": {
+                  "properties": {
+                    "user_id": {
+                      "description": "评论作者微信视频号用户 ID；可能是 @finder 或 @stranger；仅 v2_...@finder 可用于用户信息工具；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "评论作者昵称；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "avatar_url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "评论作者头像链接；当前不可用时为 null"
+                    }
+                  },
+                  "required": [
+                    "user_id",
+                    "name",
+                    "avatar_url"
+                  ],
+                  "type": "object",
+                  "description": "评论回复作者信息"
+                }
+              },
+              "required": [
+                "comment_id",
+                "content",
+                "publish_time",
+                "like_count",
+                "ip_location",
+                "reply_to_comment_id",
+                "reply_to_user_id",
+                "reply_to_user_name",
+                "author"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_page_token": {
+            "description": "下一页不透明分页令牌；为空表示没有更多评论回复。继续翻页时必须将返回的完整 next_page_token 原样作为 page_token 传回；next_page_token 只能用于同一微信视频号、同一一级评论的回复分页链路；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "items",
+          "next_page_token",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_video_comments_by_object_id",
+      "description": "已有同一条视频的 object_id 和 object_nonce_id 时获取评论列表；用户已提供合法组合时直接使用，否则可从作品详情结果或一级评论结果获取；搜索结果只有 encrypted_object_id 时先调用详情工具。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "object_id": {
+            "description": "微信视频号视频的 object_id，例如 14882122090270235141；用户已提供时直接使用，否则可从作品详情或一级评论结果获取；获取评论或评论回复时请与同一条视频的 object_nonce_id 一起原样传入。",
+            "type": "string"
+          },
+          "object_nonce_id": {
+            "description": "微信视频号视频的 object_nonce_id，例如 12801331239707625908_0_39_0_0；用户已提供时直接使用，否则可从作品详情或一级评论结果获取；获取评论或评论回复时请与同一条视频的 object_id 一起原样传入。",
+            "type": "string"
+          },
+          "page_token": {
+            "default": "",
+            "description": "评论分页令牌；首次请求留空，继续翻页时必须将上一页返回的完整 next_page_token 原样传回。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "object_id",
+          "object_nonce_id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "items": {
+            "description": "当前页评论列表；过滤后可能为空数组",
+            "items": {
+              "properties": {
+                "comment_id": {
+                  "description": "微信视频号一级评论 ID；可作为评论回复工具的 comment_id 输入。",
+                  "type": "string"
+                },
+                "object_id": {
+                  "description": "微信视频号作品对象 ID；需要继续获取这条视频下某条一级评论的回复时可直接复用",
+                  "type": "string"
+                },
+                "object_nonce_id": {
+                  "description": "微信视频号对象 nonce ID；需要继续获取这条视频下某条一级评论的回复时可直接复用",
+                  "type": "string"
+                },
+                "content": {
+                  "description": "评论内容",
+                  "type": "string"
+                },
+                "publish_time": {
+                  "description": "评论发布时间，秒级 Unix 时间戳",
+                  "type": "integer"
+                },
+                "like_count": {
+                  "description": "点赞数",
+                  "type": "integer"
+                },
+                "reply_count": {
+                  "description": "回复数",
+                  "type": "integer"
+                },
+                "ip_location": {
+                  "description": "评论发布时的 IP 属地；没有时为空字符串",
+                  "type": "string"
+                },
+                "author": {
+                  "properties": {
+                    "user_id": {
+                      "description": "评论作者微信视频号用户 ID；可能是 @finder 或 @stranger；仅 v2_...@finder 可用于用户信息工具；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "评论作者昵称；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "avatar_url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "评论作者头像链接；当前不可用时为 null"
+                    }
+                  },
+                  "required": [
+                    "user_id",
+                    "name",
+                    "avatar_url"
+                  ],
+                  "type": "object",
+                  "description": "评论作者信息"
+                }
+              },
+              "required": [
+                "comment_id",
+                "object_id",
+                "object_nonce_id",
+                "content",
+                "publish_time",
+                "like_count",
+                "reply_count",
+                "ip_location",
+                "author"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_page_token": {
+            "description": "下一页不透明分页令牌；为空表示没有更多评论。继续翻页时必须将返回的完整 next_page_token 原样作为 page_token 传回；next_page_token 只能用于同一微信视频号评论分页链路；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          },
+          "comment_count": {
+            "description": "评论总数",
+            "type": "integer"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "items",
+          "next_page_token",
+          "comment_count",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_video_comments_by_url",
+      "description": "根据微信视频号视频链接或包含链接的分享文案获取评论列表。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "description": "微信视频号视频链接，或包含该链接的分享文案；例如 https://weixin.qq.com/sph/ANxgB9MB8i，或“帮我看下这个视频 https://weixin.qq.com/sph/ANxgB9MB8i”。",
+            "type": "string"
+          },
+          "page_token": {
+            "default": "",
+            "description": "评论分页令牌；首次请求留空，继续翻页时必须将上一页返回的完整 next_page_token 原样传回。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "items": {
+            "description": "当前页评论列表；过滤后可能为空数组",
+            "items": {
+              "properties": {
+                "comment_id": {
+                  "description": "微信视频号一级评论 ID；可作为评论回复工具的 comment_id 输入。",
+                  "type": "string"
+                },
+                "object_id": {
+                  "description": "微信视频号作品对象 ID；需要继续获取这条视频下某条一级评论的回复时可直接复用",
+                  "type": "string"
+                },
+                "object_nonce_id": {
+                  "description": "微信视频号对象 nonce ID；需要继续获取这条视频下某条一级评论的回复时可直接复用",
+                  "type": "string"
+                },
+                "content": {
+                  "description": "评论内容",
+                  "type": "string"
+                },
+                "publish_time": {
+                  "description": "评论发布时间，秒级 Unix 时间戳",
+                  "type": "integer"
+                },
+                "like_count": {
+                  "description": "点赞数",
+                  "type": "integer"
+                },
+                "reply_count": {
+                  "description": "回复数",
+                  "type": "integer"
+                },
+                "ip_location": {
+                  "description": "评论发布时的 IP 属地；没有时为空字符串",
+                  "type": "string"
+                },
+                "author": {
+                  "properties": {
+                    "user_id": {
+                      "description": "评论作者微信视频号用户 ID；可能是 @finder 或 @stranger；仅 v2_...@finder 可用于用户信息工具；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "评论作者昵称；不可用时为空字符串",
+                      "type": "string"
+                    },
+                    "avatar_url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "评论作者头像链接；当前不可用时为 null"
+                    }
+                  },
+                  "required": [
+                    "user_id",
+                    "name",
+                    "avatar_url"
+                  ],
+                  "type": "object",
+                  "description": "评论作者信息"
+                }
+              },
+              "required": [
+                "comment_id",
+                "object_id",
+                "object_nonce_id",
+                "content",
+                "publish_time",
+                "like_count",
+                "reply_count",
+                "ip_location",
+                "author"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_page_token": {
+            "description": "下一页不透明分页令牌；为空表示没有更多评论。继续翻页时必须将返回的完整 next_page_token 原样作为 page_token 传回；next_page_token 只能用于同一微信视频号评论分页链路；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          },
+          "comment_count": {
+            "description": "评论总数",
+            "type": "integer"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "items",
+          "next_page_token",
+          "comment_count",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_video_detail_by_encrypted_object_id",
+      "description": "根据微信视频号合法 encrypted_object_id 获取视频详情；用户已提供时直接使用，否则可从 wechat_search_videos 或作者作品列表返回项获取。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "encrypted_object_id": {
+            "description": "微信视频号合法 encrypted_object_id；用户已提供时原样使用，否则可从 wechat_search_videos 或作者作品列表返回项获取。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "encrypted_object_id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "object_id": {
+            "description": "微信视频号详情对象 ID；不可用时为空字符串",
+            "type": "string"
+          },
+          "object_nonce_id": {
+            "description": "微信视频号对象 nonce ID；后续评论等能力需要复用时原样保留",
+            "type": "string"
+          },
+          "content_type": {
+            "description": "内容类型；视频返回 video，图文返回 image",
+            "enum": [
+              "video",
+              "image"
+            ],
+            "type": "string"
+          },
+          "description": {
+            "description": "作品描述；不可用时为空字符串",
+            "type": "string"
+          },
+          "topic_tags": {
+            "description": "作品文案中的话题标签；无话题时为空数组；每项只返回 name",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "description": "话题标签名称",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "cover_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "封面图或图文首图缩略资源链接；当前不可用时为 null"
+          },
+          "video": {
+            "anyOf": [
+              {
+                "properties": {
+                  "video_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "微信视频号视频资源链接；用于后续下载或转附件处理，不保证可直接播放；不可用时为 null。"
+                  },
+                  "duration_ms": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "视频时长，单位毫秒；当前不可用时为 null"
+                  },
+                  "width": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "视频宽度，像素；当前不可用时为 null"
+                  },
+                  "height": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "视频高度，像素；当前不可用时为 null"
+                  }
+                },
+                "required": [
+                  "video_url",
+                  "duration_ms",
+                  "width",
+                  "height"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "视频资源信息；当前不可用时为 null"
+          },
+          "images": {
+            "description": "图文作品按顺序返回图片资源；视频作品为空数组",
+            "items": {
+              "properties": {
+                "url": {
+                  "description": "微信视频号图文图片资源链接",
+                  "type": "string"
+                },
+                "width": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "图片宽度；当前不可用时为 null"
+                },
+                "height": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "图片高度；当前不可用时为 null"
+                }
+              },
+              "required": [
+                "url",
+                "width",
+                "height"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "like_count": {
+            "description": "点赞数",
+            "type": "integer"
+          },
+          "collect_count": {
+            "description": "收藏数",
+            "type": "integer"
+          },
+          "comment_count": {
+            "description": "评论数",
+            "type": "integer"
+          },
+          "share_count": {
+            "description": "转发/分享数",
+            "type": "integer"
+          },
+          "publish_time": {
+            "description": "发布时间，秒级 Unix 时间戳",
+            "type": "integer"
+          },
+          "ip_location": {
+            "description": "作品发布时的 IP 属地；没有 IP 属地时为空字符串",
+            "type": "string"
+          },
+          "author": {
+            "properties": {
+              "user_id": {
+                "description": "作者微信视频号用户 ID；仅 v2_...@finder 可用于用户信息或用户发布作品列表工具；不可用时为空字符串",
+                "type": "string"
+              },
+              "name": {
+                "description": "作者昵称；不可用时为空字符串",
+                "type": "string"
+              },
+              "avatar_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作者头像链接；当前不可用时为 null"
+              },
+              "bio": {
+                "description": "作者简介；不可用时为空字符串",
+                "type": "string"
+              }
+            },
+            "required": [
+              "user_id",
+              "name",
+              "avatar_url",
+              "bio"
+            ],
+            "type": "object",
+            "description": "作者信息"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "object_id",
+          "object_nonce_id",
+          "content_type",
+          "description",
+          "topic_tags",
+          "cover_image_url",
+          "video",
+          "images",
+          "like_count",
+          "collect_count",
+          "comment_count",
+          "share_count",
+          "publish_time",
+          "ip_location",
+          "author",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_video_share_url_by_object_id",
+      "description": "根据微信视频号作品 object_id 获取分享链接；只接受数值 object_id。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "object_id": {
+            "description": "微信视频号作品的 object_id，例如 15011178920418020652；用户已提供时直接使用，否则可从作品详情或用户发布作品列表结果获取；不要传 encrypted_object_id 或作品链接。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "object_id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "share_url": {
+            "description": "微信视频号作品分享链接",
+            "type": "string"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "share_url",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_mp_article_detail_by_url",
+      "description": "根据微信公众号文章链接或包含链接的分享文案获取文章详情和正文。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "description": "微信公众号文章 / WeChat Official Account article 链接，或包含该链接的分享文案；例如 https://mp.weixin.qq.com/s/cyog0u9QpLFvdBsh9JR3_g。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "biz": {
+            "description": "公众号文章 biz 标识；不可用时为空字符串",
+            "type": "string"
+          },
+          "mid": {
+            "description": "公众号文章 mid 标识；不可用时为空字符串",
+            "type": "string"
+          },
+          "idx": {
+            "description": "公众号文章 idx 标识；不可用时为空字符串",
+            "type": "string"
+          },
+          "sn": {
+            "description": "公众号文章 sn 标识；不可用时为空字符串",
+            "type": "string"
+          },
+          "title": {
+            "description": "公众号文章标题",
+            "type": "string"
+          },
+          "account": {
+            "properties": {
+              "name": {
+                "description": "公众号名称；不可用时为空字符串",
+                "type": "string"
+              },
+              "account_id": {
+                "description": "公众号账号 ID；不可用时为空字符串",
+                "type": "string"
+              },
+              "avatar_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "公众号头像链接；当前不可用时为 null"
+              },
+              "signature": {
+                "description": "公众号简介；不可用时为空字符串",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "account_id",
+              "avatar_url",
+              "signature"
+            ],
+            "type": "object",
+            "description": "公众号账号信息"
+          },
+          "publish_time": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文章发布时间，秒级 Unix 时间戳；当前不可用时为 null"
+          },
+          "cover_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文章封面图片链接；当前不可用时为 null"
+          },
+          "description": {
+            "description": "文章摘要；不可用时为空字符串",
+            "type": "string"
+          },
+          "article_url": {
+            "description": "规范化后的公众号文章链接",
+            "type": "string"
+          },
+          "content_text": {
+            "description": "正文纯文本，已去除标签并压缩空白",
+            "type": "string"
+          },
+          "content_html": {
+            "description": "正文 HTML 片段",
+            "type": "string"
+          },
+          "image_urls": {
+            "description": "正文图片链接，按页面顺序返回",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "linked_articles": {
+            "description": "正文内链公众号文章列表",
+            "items": {
+              "properties": {
+                "title": {
+                  "description": "正文内链文章标题",
+                  "type": "string"
+                },
+                "url": {
+                  "description": "正文内链公众号文章链接",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "title",
+                "url"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "finder_video_cards": {
+            "description": "正文内嵌视频号卡片列表",
+            "items": {
+              "properties": {
+                "encrypted_object_id": {
+                  "description": "内嵌视频号卡片的作品加密 ID",
+                  "type": "string"
+                },
+                "user_id": {
+                  "description": "内嵌视频号卡片的作者用户 ID；仅 v2_...@finder 可用于用户信息或用户发布作品列表工具；不可用时为空字符串",
+                  "type": "string"
+                },
+                "author_name": {
+                  "description": "内嵌视频号卡片的作者名称",
+                  "type": "string"
+                },
+                "description": {
+                  "description": "内嵌视频号卡片描述；不可用时为空字符串",
+                  "type": "string"
+                },
+                "content_type": {
+                  "description": "内嵌视频号卡片内容类型；不可用时为空字符串",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "encrypted_object_id",
+                "user_id",
+                "author_name",
+                "description",
+                "content_type"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "biz",
+          "mid",
+          "idx",
+          "sn",
+          "title",
+          "account",
+          "publish_time",
+          "cover_image_url",
+          "description",
+          "article_url",
+          "content_text",
+          "content_html",
+          "image_urls",
+          "linked_articles",
+          "finder_video_cards",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_mp_article_stats_by_url",
+      "description": "根据微信公众号文章链接或包含链接的分享文案获取文章互动统计。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "description": "微信公众号文章 / WeChat Official Account article 链接，或包含该链接的分享文案；例如 https://mp.weixin.qq.com/s/cyog0u9QpLFvdBsh9JR3_g。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "article_url": {
+            "description": "规范化后的公众号文章链接",
+            "type": "string"
+          },
+          "read_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文章阅读数；当前不可用时为 null"
+          },
+          "like_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文章点赞数；当前不可用时为 null"
+          },
+          "share_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文章分享数；当前不可用时为 null"
+          },
+          "collect_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文章收藏数；当前不可用时为 null"
+          },
+          "comment_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文章评论数；当前不可用时为 null"
+          },
+          "wow_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "文章在看数（Wow）；当前不可用时为 null"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "article_url",
+          "read_count",
+          "like_count",
+          "share_count",
+          "collect_count",
+          "comment_count",
+          "wow_count",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_video_detail_by_url",
+      "description": "根据微信视频号作品链接（视频或图文）或包含链接的分享文案获取作品详情。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "description": "微信视频号作品链接（视频或图文），或包含该链接的分享文案；例如 https://weixin.qq.com/sph/ANxgB9MB8i，或“帮我看下这个作品 https://weixin.qq.com/sph/ANxgB9MB8i”。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "object_id": {
+            "description": "微信视频号详情对象 ID；不可用时为空字符串",
+            "type": "string"
+          },
+          "object_nonce_id": {
+            "description": "微信视频号对象 nonce ID；后续评论等能力需要复用时原样保留",
+            "type": "string"
+          },
+          "content_type": {
+            "description": "内容类型；视频返回 video，图文返回 image",
+            "enum": [
+              "video",
+              "image"
+            ],
+            "type": "string"
+          },
+          "description": {
+            "description": "作品描述；不可用时为空字符串",
+            "type": "string"
+          },
+          "topic_tags": {
+            "description": "作品文案中的话题标签；无话题时为空数组；每项只返回 name",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "description": "话题标签名称",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "cover_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "封面图或图文首图缩略资源链接；当前不可用时为 null"
+          },
+          "video": {
+            "anyOf": [
+              {
+                "properties": {
+                  "video_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "微信视频号视频资源链接；用于后续下载或转附件处理，不保证可直接播放；不可用时为 null。"
+                  },
+                  "duration_ms": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "视频时长，单位毫秒；当前不可用时为 null"
+                  },
+                  "width": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "视频宽度，像素；当前不可用时为 null"
+                  },
+                  "height": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "视频高度，像素；当前不可用时为 null"
+                  }
+                },
+                "required": [
+                  "video_url",
+                  "duration_ms",
+                  "width",
+                  "height"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "视频资源信息；当前不可用时为 null"
+          },
+          "images": {
+            "description": "图文作品按顺序返回图片资源；视频作品为空数组",
+            "items": {
+              "properties": {
+                "url": {
+                  "description": "微信视频号图文图片资源链接",
+                  "type": "string"
+                },
+                "width": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "图片宽度；当前不可用时为 null"
+                },
+                "height": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "图片高度；当前不可用时为 null"
+                }
+              },
+              "required": [
+                "url",
+                "width",
+                "height"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "like_count": {
+            "description": "点赞数",
+            "type": "integer"
+          },
+          "collect_count": {
+            "description": "收藏数",
+            "type": "integer"
+          },
+          "comment_count": {
+            "description": "评论数",
+            "type": "integer"
+          },
+          "share_count": {
+            "description": "转发/分享数",
+            "type": "integer"
+          },
+          "publish_time": {
+            "description": "发布时间，秒级 Unix 时间戳",
+            "type": "integer"
+          },
+          "ip_location": {
+            "description": "作品发布时的 IP 属地；没有 IP 属地时为空字符串",
+            "type": "string"
+          },
+          "author": {
+            "properties": {
+              "user_id": {
+                "description": "作者微信视频号用户 ID；仅 v2_...@finder 可用于用户信息或用户发布作品列表工具；不可用时为空字符串",
+                "type": "string"
+              },
+              "name": {
+                "description": "作者昵称；不可用时为空字符串",
+                "type": "string"
+              },
+              "avatar_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作者头像链接；当前不可用时为 null"
+              },
+              "bio": {
+                "description": "作者简介；不可用时为空字符串",
+                "type": "string"
+              }
+            },
+            "required": [
+              "user_id",
+              "name",
+              "avatar_url",
+              "bio"
+            ],
+            "type": "object",
+            "description": "作者信息"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "object_id",
+          "object_nonce_id",
+          "content_type",
+          "description",
+          "topic_tags",
+          "cover_image_url",
+          "video",
+          "images",
+          "like_count",
+          "collect_count",
+          "comment_count",
+          "share_count",
+          "publish_time",
+          "ip_location",
+          "author",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_submit_video_speech_text_by_video_url",
+      "description": "提交微信视频号视频口播转文字任务；提交后最多等待 240 秒，未完成时返回 job_id 和下一步查询动作。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "video_url": {
+            "description": "微信视频号视频链接，或包含该链接的分享文案；例如 https://weixin.qq.com/sph/ANxgB9MB8i，或“帮我看下这个视频 https://weixin.qq.com/sph/ANxgB9MB8i”。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "video_url"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "job_id": {
+            "description": "任务 ID。",
+            "type": "string"
+          },
+          "status": {
+            "description": "任务状态。",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "expired"
+            ],
+            "type": "string"
+          },
+          "is_terminal": {
+            "description": "是否已终态。",
+            "type": "boolean"
+          },
+          "platform": {
+            "description": "任务所属平台。",
+            "type": "string"
+          },
+          "content_id": {
+            "description": "平台内容 ID。",
+            "type": "string"
+          },
+          "source_id": {
+            "description": "任务来源 ID。",
+            "type": "string"
+          },
+          "content_type": {
+            "description": "内容类型。",
+            "type": "string"
+          },
+          "content_meta": {
+            "additionalProperties": false,
+            "properties": {
+              "content_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作品链接。"
+              },
+              "title": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作品标题；平台无标题时为 null。"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "平台作品原始描述、正文或配文。"
+              },
+              "duration_ms": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "音视频时长，单位毫秒。"
+              },
+              "author": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "user_id": {
+                        "description": "作者用户 ID。",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "作者昵称。",
+                        "type": "string"
+                      },
+                      "profile_url": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "作者主页链接。"
+                      },
+                      "avatar_url": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "作者头像链接。"
+                      }
+                    },
+                    "required": [
+                      "user_id",
+                      "name",
+                      "profile_url",
+                      "avatar_url"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作者信息。"
+              }
+            },
+            "required": [
+              "content_url",
+              "title",
+              "description",
+              "duration_ms",
+              "author"
+            ],
+            "type": "object",
+            "description": "作品上下文信息，便于结合转写内容做口播分析。"
+          },
+          "transcript": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "text": {
+                    "description": "完整口播转文字结果。",
+                    "type": "string"
+                  },
+                  "segments": {
+                    "description": "按时间顺序排列的分段结果。",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "start_ms": {
+                          "description": "分段开始时间，单位毫秒。",
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "end_ms": {
+                          "description": "分段结束时间，单位毫秒。",
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "text": {
+                          "description": "分段文本。",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "start_ms",
+                        "end_ms",
+                        "text"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "text",
+                  "segments"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "成功时的口播转文字结果；非终态或失败时为 null。"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "description": "稳定错误码。",
+                    "type": "string"
+                  },
+                  "message": {
+                    "description": "面向用户的错误说明。",
+                    "type": "string"
+                  },
+                  "retryable": {
+                    "default": false,
+                    "description": "是否可重试。",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "失败或过期时的稳定错误结构；非终态或成功时为 null。"
+          },
+          "next_poll_after_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "建议下次查询前等待的秒数；非终态时可用。"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "tool_name": {
+                    "description": "下一步建议调用的查询工具。",
+                    "type": "string"
+                  },
+                  "job_id": {
+                    "description": "需要继续查询的 job_id。",
+                    "type": "string"
+                  },
+                  "arguments": {
+                    "additionalProperties": true,
+                    "description": "下一步查询工具可直接使用的参数。",
+                    "type": "object"
+                  },
+                  "instruction": {
+                    "description": "给 AI/客户端的查询指令，说明如何继续轮询到终态。",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tool_name",
+                  "job_id",
+                  "arguments",
+                  "instruction"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "非终态时建议的下一步查询动作。"
+          },
+          "message": {
+            "description": "面向用户/AI 的状态说明。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "is_terminal",
+          "platform",
+          "content_id",
+          "source_id",
+          "content_type",
+          "content_meta",
+          "transcript",
+          "error",
+          "next_poll_after_seconds",
+          "next_action",
+          "message"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_submit_video_speech_text_by_encrypted_object_id",
+      "description": "根据微信视频号 encrypted_object_id 提交视频口播转文字任务；用户已提供时直接使用，否则可从 wechat_search_videos 或作者作品列表返回项获取；提交后最多等待 240 秒，未完成时返回 job_id 和下一步查询动作。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "encrypted_object_id": {
+            "description": "微信视频号合法 encrypted_object_id；用户已提供时原样使用，否则可从 wechat_search_videos 或作者作品列表返回项获取。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "encrypted_object_id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "job_id": {
+            "description": "任务 ID。",
+            "type": "string"
+          },
+          "status": {
+            "description": "任务状态。",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "expired"
+            ],
+            "type": "string"
+          },
+          "is_terminal": {
+            "description": "是否已终态。",
+            "type": "boolean"
+          },
+          "platform": {
+            "description": "任务所属平台。",
+            "type": "string"
+          },
+          "content_id": {
+            "description": "平台内容 ID。",
+            "type": "string"
+          },
+          "source_id": {
+            "description": "任务来源 ID。",
+            "type": "string"
+          },
+          "content_type": {
+            "description": "内容类型。",
+            "type": "string"
+          },
+          "content_meta": {
+            "additionalProperties": false,
+            "properties": {
+              "content_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作品链接。"
+              },
+              "title": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作品标题；平台无标题时为 null。"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "平台作品原始描述、正文或配文。"
+              },
+              "duration_ms": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "音视频时长，单位毫秒。"
+              },
+              "author": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "user_id": {
+                        "description": "作者用户 ID。",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "作者昵称。",
+                        "type": "string"
+                      },
+                      "profile_url": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "作者主页链接。"
+                      },
+                      "avatar_url": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "作者头像链接。"
+                      }
+                    },
+                    "required": [
+                      "user_id",
+                      "name",
+                      "profile_url",
+                      "avatar_url"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作者信息。"
+              }
+            },
+            "required": [
+              "content_url",
+              "title",
+              "description",
+              "duration_ms",
+              "author"
+            ],
+            "type": "object",
+            "description": "作品上下文信息，便于结合转写内容做口播分析。"
+          },
+          "transcript": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "text": {
+                    "description": "完整口播转文字结果。",
+                    "type": "string"
+                  },
+                  "segments": {
+                    "description": "按时间顺序排列的分段结果。",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "start_ms": {
+                          "description": "分段开始时间，单位毫秒。",
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "end_ms": {
+                          "description": "分段结束时间，单位毫秒。",
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "text": {
+                          "description": "分段文本。",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "start_ms",
+                        "end_ms",
+                        "text"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "text",
+                  "segments"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "成功时的口播转文字结果；非终态或失败时为 null。"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "description": "稳定错误码。",
+                    "type": "string"
+                  },
+                  "message": {
+                    "description": "面向用户的错误说明。",
+                    "type": "string"
+                  },
+                  "retryable": {
+                    "default": false,
+                    "description": "是否可重试。",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "失败或过期时的稳定错误结构；非终态或成功时为 null。"
+          },
+          "next_poll_after_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "建议下次查询前等待的秒数；非终态时可用。"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "tool_name": {
+                    "description": "下一步建议调用的查询工具。",
+                    "type": "string"
+                  },
+                  "job_id": {
+                    "description": "需要继续查询的 job_id。",
+                    "type": "string"
+                  },
+                  "arguments": {
+                    "additionalProperties": true,
+                    "description": "下一步查询工具可直接使用的参数。",
+                    "type": "object"
+                  },
+                  "instruction": {
+                    "description": "给 AI/客户端的查询指令，说明如何继续轮询到终态。",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tool_name",
+                  "job_id",
+                  "arguments",
+                  "instruction"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "非终态时建议的下一步查询动作。"
+          },
+          "message": {
+            "description": "面向用户/AI 的状态说明。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "is_terminal",
+          "platform",
+          "content_id",
+          "source_id",
+          "content_type",
+          "content_meta",
+          "transcript",
+          "error",
+          "next_poll_after_seconds",
+          "next_action",
+          "message"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_get_video_speech_text_job",
+      "description": "继续查询用户提供的有效 job_id，或 submit 工具返回的 job_id 对应的微信视频号口播转文字任务状态；每次最多等待 240 秒，不创建新任务或触发重处理。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "job_id": {
+            "description": "口播转文字任务 ID；用户已提供时直接使用，否则使用两个 submit 工具返回的 job_id；不要传 encrypted_object_id、object_id 或视频号作品链接。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "job_id": {
+            "description": "任务 ID。",
+            "type": "string"
+          },
+          "status": {
+            "description": "任务状态。",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "expired"
+            ],
+            "type": "string"
+          },
+          "is_terminal": {
+            "description": "是否已终态。",
+            "type": "boolean"
+          },
+          "platform": {
+            "description": "任务所属平台。",
+            "type": "string"
+          },
+          "content_id": {
+            "description": "平台内容 ID。",
+            "type": "string"
+          },
+          "source_id": {
+            "description": "任务来源 ID。",
+            "type": "string"
+          },
+          "content_type": {
+            "description": "内容类型。",
+            "type": "string"
+          },
+          "content_meta": {
+            "additionalProperties": false,
+            "properties": {
+              "content_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作品链接。"
+              },
+              "title": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作品标题；平台无标题时为 null。"
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "平台作品原始描述、正文或配文。"
+              },
+              "duration_ms": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "音视频时长，单位毫秒。"
+              },
+              "author": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "user_id": {
+                        "description": "作者用户 ID。",
+                        "type": "string"
+                      },
+                      "name": {
+                        "description": "作者昵称。",
+                        "type": "string"
+                      },
+                      "profile_url": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "作者主页链接。"
+                      },
+                      "avatar_url": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "作者头像链接。"
+                      }
+                    },
+                    "required": [
+                      "user_id",
+                      "name",
+                      "profile_url",
+                      "avatar_url"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "作者信息。"
+              }
+            },
+            "required": [
+              "content_url",
+              "title",
+              "description",
+              "duration_ms",
+              "author"
+            ],
+            "type": "object",
+            "description": "作品上下文信息，便于结合转写内容做口播分析。"
+          },
+          "transcript": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "text": {
+                    "description": "完整口播转文字结果。",
+                    "type": "string"
+                  },
+                  "segments": {
+                    "description": "按时间顺序排列的分段结果。",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "start_ms": {
+                          "description": "分段开始时间，单位毫秒。",
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "end_ms": {
+                          "description": "分段结束时间，单位毫秒。",
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "text": {
+                          "description": "分段文本。",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "start_ms",
+                        "end_ms",
+                        "text"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "text",
+                  "segments"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "成功时的口播转文字结果；非终态或失败时为 null。"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "description": "稳定错误码。",
+                    "type": "string"
+                  },
+                  "message": {
+                    "description": "面向用户的错误说明。",
+                    "type": "string"
+                  },
+                  "retryable": {
+                    "default": false,
+                    "description": "是否可重试。",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "失败或过期时的稳定错误结构；非终态或成功时为 null。"
+          },
+          "next_poll_after_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "建议下次查询前等待的秒数；非终态时可用。"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "tool_name": {
+                    "description": "下一步建议调用的查询工具。",
+                    "type": "string"
+                  },
+                  "job_id": {
+                    "description": "需要继续查询的 job_id。",
+                    "type": "string"
+                  },
+                  "arguments": {
+                    "additionalProperties": true,
+                    "description": "下一步查询工具可直接使用的参数。",
+                    "type": "object"
+                  },
+                  "instruction": {
+                    "description": "给 AI/客户端的查询指令，说明如何继续轮询到终态。",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tool_name",
+                  "job_id",
+                  "arguments",
+                  "instruction"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "非终态时建议的下一步查询动作。"
+          },
+          "message": {
+            "description": "面向用户/AI 的状态说明。",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "is_terminal",
+          "platform",
+          "content_id",
+          "source_id",
+          "content_type",
+          "content_meta",
+          "transcript",
+          "error",
+          "next_poll_after_seconds",
+          "next_action",
+          "message"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "wechat_search_videos",
+      "description": "按搜索词搜索微信视频号视频，当前仅返回视频、不返回图文。用户需要按搜索词查找视频时使用；已有作品链接时直接使用详情或评论工具；已有合法 encrypted_object_id 时直接使用按 ID 详情或口播转文字工具，均无需先调用搜索；支持 sort_type、duration_range 和 page_token 翻页。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "keyword": {
+            "description": "微信视频号视频搜索词；只传关键词或短语；不要传任何链接、encrypted_object_id、user_id 或 page_token 作为 keyword。",
+            "type": "string"
+          },
+          "page_token": {
+            "default": "",
+            "description": "page_token 是不透明分页令牌。首次请求留空；继续翻页时必须将上一次返回的完整 next_page_token 原样传入，作为 page_token 使用；只能用于同一微信视频号搜索分页链路、同一关键词和同一筛选条件的下一页，不能跨能力、关键词或筛选条件复用；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          },
+          "sort_type": {
+            "default": "all",
+            "description": "搜索排序方式，可选：all（不限，默认）、time_descending（最新）、collect_count_descending（最热/最多收藏排序）。如无明确排序需求，保持 all。",
+            "enum": [
+              "all",
+              "time_descending",
+              "collect_count_descending"
+            ],
+            "type": "string"
+          },
+          "duration_range": {
+            "default": "all",
+            "description": "视频时长筛选，可选：all（不限，默认）、under_5_min（5 分钟以下）、between_5_and_20_min（5-20 分钟）、over_20_min（20 分钟以上）。如无明确筛选需求，保持 all。",
+            "enum": [
+              "all",
+              "under_5_min",
+              "between_5_and_20_min",
+              "over_20_min"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "keyword"
+        ],
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "items": {
+            "description": "当前页搜索结果中的视频列表，已过滤直播、合集和相关搜索卡片；当前页过滤后可能为空数组",
+            "items": {
+              "properties": {
+                "encrypted_object_id": {
+                  "description": "微信视频号搜索结果返回的 encrypted_object_id；不可用时为空字符串。",
+                  "type": "string"
+                },
+                "content_type": {
+                  "const": "video",
+                  "description": "内容类型；固定为 video",
+                  "type": "string"
+                },
+                "description": {
+                  "description": "视频描述；不可用时为空字符串",
+                  "type": "string"
+                },
+                "topic_tags": {
+                  "description": "作品文案中的话题标签；无话题时为空数组；每项只返回 name",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "description": "话题标签名称",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "cover_image_url": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "视频封面图链接；当前不可用时为 null"
+                },
+                "publish_time": {
+                  "description": "发布时间，秒级 Unix 时间戳",
+                  "type": "integer"
+                },
+                "duration_seconds": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "视频时长，单位秒；当前不可用时为 null"
+                },
+                "like_count": {
+                  "description": "点赞数",
+                  "type": "integer"
+                },
+                "collect_count": {
+                  "description": "收藏数",
+                  "type": "integer"
+                },
+                "comment_count": {
+                  "description": "评论数",
+                  "type": "integer"
+                },
+                "share_count": {
+                  "description": "转发/分享数",
+                  "type": "integer"
+                },
+                "author": {
+                  "properties": {
+                    "name": {
+                      "description": "作者昵称",
+                      "type": "string"
+                    },
+                    "avatar_url": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "作者头像链接；当前不可用时为 null"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "avatar_url"
+                  ],
+                  "type": "object",
+                  "description": "作者信息"
+                }
+              },
+              "required": [
+                "encrypted_object_id",
+                "content_type",
+                "description",
+                "topic_tags",
+                "cover_image_url",
+                "publish_time",
+                "duration_seconds",
+                "like_count",
+                "collect_count",
+                "comment_count",
+                "share_count",
+                "author"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "next_page_token": {
+            "description": "下一页不透明分页令牌；为空表示没有更多结果。继续翻页时必须将返回的完整 next_page_token 原样作为 page_token 传回；next_page_token 只能用于同一微信视频号搜索分页链路；不得修改、截断、缩写、脱敏、掩码、省略、规范化、重组或自行生成，不得用省略号替换中间内容。",
+            "type": "string"
+          },
+          "points": {
+            "type": "object",
+            "description": "本次成功调用的积分消耗与调用完成时的账户积分余额。",
+            "properties": {
+              "cost": {
+                "type": "integer",
+                "description": "本次请求最终确认消耗的积分。",
+                "minimum": 0
+              },
+              "balance": {
+                "type": "integer",
+                "description": "本次接口完成时看到的当前积分余额。",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cost",
+              "balance"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "items",
+          "next_page_token",
+          "points"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    },
+    {
+      "name": "socialdatax_get_points_balance",
+      "description": "查询当前 API Key 账户的 SocialDataX 积分余额、剩余积分或点数 / remaining points balance。需要充值时请访问 https://socialdatax.com/dashboard/billing。",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "outputSchema": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true
+      },
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      }
+    }
+  ]
+}

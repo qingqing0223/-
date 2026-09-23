@@ -1,0 +1,445 @@
+{
+  "source": "POMS public OpenAPI; read-only schema inspection 2026-09-22",
+  "schemas": {
+    "PublishedContentBasicInformation": {
+      "properties": {
+        "published_content_id": {
+          "type": "string",
+          "title": "Published Content Id"
+        },
+        "platform_name": {
+          "type": "string",
+          "title": "Platform Name"
+        },
+        "publisher_account_id": {
+          "type": "string",
+          "title": "Publisher Account Id"
+        },
+        "account_name": {
+          "type": "string",
+          "title": "Account Name"
+        },
+        "account_ip_location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Account Ip Location"
+        },
+        "account_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Account Type"
+        },
+        "content_type": {
+          "type": "string",
+          "title": "Content Type"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Title"
+        },
+        "body_text_or_video_description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Body Text Or Video Description"
+        },
+        "published_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Published At"
+        },
+        "collected_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Collected At"
+        },
+        "original_content_url": {
+          "type": "string",
+          "title": "Original Content Url"
+        },
+        "matched_keywords": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Matched Keywords"
+        },
+        "originality_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Originality Status"
+        },
+        "is_valid_monitoring_data": {
+          "type": "boolean",
+          "title": "Is Valid Monitoring Data"
+        },
+        "invalid_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Invalid Reason"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "published_content_id",
+        "platform_name",
+        "publisher_account_id",
+        "account_name",
+        "account_ip_location",
+        "account_type",
+        "content_type",
+        "title",
+        "body_text_or_video_description",
+        "published_at",
+        "collected_at",
+        "original_content_url",
+        "matched_keywords",
+        "originality_status",
+        "is_valid_monitoring_data",
+        "invalid_reason"
+      ],
+      "title": "PublishedContentBasicInformation"
+    },
+    "CommentBasicInformation": {
+      "properties": {
+        "corresponding_published_content_id": {
+          "type": "string",
+          "title": "Corresponding Published Content Id"
+        },
+        "comment_id": {
+          "type": "string",
+          "title": "Comment Id"
+        },
+        "platform_name": {
+          "type": "string",
+          "title": "Platform Name"
+        },
+        "commenter_user_id": {
+          "type": "string",
+          "title": "Commenter User Id"
+        },
+        "commenter_ip_location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Commenter Ip Location"
+        },
+        "comment_text": {
+          "type": "string",
+          "title": "Comment Text"
+        },
+        "commented_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Commented At"
+        },
+        "is_valid_comment": {
+          "type": "boolean",
+          "title": "Is Valid Comment"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "corresponding_published_content_id",
+        "comment_id",
+        "platform_name",
+        "commenter_user_id",
+        "commenter_ip_location",
+        "comment_text",
+        "commented_at",
+        "is_valid_comment"
+      ],
+      "title": "CommentBasicInformation"
+    },
+    "PublishedContentInteractionData": {
+      "properties": {
+        "corresponding_published_content_id": {
+          "type": "string",
+          "title": "Corresponding Published Content Id"
+        },
+        "platform_name": {
+          "type": "string",
+          "title": "Platform Name"
+        },
+        "statistical_time": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Statistical Time"
+        },
+        "view_or_play_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "View Or Play Count"
+        },
+        "like_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Like Count"
+        },
+        "comment_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Comment Count"
+        },
+        "repost_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Repost Count"
+        },
+        "share_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Share Count"
+        },
+        "favorite_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Favorite Count"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "corresponding_published_content_id",
+        "platform_name",
+        "statistical_time",
+        "view_or_play_count",
+        "like_count",
+        "comment_count",
+        "repost_count",
+        "share_count",
+        "favorite_count"
+      ],
+      "title": "PublishedContentInteractionData"
+    },
+    "CommentContentInteractionData": {
+      "properties": {
+        "corresponding_published_content_id": {
+          "type": "string",
+          "title": "Corresponding Published Content Id"
+        },
+        "comment_id": {
+          "type": "string",
+          "title": "Comment Id"
+        },
+        "platform_name": {
+          "type": "string",
+          "title": "Platform Name"
+        },
+        "statistical_time": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Statistical Time"
+        },
+        "comment_reply_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Comment Reply Count"
+        },
+        "comment_like_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Comment Like Count"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "corresponding_published_content_id",
+        "comment_id",
+        "platform_name",
+        "statistical_time",
+        "comment_reply_count",
+        "comment_like_count"
+      ],
+      "title": "CommentContentInteractionData"
+    },
+    "AccountInformation": {
+      "properties": {
+        "account_id": {
+          "type": "string",
+          "title": "Account Id"
+        },
+        "platform": {
+          "type": "string",
+          "title": "Platform"
+        },
+        "account_name": {
+          "type": "string",
+          "title": "Account Name"
+        },
+        "homepage_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Homepage Url"
+        },
+        "account_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Account Type"
+        },
+        "follower_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Follower Count"
+        },
+        "following_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Following Count"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Region"
+        },
+        "organization": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Organization"
+        },
+        "is_key_monitored_account": {
+          "type": "boolean",
+          "title": "Is Key Monitored Account"
+        },
+        "related_post_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Related Post Count"
+        },
+        "view_or_play_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "View Or Play Count"
+        },
+        "like_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Like Count"
+        },
+        "comment_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Comment Count"
+        },
+        "repost_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Repost Count"
+        },
+        "favorite_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Favorite Count"
+        },
+        "total_interaction_count": {
+          "type": "integer",
+          "minimum": 0.0,
+          "title": "Total Interaction Count"
+        },
+        "collected_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Collected At"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "account_id",
+        "platform",
+        "account_name",
+        "homepage_url",
+        "account_type",
+        "follower_count",
+        "following_count",
+        "region",
+        "organization",
+        "is_key_monitored_account",
+        "related_post_count",
+        "view_or_play_count",
+        "like_count",
+        "comment_count",
+        "repost_count",
+        "favorite_count",
+        "total_interaction_count",
+        "collected_at"
+      ],
+      "title": "AccountInformation"
+    }
+  }
+}

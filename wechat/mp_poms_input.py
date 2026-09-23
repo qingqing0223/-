@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 
 from .mp_export import FIELDS, FILES, atomic_json, build_tables
-from .mp_poms import POMS_FIELDS, TABLE_NAMES, POMS_NOTE, poms_rows
+from .mp_poms import POMS_FIELDS, TABLE_NAMES, POMS_NOTE, poms_rows, validate_schema
+from .mp_display import normalize_tables
 from .mp_records import assess_record, merge_records, time_problem
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,6 +24,7 @@ def check_samples(directory: Path) -> None:
 def validate_arrays(arrays: list[list[dict]]) -> None:
     if len(arrays) != 5:
         raise ValueError("Expected five POMS tables")
+    validate_schema(arrays)
     for number, (rows, fields) in enumerate(zip(arrays, POMS_FIELDS), 1):
         if not isinstance(rows, list) or any(not isinstance(row, dict) or list(row) != fields for row in rows):
             raise ValueError(f"table{number}: expected ordered POMS English fields")
@@ -109,7 +111,8 @@ def convert_batch(batch_dir: Path, *, source: str = "auto", config: dict | None 
         if source == "csv":
             if not all(p.exists() for p in csvs):
                 raise ValueError("Incomplete CSV set: all five tables are required")
-            arrays = [poms_rows(i, _read_csv(i, path)) for i, path in enumerate(csvs)]
+            tables = normalize_tables([_read_csv(i, path) for i, path in enumerate(csvs)])
+            arrays = [poms_rows(i, table) for i, table in enumerate(tables)]
         elif source == "jsonl":
             records = [json.loads(line) for line in jsonl.read_text(encoding="utf-8-sig").splitlines() if line.strip()]
             if any(not isinstance(row, dict) for row in records):
@@ -121,7 +124,7 @@ def convert_batch(batch_dir: Path, *, source: str = "auto", config: dict | None 
             if not catalog_path.is_absolute():
                 catalog_path = ROOT / catalog_path
             catalog = json.loads(catalog_path.read_text(encoding="utf-8-sig"))
-            tables = build_tables(records, catalog, cfg.get("exported_at", ""))
+            tables = normalize_tables(build_tables(records, catalog, cfg.get("exported_at", "")))
             arrays = [poms_rows(i, rows) for i, rows in enumerate(tables)]
         else:
             raise ValueError("Unsupported source type")

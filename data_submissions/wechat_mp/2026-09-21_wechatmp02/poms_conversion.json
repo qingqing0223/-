@@ -11,6 +11,6 @@
   "sample_fields_checked": true,
   "monitoring_start_time": "2026-09-21T09:00:00+08:00",
   "monitoring_end_time": "2026-09-21T17:00:00+08:00",
-  "note": "table1_batch.json至table5_batch.json按POMS批量接口的英文键名和字段顺序输出JSON数组。matched_keywords为数组，明确有效/无效为true/false，待核验为null且保留具体原因；CSV/XLSX仍显示待核验。未取得的账号ID和指标保留null，空评论表为[]。接口示例中的0不替代未知值。服务端必须支持这些null；文档未明确其可空约束，若拒收须调整服务端，不能伪造账号ID或将未知值改为0。",
+  "note": "table1_batch.json至table5_batch.json按POMS批量接口的英文键名和字段顺序输出JSON数组。matched_keywords为数组，明确有效为true，明确无效为false。经用户确认，待核验在POMS中用false表示尚未确认为有效，invalid_reason保留待核验原因；CSV/XLSX仍显示待核验。缺失统计使用数值0占位，缺失文本使用明确状态值；local_wxacct_*为本地关联ID，空评论表为[]。原始证据层不改变。",
   "network_requests": 0
 }

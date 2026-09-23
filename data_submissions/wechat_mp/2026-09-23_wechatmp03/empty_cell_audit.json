@@ -1,0 +1,297 @@
+{
+  "workbook": "微信公众号监测数据_按TechDesignV3整理_v2.xlsx",
+  "fields": [
+    {
+      "sheet": "表1-发布内容",
+      "field": "发布内容编号",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "平台名称",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "发布帐号ID",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "帐号名称",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "帐号IP属地",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "帐号类型",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "内容类型",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "标题",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "正文、文案或视频描述",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "发布时间",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "数据采集时间",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "原始内容链接",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "命中的全部关键词",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "是否原创/转载",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "是否属于有效监测数据",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表1-发布内容",
+      "field": "无效原因",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表2-评论",
+      "field": "对应发布内容编号",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表2-评论",
+      "field": "评论编号",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表2-评论",
+      "field": "平台名称",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表2-评论",
+      "field": "评论用户ID",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表2-评论",
+      "field": "评论用户IP属地",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表2-评论",
+      "field": "评论正文",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表2-评论",
+      "field": "评论发布时间",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表2-评论",
+      "field": "是否属于有效评论",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "对应发布内容编号",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "平台名称",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "统计时间",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "阅读/播放量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "点赞量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "评论量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "转发量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "分享量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表3-发布互动",
+      "field": "收藏量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表4-评论互动",
+      "field": "对应发布内容编号",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表4-评论互动",
+      "field": "评论编号",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表4-评论互动",
+      "field": "平台名称",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表4-评论互动",
+      "field": "统计时间",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表4-评论互动",
+      "field": "评论回复数",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表4-评论互动",
+      "field": "评论点赞数",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "帐号ID",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "平台",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "帐号名称",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "主页地址",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "帐号类型",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "粉丝量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "关注量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "所属地区",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "所属机构",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "是否属于重点监测帐号",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "相关发文量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "阅读/播放量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "点赞量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "评论量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "转发量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "收藏量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "总互动量",
+      "empty_count": 0
+    },
+    {
+      "sheet": "表5-帐号信息",
+      "field": "数据采集时间",
+      "empty_count": 0
+    }
+  ],
+  "table_counts": [
+    86,
+    0,
+    66,
+    0,
+    66
+  ]
+}

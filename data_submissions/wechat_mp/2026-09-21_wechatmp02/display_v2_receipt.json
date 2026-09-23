@@ -1,0 +1,23 @@
+{
+  "original_files_unchanged": true,
+  "sha256_before": {
+    "search_contents.jsonl": "be2df19f086251ee415989f0e1c03e88a22cc822642c1b8cfab23ccd3844f04a",
+    "微信公众号监测数据_按TechDesignV3整理.xlsx": "dea8379b621052d58f66f06ca240e81325c64caa26d710f45c5a7e1f70a73b52"
+  },
+  "sha256_after": {
+    "search_contents.jsonl": "be2df19f086251ee415989f0e1c03e88a22cc822642c1b8cfab23ccd3844f04a",
+    "微信公众号监测数据_按TechDesignV3整理.xlsx": "dea8379b621052d58f66f06ca240e81325c64caa26d710f45c5a7e1f70a73b52"
+  },
+  "network_requests": 0,
+  "export": {
+    "directory": "D:\\Deployment\\qingqing0223\\wechat-mp-v3\\data_submissions\\wechat_mp\\2026-09-21_wechatmp02",
+    "updated": true,
+    "table_counts": [
+      16,
+      0,
+      15,
+      0,
+      15
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "source": "csv",
+  "status": "CONVERTED",
+  "table_counts": [
+    16,
+    0,
+    15,
+    0,
+    15
+  ],
+  "sample_fields_checked": true,
+  "monitoring_start_time": "2026-09-21T09:00:00+08:00",
+  "monitoring_end_time": "2026-09-21T17:00:00+08:00",
+  "note": "table1_batch.json至table5_batch.json按POMS批量接口的英文键名和字段顺序输出JSON数组。matched_keywords为数组，明确有效/无效为true/false，待核验为null且保留具体原因；CSV/XLSX仍显示待核验。未取得的账号ID和指标保留null，空评论表为[]。接口示例中的0不替代未知值。服务端必须支持这些null；文档未明确其可空约束，若拒收须调整服务端，不能伪造账号ID或将未知值改为0。",
+  "network_requests": 0
+}

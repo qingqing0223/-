@@ -7,9 +7,12 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 from .mp_records import START, assess_record, key_account, normalize_name
-from .mp_poms import POMS_NOTE, poms_rows
+from .mp_poms import POMS_NOTE, poms_rows, validate_schema
+from .mp_display import (normalize_tables, audit_tables, placeholder_counts, ZERO_NOTE,
+                         INTERACTION_NOTE, ACCOUNT_ID_NOTE, COMMENT_NOTE, RAW_NOTE)
 
 FIELDS = [
     ["发布内容编号", "平台名称", "发布帐号ID", "帐号名称", "帐号IP属地", "帐号类型", "内容类型", "标题", "正文、文案或视频描述", "发布时间", "数据采集时间", "原始内容链接", "命中的全部关键词", "是否原创/转载", "是否属于有效监测数据", "无效原因"],
@@ -21,7 +24,8 @@ FIELDS = [
 SHEETS = ["表1-发布内容", "表2-评论", "表3-发布互动", "表4-评论互动", "表5-帐号信息"]
 FILES = ["01_表1_发布内容.csv", "02_表2_评论.csv", "03_表3_发布互动.csv", "04_表4_评论互动.csv", "05_表5_帐号信息.csv"]
 WORKBOOK = "微信公众号监测数据_按TechDesignV3整理.xlsx"
-LIMITATIONS = "平台公开数据源暂不提供/当前未获取：完整评论、楼中楼、IP属地、可靠完整互动量、帐号ID、粉丝量及关注量。未知值留空。"
+WORKBOOK_V2 = "微信公众号监测数据_按TechDesignV3整理_v2.xlsx"
+LIMITATIONS = "平台公开数据源暂不提供/当前未获取：完整评论、楼中楼、IP属地、可靠完整互动量、官方帐号ID、粉丝量及关注量。原始缺失值保留；展示文本用明确状态值，统计用0占位。"
 URL_LIMITATION = "canonical URL仅通过正常公开页面及结果点击尽力解析；无法取得时保留搜狗公开跳转链接，不视为采集失败。链接可能过期，不使用非公开接口，不绕过验证码。"
 
 
@@ -102,7 +106,7 @@ def workbook_runtime(cfg: dict) -> tuple[str, dict]:
 
 
 def export_submission(rows: list[dict], cfg: dict, catalog: dict, stamp: str, collector: dict,
-                      force: bool = False) -> dict:
+                      force: bool = False, preserve_raw: bool = False) -> dict:
     rows = [assess_record(r, cfg.get("monitoring_start_time", START), cfg.get("keywords"), cfg.get("monitoring_end_time")) for r in rows]
     rows = [r for r in rows if r["candidate_eligible"]]
     node_id = str(cfg.get("wechat_mp_node_id", "wechatmp01"))
@@ -121,23 +125,25 @@ def export_submission(rows: list[dict], cfg: dict, catalog: dict, stamp: str, co
     metrics_due = force or clock - previous.get("metrics_export_epoch", 0) >= int(cfg.get("wechat_mp_interaction_export_seconds", 3600))
     if not (content_due or metrics_due):
         return {"directory": str(out), "updated": False}
-    tables = build_tables(rows, catalog, stamp)
-    old_tables = previous.get("tables", tables)
+    raw_tables = build_tables(rows, catalog, stamp)
+    old_tables = previous.get("raw_tables", previous.get("tables", raw_tables))
     for index in range(5):
         if not (content_due if index < 2 else metrics_due):
-            tables[index] = old_tables[index]
+            raw_tables[index] = old_tables[index]
+    tables = normalize_tables(raw_tables)
+    validate_schema([poms_rows(i, table) for i, table in enumerate(tables)])
+    for index in range(5):
         path = out / FILES[index]
         temp = path.with_suffix(".csv.tmp")
         with temp.open("w", encoding="utf-8-sig", newline="") as stream:
             writer = csv.writer(stream)
             writer.writerow(FIELDS[index])
             writer.writerows([[csv_value(v) for v in row] for row in tables[index]])
-        # Transport files contain JSON arrays, literal strings for IDs, JSON null
-        # for unknown values. POMS uses ordered English keys and native booleans.
+        # Transport placeholders never flow back into raw_tables or crawler rows.
         atomic_json(out / f"table{index+1}_batch.json.pending", poms_rows(index, tables[index]))
     coverage = collector.get("keyword_coverage", {})
     summary = {
-        "schema_version": 4,
+        "schema_version": 5, "display_normalization_version": 2, "workbook_file": WORKBOOK_V2,
         "platform": "wechat_mp", "monitoring_start_time": cfg["monitoring_start_time"],
         "monitoring_end_time": cfg.get("monitoring_end_time"),
         "batch_id": batch_date + "_" + node_id,
@@ -152,24 +158,51 @@ def export_submission(rows: list[dict], cfg: dict, catalog: dict, stamp: str, co
         "content_note": "正文列为公开搜索摘要。表1保留正式关键词实际命中且时间合格的全部候选，标记是/否/待核验及原因。时间不合格或无搜索命中证据的记录另存审计文件；原始记录不丢弃。表3/5仍按明确有效文章统计。",
         "canonical_url_limitation": URL_LIMITATION,
         "poms_json_note": POMS_NOTE,
+        "zero_placeholder_note": ZERO_NOTE, "interaction_placeholder_note": INTERACTION_NOTE,
+        "account_id_note": ACCOUNT_ID_NOTE, "comment_note": COMMENT_NOTE, "raw_preservation_note": RAW_NOTE,
+        "display_placeholder_counts": placeholder_counts(raw_tables, FIELDS, SHEETS),
         "identity_note": "优先真实公众号canonical URL；否则规范化标题+帐号（可靠绝对日期用于区分重发）。回退标识可能无法区分同账号同名文章。",
         "account_metrics_note": "相关发文量为本节点已采集有效文章数。互动汇总仅在该帐号全部已采集文章均有对应可靠指标时计算，不代表帐号全量。",
         "csv_note": "CSV不含单元格类型；Excel请用配套XLSX，或导入CSV时将ID列指定为文本。危险公式前缀已转义。",
         "content_export_at": stamp if content_due else previous.get("content_export_at"),
         "metrics_export_at": stamp if metrics_due else previous.get("metrics_export_at"),
     }
-    payload = {**summary, "fields": FIELDS, "sheets": SHEETS, "tables": tables,
+    payload = {**summary, "fields": FIELDS, "sheets": SHEETS, "tables": tables, "raw_tables": raw_tables,
                "content_export_epoch": clock if content_due else previous.get("content_export_epoch", 0),
                "metrics_export_epoch": clock if metrics_due else previous.get("metrics_export_epoch", 0)}
     pending = out / "export_pending.json"
     atomic_json(pending, payload)
     node, env = workbook_runtime(cfg)
-    staged_workbook = out / (WORKBOOK + ".pending")
-    subprocess.run([node, str(Path(__file__).resolve().parents[1] / "scripts/export_wechat_mp_xlsx.mjs"),
-                    str(pending.resolve()), str(staged_workbook.resolve())], env=env, check=True, timeout=240)
+    staged_workbook = out / (WORKBOOK_V2 + ".pending")
+    try:
+        subprocess.run([node, str(Path(__file__).resolve().parents[1] / "scripts/export_wechat_mp_xlsx.mjs"),
+                        str(pending.resolve()), str(staged_workbook.resolve())], env=env, check=True,
+                       capture_output=True, text=True, timeout=240)
+    except subprocess.CalledProcessError as exc:
+        # Some offline deployments have Python artifact_tool but not the
+        # optional Node @oai/artifact-tool package. Recover only from that
+        # specific missing-package error; every other workbook failure is
+        # propagated and no published CSV/JSON is replaced.
+        if 'ERR_MODULE_NOT_FOUND' not in (exc.stderr or '') or '@oai/artifact-tool' not in (exc.stderr or ''):
+            raise
+        fallback_env = os.environ.copy()
+        fallback_env.setdefault('ARTIFACT_TOOL_RPC_DAEMON_STARTUP_TIMEOUT_S', '45')
+        subprocess.run([sys.executable, str(Path(__file__).resolve().parents[1] / "scripts/export_wechat_mp_xlsx_fallback.py"),
+                        str(pending.resolve()), str(staged_workbook.resolve())], check=True,
+                       env=fallback_env, timeout=240)
     # Do not replace published CSVs if workbook generation fails. summary.json
     # is written last and serves as the completion marker for this generation.
-    staged_workbook.replace(out / WORKBOOK)
+    from openpyxl import load_workbook  # Independent read-only audit of actual saved cells.
+    with staged_workbook.open("rb") as stream:
+        book = load_workbook(stream, data_only=False)
+        saved_tables = [[[c.value for c in row] for row in book[name].iter_rows(min_row=2, max_row=1+len(table), max_col=len(fields))]
+                        if table else [] for name, table, fields in zip(SHEETS, tables, FIELDS)]
+        book.close()
+    audit = {"workbook": WORKBOOK_V2, "fields": audit_tables(saved_tables, FIELDS, SHEETS),
+             "table_counts": [len(t) for t in saved_tables]}
+    if any(item["empty_count"] for item in audit["fields"]):
+        raise ValueError("Exported workbook contains empty data cells")
+    staged_workbook.replace(out / WORKBOOK_V2)
     for filename in FILES:
         path = out / filename
         path.with_suffix(".csv.tmp").replace(path)
@@ -177,12 +210,14 @@ def export_submission(rows: list[dict], cfg: dict, catalog: dict, stamp: str, co
         (out / f"table{index}_batch.json.pending").replace(out / f"table{index}_batch.json")
     pending.replace(snapshot)
     atomic_json(out / "summary.json", summary)
-    if content_due:
+    atomic_json(out / "empty_cell_audit.json", audit)
+    if content_due and not preserve_raw:
         write_jsonl(out / "search_contents.jsonl", rows)
     (out / "README.txt").write_text(
         "微信公众号 TechDesign V3\n"
         f"总候选：{summary['total_candidates']}；有效：{summary['valid_articles']}；无效：{summary['invalid_articles']}；待核验：{summary['pending_review_articles']}\n"
         f"本批次全部关键词真实搜索验收完成：{summary['search_acceptance_complete']}\n"
         + summary["content_note"] + "\n" + LIMITATIONS + "\n" + URL_LIMITATION + "\n" + POMS_NOTE + "\n"
+        + ZERO_NOTE + "\n" + INTERACTION_NOTE + "\n" + ACCOUNT_ID_NOTE + "\n" + COMMENT_NOTE + "\n" + RAW_NOTE + "\n"
         + "逐关键词状态、页数、原始命中量、去重新增量见summary.json。\n", encoding="utf-8")
     return {"directory": str(out), "updated": True, "table_counts": summary["table_counts"]}
