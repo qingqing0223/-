@@ -208,10 +208,20 @@ def matched_campaign_terms(row: dict) -> tuple[str, ...]:
     text = campaign_text(row)
     if not text:
         return ()
-    terms = []
-    for term in (*CORE_KEYWORDS, *ALIASES, *TYPO_RECOVERY_TERMS, *_RELATED_CONCEPTS):
+
+    terms: list[str] = []
+    for term in (*CORE_KEYWORDS, *ALIASES, *TYPO_RECOVERY_TERMS):
         if _compact(term) in text:
             terms.append(term)
+
+    # Combination/recovery queries are stored as space-separated AND terms.
+    # A returned item may contain words between those terms, so do not require
+    # the compacted full query to be contiguous.
+    for query in (*COMBINATION_QUERIES, *RELATED_RECOVERY_QUERIES):
+        tokens = [_compact(token) for token in str(query).split() if _compact(token)]
+        if tokens and all(token in text for token in tokens):
+            terms.append(query)
+
     return tuple(_dedupe(terms))
 
 
