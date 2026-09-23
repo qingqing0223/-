@@ -147,12 +147,23 @@ def _patch_core(text: str) -> str:
 
     search_marker = "await self._enrich_public_profile_metrics(video_detail)"
     if search_marker not in text:
-        text = _insert_after_matching_line(
-            text,
-            contains='for video_detail in videos_res.get("feeds", [])',
-            after_contains="video_id_list.append(",
-            insertion=search_marker,
-        )
+        try:
+            text = _insert_after_matching_line(
+                text,
+                contains='for video_detail in videos_res.get("feeds", [])',
+                after_contains="video_id_list.append(",
+                insertion=search_marker,
+            )
+        except RuntimeError:
+            # The realtime-slice patch rewrites the upstream loop to iterate
+            # over _ks_feeds.  Public-metric enrichment must compose with that
+            # idempotent patch order as well.
+            text = _insert_after_matching_line(
+                text,
+                contains="for video_detail in _ks_feeds:",
+                after_contains="video_id_list.append(",
+                insertion=search_marker,
+            )
 
     detail_marker = "await self._enrich_public_profile_metrics(detail)"
     if detail_marker not in text:
