@@ -6,7 +6,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from monitor.crawler_runner import _classify_state, _detail_recovery_candidates
+from monitor.crawler_runner import (
+    _classify_state,
+    _detail_recovery_candidates,
+    _mark_queue_outcome,
+    _select_queue_candidates,
+)
 from monitor.ingest import _prepare_region_aliases
 from pipeline.classifier import classify_records
 from pipeline.normalizer import normalize_record
@@ -174,6 +179,102 @@ class MonitoringRegressionTests(unittest.TestCase):
                     delattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback")
             else:
                 crawler_runner._promotion_week_ks_unknown_count_fallback = original_flag
+
+    def test_deep_queue_empty_candidate_cools_down_and_does_not_starve_fresh_video(self):
+        queue = {
+            "version": 1,
+            "items": {
+                "old-empty": {
+                    "visible_comment_count": 1,
+                    "retry_count": 0,
+                    "last_deep_crawled_at": "",
+                    "last_deep_attempt_at": "",
+                    "last_deep_outcome": "",
+                    "next_retry_at": "",
+                },
+                "fresh-video": {
+                    "visible_comment_count": 1,
+                    "retry_count": 0,
+                    "last_deep_crawled_at": "",
+                    "last_deep_attempt_at": "",
+                    "last_deep_outcome": "",
+                    "next_retry_at": "",
+                },
+            },
+        }
+
+        _mark_queue_outcome(
+            queue,
+            ["old-empty"],
+            "empty",
+            empty_retry_seconds=1800,
+        )
+
+        got = _select_queue_candidates(queue, max_items=4, refresh_seconds=900)
+        self.assertEqual(got, ["fresh-video"])
+        self.assertEqual(queue["items"]["old-empty"]["last_deep_outcome"], "empty")
+        self.assertTrue(queue["items"]["old-empty"]["next_retry_at"])
+
+    def test_deep_queue_failed_candidate_uses_exponential_backoff(self):
+        queue = {
+            "version": 1,
+            "items": {
+                "v1": {
+                    "visible_comment_count": 1,
+                    "retry_count": 0,
+                    "last_deep_crawled_at": "",
+                    "last_deep_attempt_at": "",
+                    "last_deep_outcome": "",
+                    "next_retry_at": "",
+                }
+            },
+        }
+
+        _mark_queue_outcome(
+            queue,
+            ["v1"],
+            "timeout",
+            failed_retry_base_seconds=600,
+            failed_retry_cap_seconds=3600,
+        )
+        first_next = queue["items"]["v1"]["next_retry_at"]
+        self.assertEqual(queue["items"]["v1"]["retry_count"], 1)
+        self.assertEqual(
+            _select_queue_candidates(queue, max_items=4, refresh_seconds=900),
+            [],
+        )
+
+        queue["items"]["v1"]["next_retry_at"] = ""
+        _mark_queue_outcome(
+            queue,
+            ["v1"],
+            "timeout",
+            failed_retry_base_seconds=600,
+            failed_retry_cap_seconds=3600,
+        )
+        self.assertEqual(queue["items"]["v1"]["retry_count"], 2)
+        self.assertNotEqual(queue["items"]["v1"]["next_retry_at"], first_next)
+
+    def test_legacy_retry_count_is_ranked_after_never_attempted_candidate(self):
+        queue = {
+            "version": 1,
+            "items": {
+                "legacy-failed": {
+                    "visible_comment_count": 10,
+                    "retry_count": 3,
+                    "last_deep_crawled_at": "",
+                },
+                "fresh-video": {
+                    "visible_comment_count": 1,
+                    "retry_count": 0,
+                    "last_deep_crawled_at": "",
+                },
+            },
+        }
+
+        got = _select_queue_candidates(queue, max_items=2, refresh_seconds=900)
+        self.assertEqual(got[0], "fresh-video")
+        self.assertEqual(got[1], "legacy-failed")
 
     def test_region_aliases_cover_realistic_nested_platform_shapes(self):
         cases = [
