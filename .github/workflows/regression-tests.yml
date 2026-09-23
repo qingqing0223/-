@@ -106,7 +106,7 @@ jobs:
             'scripts/final_student_update_windows.ps1'
           )
           foreach ($path in $paths) {
-            if ($path -like 'scripts/test_*' -or $path -like 'scripts/check_public_region_acceptance_windows.ps1') {
+            if ($path -like 'scripts/test_*' -or $path -like 'scripts/check_public_region_acceptance_windows.ps1' -or $path -like 'scripts/bootstrap_kuaishou_session_windows.ps1') {
               $bytes = [System.IO.File]::ReadAllBytes($path)
               if ($bytes | Where-Object { $_ -gt 127 }) {
                 throw "$path must remain ASCII-only for Windows PowerShell 5.1 compatibility"
