@@ -106,7 +106,7 @@ def check(root: Path) -> dict:
         segment = text[start:end]
         result["marker_present"] = MARKER in segment
         result["env_gate_present"] = "PROMOTION_WEEK_KS_REALTIME" in segment
-        result["per_keyword_guard_present"] = "if len(video_id_list) >= _ks_rt_limit:" in segment
+        result["per_keyword_guard_present"] = ("if len(video_id_list) >= _ks_rt_limit:" in segment or "_ks_feeds = _ks_feeds[:_ks_rt_limit]" in segment)
         result["append_anchor_present"] = "video_id_list.append(" in segment
         result["historical_mode_untouched"] = 'if str(os.getenv("PROMOTION_WEEK_KS_REALTIME"' in segment
         result["ok"] = all([
