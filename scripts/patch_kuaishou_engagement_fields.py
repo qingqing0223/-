@@ -150,48 +150,77 @@ def _patch_core_detail_comment_count(root: Path) -> None:
         ast.parse(text, filename=str(path))
         return
 
-    anchor = '''                detail = result.get("visionVideoDetail")
-                if detail:
-                    photo = detail.get("photo", {})
-                    author = detail.get("author", {})
-'''
-    replacement = '''                detail = result.get("visionVideoDetail")
-                if detail:
-                    photo = detail.get("photo", {})
-                    author = detail.get("author", {})
-                    # PROMOTION_WEEK_KS_DETAIL_COMMENT_COUNT_V1:
-                    # Fetch the platform-displayed public comment total before
-                    # persisting the detail row.  The comment-region patch makes
-                    # get_video_comments fall back to the public H5 representation
-                    # when REST V2 is unavailable.
-                    if all(
-                        photo.get(key) in (None, "")
-                        for key in ("commentCount", "commentCountV2", "commentsCount", "comment_count")
-                    ):
-                        try:
-                            _ks_comment_summary = await self.ks_client.get_video_comments(video_id, "")
-                            _ks_public_count = (
-                                _ks_comment_summary.get("commentCountV2")
-                                if isinstance(_ks_comment_summary, dict)
-                                else None
-                            )
-                            if _ks_public_count in (None, "") and isinstance(_ks_comment_summary, dict):
-                                _ks_public_count = _ks_comment_summary.get("commentCount")
-                            if _ks_public_count not in (None, ""):
-                                photo["commentCount"] = _ks_public_count
-                                utils.logger.info(
-                                    f"[KS_DETAIL_COMMENT_COUNT] video={video_id} count={_ks_public_count}"
-                                )
-                        except Exception as _ks_count_exc:
-                            utils.logger.warning(
-                                f"[KS_DETAIL_COMMENT_COUNT] video={video_id} unavailable: "
-                                f"{type(_ks_count_exc).__name__}: {_ks_count_exc}"
-                            )
-'''
-    if anchor not in text:
+    lines = text.splitlines(keepends=True)
+    func_start = -1
+    func_end = len(lines)
+    for idx, line in enumerate(lines):
+        if line.lstrip().startswith("async def get_video_info_task("):
+            func_start = idx
+            base_indent = len(line) - len(line.lstrip())
+            for j in range(idx + 1, len(lines)):
+                stripped = lines[j].lstrip()
+                indent = len(lines[j]) - len(stripped)
+                if stripped and indent <= base_indent and (
+                    stripped.startswith("async def ")
+                    or stripped.startswith("def ")
+                    or stripped.startswith("class ")
+                ):
+                    func_end = j
+                    break
+            break
+    if func_start < 0:
+        raise RuntimeError("Kuaishou get_video_info_task not found")
+
+    author_idx = -1
+    author_indent = ""
+    seen_detail = False
+    for idx in range(func_start, func_end):
+        stripped = lines[idx].strip()
+        if stripped.startswith('detail = result.get("visionVideoDetail")'):
+            seen_detail = True
+            continue
+        if seen_detail and stripped.startswith('author = detail.get("author", {})'):
+            author_idx = idx
+            author_indent = lines[idx][: len(lines[idx]) - len(lines[idx].lstrip())]
+            break
+
+    if author_idx < 0:
         raise RuntimeError("Kuaishou detail comment-count anchor not found")
-    text = text.replace(anchor, replacement, 1)
-    _write(path, text)
+
+    i = author_indent
+    i1 = i + "    "
+    i2 = i + "        "
+    i3 = i + "            "
+    insertion = (
+        f'{i}# {marker}:\n'
+        f'{i}# Fetch the platform-displayed public comment total before persisting\n'
+        f'{i}# the detail row. Missing remains missing; a real zero remains zero.\n'
+        f'{i}if all(\n'
+        f'{i1}photo.get(key) in (None, "")\n'
+        f'{i1}for key in ("commentCount", "commentCountV2", "commentsCount", "comment_count")\n'
+        f'{i}):\n'
+        f'{i1}try:\n'
+        f'{i2}_ks_comment_summary = await self.ks_client.get_video_comments(video_id, "")\n'
+        f'{i2}_ks_public_count = (\n'
+        f'{i3}_ks_comment_summary.get("commentCountV2")\n'
+        f'{i3}if isinstance(_ks_comment_summary, dict)\n'
+        f'{i3}else None\n'
+        f'{i2})\n'
+        f'{i2}if _ks_public_count in (None, "") and isinstance(_ks_comment_summary, dict):\n'
+        f'{i3}_ks_public_count = _ks_comment_summary.get("commentCount")\n'
+        f'{i2}if _ks_public_count not in (None, ""):\n'
+        f'{i3}photo["commentCount"] = _ks_public_count\n'
+        f'{i3}utils.logger.info(\n'
+        f'{i3}    f"[KS_DETAIL_COMMENT_COUNT] video={{video_id}} count={{_ks_public_count}}"\n'
+        f'{i3})\n'
+        f'{i1}except Exception as _ks_count_exc:\n'
+        f'{i2}utils.logger.warning(\n'
+        f'{i2}    f"[KS_DETAIL_COMMENT_COUNT] video={{video_id}} unavailable: "\n'
+        f'{i2}    f"{{type(_ks_count_exc).__name__}}: {{_ks_count_exc}}"\n'
+        f'{i2})\n'
+    )
+    lines.insert(author_idx + 1, insertion)
+    _write(path, "".join(lines))
 
 def patch_store(root: Path) -> None:
     path = root / "store" / "kuaishou" / "__init__.py"
