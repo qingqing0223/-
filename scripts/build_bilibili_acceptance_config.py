@@ -20,11 +20,17 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True)
     ap.add_argument("--output", required=True)
+    ap.add_argument("--media-crawler-root", default="")
     args = ap.parse_args()
 
     base = Path(args.base).resolve()
     output = Path(args.output).resolve()
     cfg = json.loads(base.read_text(encoding="utf-8-sig"))
+
+    if args.media_crawler_root:
+        cfg["media_crawler_root"] = str(
+            Path(args.media_crawler_root).resolve()
+        )
 
     data_root = Path(str(cfg["data_root"]))
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
