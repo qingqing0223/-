@@ -72,13 +72,61 @@ def _latest_classified_rows(path: Path) -> list[dict]:
 def _load_profile_rows(files: Iterable[Path]) -> list[dict]:
     rows: list[dict] = []
     for path in files:
-        if "account_info" not in path.name.lower():
-            continue
-        for row in read_jsonl(path):
-            if isinstance(row, dict):
-                rows.append(row)
-    return rows
+        low = path.name.lower()
 
+        if "account_info" in low:
+            for row in read_jsonl(path):
+                if isinstance(row, dict):
+                    rows.append(row)
+            continue
+
+        # Bilibili view/detail already exposes public publisher metrics. The
+        # MediaCrawler patch stores those fields only in local raw content JSONL;
+        # convert them into Table-5 profile rows here without another API call.
+        if "content" not in low or "comment" in low:
+            continue
+
+        for row in read_jsonl(path):
+            if not isinstance(row, dict):
+                continue
+            if not any(
+                row.get(key) not in (None, "")
+                for key in (
+                    "creator_public_id",
+                    "account_name",
+                    "creator_profile_url",
+                    "follower_count",
+                    "following_count",
+                    "creator_official_title",
+                )
+            ):
+                continue
+
+            rows.append({
+                "creator_id": _clean(
+                    row.get("creator_hash")
+                    or row.get("creator_public_id")
+                ),
+                "account_id": _clean(row.get("creator_public_id")),
+                "account_name": _clean(
+                    row.get("account_name")
+                    or row.get("nickname")
+                ),
+                "profile_url": _clean(row.get("creator_profile_url")),
+                "followers": row.get("follower_count"),
+                "following": row.get("following_count"),
+                "organization": _clean(row.get("creator_official_title")),
+                "account_type_hint": (
+                    "认证账号"
+                    if _clean(row.get("creator_official_title"))
+                    else ""
+                ),
+                "ip_location": _clean(row.get("ip_location")),
+                "public_metrics_only": True,
+                "source": "bili_content_view_detail",
+            })
+
+    return rows
 
 def _match_profile(account: dict, profiles: list[dict]) -> dict:
     creator_id = _clean(account.get("creator_id"))
