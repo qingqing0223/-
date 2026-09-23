@@ -62,7 +62,7 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
             # Queue-only signal. Do not write a fabricated count to persisted data.
             # Kuaishou has been observed to show 0 while comments are still retrievable.
             item["visible_comment_count"] = 1
-            item["queue_signal"] = "kuaishou_zero_or_unknown_comment_count"
+            item["queue_signal"] = "kuaishou_unknown_comment_count"
             item["comment_count_unknown"] = True
 
     def bounded_kuaishou_detail(
