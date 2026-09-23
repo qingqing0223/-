@@ -1,0 +1,99 @@
+{
+  "event_id": "promotion_week_2026_preheat",
+  "event_name": "2026年民族团结进步宣传周预热阶段舆情监测",
+  "submission_node_id": "zhihu01",
+  "monitoring_start_time": "2026-09-21T09:00:00+08:00",
+  "media_crawler_root": "MediaCrawler_clean",
+  "data_root": "data/zhihu_runtime",
+  "login_type": "qrcode",
+  "realtime_mode": true,
+  "realtime_discovery_max_notes_count": 10,
+  "zhihu_realtime_discovery_max_notes_count": 10,
+  "zhihu_realtime_search_timeout_seconds": 0,
+  "zhihu_realtime_detail_max_items_per_cycle": 3,
+  "realtime_detail_batch_size": 1,
+  "max_concurrency_num": 1,
+  "get_comment": "yes",
+  "get_sub_comment": "yes",
+  "ingest_comments": true,
+  "save_data_option": "jsonl",
+  "zhihu_require_publish_time": true,
+  "zhihu_key_accounts_file": "config/zhihu_key_accounts.local.json",
+  "zhihu_key_account_discovery_max_notes_count": 1,
+  "key_account_catalog": "config/key_accounts.v3.catalog.json",
+  "platforms": [
+    {"code": "zhihu", "name": "知乎", "enabled": true}
+  ],
+  "keywords": [
+    "民族团结进步宣传周",
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "民族团结进步宣传周启动",
+    "民族团结进步宣传周活动",
+    "民族团结进步宣传周主场活动",
+    "2026年民族团结进步宣传周主场活动",
+    "民族团结进步宣传周主题宣传片",
+    "民族团结进步倡议",
+    "民族团结进步倡议书",
+    "促进民族团结进步，奋进伟大复兴征程",
+    "民族团结宣传周",
+    "民族宣传周",
+    "团结进步宣传周",
+    "民族团结倡议",
+    "团结进步倡议",
+    "民族团结进取宣传周",
+    "民族团结进步 宣传周",
+    "民族团结进步 主场活动",
+    "民族团结进步 主题宣传片",
+    "民族团结 宣传周",
+    "民族团结进步 主题活动",
+    "民族团结进步 宣传教育",
+    "民族团结进步促进法 宣传周",
+    "民族团结进步促进法 2026",
+    "铸牢中华民族共同体意识 宣传周",
+    "铸牢中华民族共同体意识 主场活动",
+    "石榴花开 宣传周",
+    "石榴花开 2026"
+  ],
+  "zhihu_direct_keywords": [
+    "民族团结进步宣传周",
+    "2026年民族团结进步宣传周",
+    "首个民族团结进步宣传周",
+    "民族团结进步宣传周启动",
+    "民族团结进步宣传周活动",
+    "民族团结进步宣传周主场活动",
+    "2026年民族团结进步宣传周主场活动",
+    "民族团结进步宣传周主题宣传片",
+    "民族团结进步倡议",
+    "民族团结进步倡议书",
+    "促进民族团结进步，奋进伟大复兴征程"
+  ],
+  "zhihu_alias_keywords": [
+    "民族团结宣传周",
+    "民族宣传周",
+    "团结进步宣传周",
+    "民族团结倡议",
+    "团结进步倡议"
+  ],
+  "zhihu_typo_keywords": ["民族团结进取宣传周"],
+  "zhihu_current_event_anchors": [
+    "2026", "首个", "主场活动", "主题宣传片", "9月21日", "9月27日",
+    "21日至27日", "21日—27日", "奋进伟大复兴征程"
+  ],
+  "zhihu_combination_rules": [
+    ["民族团结进步", "宣传周"],
+    ["民族团结进步", "主场活动"],
+    ["民族团结进步", "主题宣传片"],
+    ["民族团结", "宣传周"],
+    ["民族团结进步", "主题活动"],
+    ["民族团结进步", "宣传教育"]
+  ],
+  "zhihu_association_terms": [
+    "民族团结进步促进法", "铸牢中华民族共同体意识", "石榴花开"
+  ],
+  "zhihu_association_anchors": [
+    "宣传周", "2026", "主场活动", "9月21日", "9月27日",
+    "21日至27日", "21日—27日"
+  ],
+  "zhihu_exclude_without_core": ["宣传月"]
+}

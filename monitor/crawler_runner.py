@@ -582,6 +582,18 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                     ))
                 except Exception:
                     search_timeout = 180
+            elif realtime_mode and code == "zhihu":
+                try:
+                    configured_timeout = int(
+                        cfg.get("zhihu_realtime_search_timeout_seconds", 150)
+                    )
+                    search_timeout = (
+                        None
+                        if configured_timeout <= 0
+                        else max(30, min(configured_timeout, 1800))
+                    )
+                except Exception:
+                    search_timeout = 150
             try:
                 proc = subprocess.run(
                     cmd,
@@ -604,6 +616,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                     "wb": "WB_REALTIME_SEARCH_TIMEOUT",
                     "xhs": "XHS_REALTIME_SEARCH_TIMEOUT",
                     "toutiao": "TOUTIAO_REALTIME_SEARCH_TIMEOUT",
+                    "zhihu": "ZHIHU_REALTIME_SEARCH_TIMEOUT",
                 }.get(code, "REALTIME_SEARCH_TIMEOUT")
                 err.write(
                     f"\n[monitor] {timeout_marker} timeout={search_timeout}s; "

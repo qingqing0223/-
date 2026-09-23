@@ -89,6 +89,7 @@ def install_zhihu_scope_aware_realtime_policy(cfg: dict) -> None:
                 monitoring_start,
                 require_topic=True,
                 require_publish_time=require_publish_time,
+                scope_cfg=cfg,
             )
             if not valid:
                 items.pop(identifier, None)

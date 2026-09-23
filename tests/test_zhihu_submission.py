@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 
-from monitor.zhihu_submission import export_zhihu_submission
+from monitor.zhihu_submission import _topic_in_scope, export_zhihu_submission
 
 
 KEYWORDS = [
@@ -191,6 +191,11 @@ def test_exports_only_tables_1_to_5_with_strict_scope_and_dedupe(tmp_path):
     assert len(table5) == 1
     assert table5[0]["is_key_account"] is True
     assert table5[0]["account_type"] == "中央媒体"
+    # The same post was returned by two keyword searches. Account engagement
+    # must use the deduplicated post's latest values, not 12+15 and 2+2.
+    assert table5[0]["related_post_count"] == 1
+    assert table5[0]["like_count"] == 15
+    assert table5[0]["comment_count"] == 2
     # Zhihu did not expose repost/favorite in this fixture; keep blank, not 0.
     assert table5[0]["repost_count"] == ""
     assert table5[0]["total_engagement"] == ""
@@ -201,7 +206,7 @@ def test_exports_only_tables_1_to_5_with_strict_scope_and_dedupe(tmp_path):
     assert result["table345_update_policy_seconds"] == 3600
 
 
-def test_tables_3_to_5_update_only_once_per_hour(tmp_path):
+def test_tables_3_to_5_update_current_hour_and_append_new_hours(tmp_path):
     _write_catalog(tmp_path)
     raw = tmp_path / "contents.jsonl"
     raw.write_text(
@@ -239,6 +244,9 @@ def test_tables_3_to_5_update_only_once_per_hour(tmp_path):
     )
     assert len(_read_jsonl(output / "table3_content_engagement.jsonl")) == 1
 
+    row = json.loads(raw.read_text(encoding="utf-8"))
+    row["voteup_count"] = 18
+    raw.write_text(json.dumps(row, ensure_ascii=False) + "\n", encoding="utf-8")
     result_same_hour = export_zhihu_submission(
         [raw],
         _cfg(),
@@ -247,7 +255,10 @@ def test_tables_3_to_5_update_only_once_per_hour(tmp_path):
         now=datetime(2026, 9, 20, 16, 25, tzinfo=tz),
     )
     assert result_same_hour["hourly_snapshot_due"] is False
-    assert len(_read_jsonl(output / "table3_content_engagement.jsonl")) == 1
+    same_hour_rows = _read_jsonl(output / "table3_content_engagement.jsonl")
+    assert len(same_hour_rows) == 1
+    assert same_hour_rows[0]["like_count"] == 18
+    assert result_same_hour["table3_snapshot_rows_updated"] == 1
 
     result_next_hour = export_zhihu_submission(
         [raw],
@@ -258,3 +269,69 @@ def test_tables_3_to_5_update_only_once_per_hour(tmp_path):
     )
     assert result_next_hour["hourly_snapshot_due"] is True
     assert len(_read_jsonl(output / "table3_content_engagement.jsonl")) == 2
+
+    result_next_day = export_zhihu_submission(
+        [raw],
+        _cfg(),
+        tmp_path,
+        "zhihu01",
+        now=datetime(2026, 9, 21, 9, 1, tzinfo=tz),
+    )
+    next_day = (
+        tmp_path
+        / "data_submissions"
+        / "zhihu"
+        / "2026-09-21_zhihu01"
+    )
+    assert result_next_day["seeded_from_previous_submission"] == str(output)
+    assert len(_read_jsonl(next_day / "table1_content.jsonl")) == 1
+    assert len(_read_jsonl(next_day / "table3_content_engagement.jsonl")) == 3
+
+
+def test_broad_search_strict_topic_policy():
+    cfg = {
+        "zhihu_direct_keywords": ["民族团结进步宣传周"],
+        "zhihu_alias_keywords": ["民族团结宣传周"],
+        "zhihu_typo_keywords": ["民族团结进取宣传周"],
+        "zhihu_current_event_anchors": ["2026", "首个", "9月21日"],
+        "zhihu_combination_rules": [
+            ["民族团结进步", "主场活动"],
+            ["民族团结", "宣传周"],
+        ],
+        "zhihu_association_terms": [
+            "民族团结进步促进法",
+            "铸牢中华民族共同体意识",
+            "石榴花开",
+        ],
+        "zhihu_association_anchors": ["宣传周", "2026", "主场活动"],
+        "zhihu_exclude_without_core": ["宣传月"],
+    }
+
+    assert _topic_in_scope(
+        {"content": "2026年民族团结进步宣传周正式启动", "context": ""},
+        cfg,
+    )[0]
+    assert _topic_in_scope(
+        {"content": "2026年民族团结进取宣传周启动", "context": ""},
+        cfg,
+    )[0]
+    assert _topic_in_scope(
+        {"content": "石榴花开主题亮相2026年宣传周", "context": ""},
+        cfg,
+    )[0]
+    assert not _topic_in_scope(
+        {"content": "石榴花开，铸牢中华民族共同体意识", "context": ""},
+        cfg,
+    )[0]
+    assert not _topic_in_scope(
+        {"content": "某地开展民族团结宣传月活动", "context": ""},
+        cfg,
+    )[0]
+    assert not _topic_in_scope(
+        {
+            "context": "2026年国家通用语言文字推广普及宣传周开幕",
+            "content": "本届推普宣传周活动圆满举办。" + "其他内容" * 50
+            + "为铸牢中华民族共同体意识提供支撑，让民族团结进步之花常开。",
+        },
+        cfg,
+    )[0]

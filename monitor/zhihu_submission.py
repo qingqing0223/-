@@ -3,13 +3,15 @@ from __future__ import annotations
 """Export Zhihu collection-only data into Tech Design V3 tables 1-5.
 
 Collection scope only: no attitude / issue classification is performed here.
-Table 1-2 are refreshed every collection cycle (the Zhihu runner uses 15 minutes).
-Table 3-5 are refreshed at most once per wall-clock hour.
+Table 1-2 are merged every collection cycle (the Zhihu runner uses 15 minutes).
+Table 3-4 retain hourly history and update the current hour in place; table 5
+is merged every cycle.
 """
 
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import shutil
 from typing import Iterable
 
 from pipeline.normalizer import normalize_record
@@ -112,6 +114,119 @@ def _matched_keywords(record: dict, keywords: list[str]) -> list[str]:
 
     return list(dict.fromkeys(matched))
 
+def _normalized_terms(values) -> list[tuple[str, str]]:
+    return [
+        (str(value).strip(), _normalize_topic_text(value))
+        for value in (values or [])
+        if str(value or "").strip()
+    ]
+
+
+def _terms_nearby(text: str, terms: list[str], max_span: int = 80) -> bool:
+    """Return true when every term occurs in one compact passage.
+
+    This prevents unrelated phrases in a long article (for example a language
+    promotion week plus a later generic mention of ethnic unity) from being
+    combined into a false campaign hit.
+    """
+    positions: list[list[int]] = []
+    for term in terms:
+        if not term:
+            return False
+        found: list[int] = []
+        start = 0
+        while True:
+            index = text.find(term, start)
+            if index < 0:
+                break
+            found.append(index)
+            start = index + 1
+        if not found:
+            return False
+        positions.append(found)
+
+    def visit(group: int, selected: list[int]) -> bool:
+        if group == len(positions):
+            starts = selected
+            ends = [pos + len(terms[i]) for i, pos in enumerate(selected)]
+            return max(ends) - min(starts) <= max_span
+        return any(visit(group + 1, [*selected, pos]) for pos in positions[group])
+
+    return visit(0, [])
+
+
+def _topic_in_scope(record: dict, scope_cfg: dict) -> tuple[bool, str]:
+    """Apply broad-search/strict-admission rules for the Zhihu campaign."""
+    body = str(record.get("content") or "")
+    title = str(record.get("context") or "")
+    visible = "\n".join((body, title))
+    normalized = _normalize_topic_text(visible)
+    normalized_title = _normalize_topic_text(title)
+    if not normalized:
+        return False, "标题/正文为空，无法确认主题相关性"
+
+    direct = _normalized_terms(scope_cfg.get("zhihu_direct_keywords"))
+    aliases = _normalized_terms(scope_cfg.get("zhihu_alias_keywords"))
+    typos = _normalized_terms(scope_cfg.get("zhihu_typo_keywords"))
+    current_anchors = _normalized_terms(
+        scope_cfg.get("zhihu_current_event_anchors")
+    )
+    association_terms = _normalized_terms(
+        scope_cfg.get("zhihu_association_terms")
+    )
+    association_anchors = _normalized_terms(
+        scope_cfg.get("zhihu_association_anchors")
+    )
+    exclusions = _normalized_terms(
+        scope_cfg.get("zhihu_exclude_without_core")
+    )
+
+    # A title explicitly naming some other type of promotion week is strong
+    # negative evidence. Do not let generic ethnic-unity wording later in a
+    # long article turn that different campaign into a valid hit.
+    if "宣传周" in normalized_title:
+        title_is_campaign = any(
+            term and term in normalized_title
+            for _, term in [*direct, *aliases, *typos]
+        ) or _terms_nearby(normalized_title, ["民族团结", "宣传周"])
+        if not title_is_campaign:
+            return False, "标题明确指向其他宣传周主题"
+
+    direct_hits = [raw for raw, term in direct if term and term in normalized]
+    if direct_hits:
+        return True, f"核心关键词:{direct_hits[0]}"
+
+    has_exclusion = any(term and term in normalized for _, term in exclusions)
+    has_current_anchor = any(
+        term and term in normalized for _, term in current_anchors
+    )
+
+    alias_hits = [raw for raw, term in aliases if term and term in normalized]
+    typo_hits = [raw for raw, term in typos if term and term in normalized]
+    if (alias_hits or typo_hits) and has_current_anchor and not has_exclusion:
+        hit = (alias_hits or typo_hits)[0]
+        return True, f"简称/误写+当前活动锚点:{hit}"
+
+    for raw_rule in scope_cfg.get("zhihu_combination_rules") or []:
+        if not isinstance(raw_rule, list) or len(raw_rule) < 2:
+            continue
+        terms = [_normalize_topic_text(value) for value in raw_rule]
+        if _terms_nearby(normalized, terms) and not has_exclusion:
+            return True, "组合检索:" + "+".join(str(value) for value in raw_rule)
+
+    for association_hit, association_term in association_terms:
+        for association_anchor, anchor_term in association_anchors:
+            if (
+                _terms_nearby(normalized, [association_term, anchor_term])
+                and not has_exclusion
+            ):
+                return True, f"关联词+限定词:{association_hit}+{association_anchor}"
+
+    if has_exclusion:
+        return False, "仅命中宣传月/历史宽泛表达，未证明当前宣传周主题"
+    return False, "未通过核心词、组合词或关联词限定校验"
+
+
 def _in_scope(
     record: dict,
     keywords: list[str],
@@ -119,6 +234,7 @@ def _in_scope(
     *,
     require_topic: bool = True,
     require_publish_time: bool = True,
+    scope_cfg: dict | None = None,
 ) -> tuple[bool, str]:
     published = _parse_time(record.get("publish_time", ""))
     start = _parse_time(monitoring_start_time)
@@ -129,8 +245,13 @@ def _in_scope(
             published = published.replace(tzinfo=start.tzinfo)
         if published < start:
             return False, "发布时间早于正式监测起点"
-    if require_topic and not _matched_keywords(record, keywords):
-        return False, "标题/正文未命中完整正式主题关键词"
+    if require_topic:
+        if scope_cfg and scope_cfg.get("zhihu_direct_keywords"):
+            topic_valid, topic_reason = _topic_in_scope(record, scope_cfg)
+            if not topic_valid:
+                return False, topic_reason
+        elif not _matched_keywords(record, keywords):
+            return False, "标题/正文未命中完整正式主题关键词"
     return True, ""
 
 
@@ -237,19 +358,54 @@ def _upsert_rows(path: Path, incoming: Iterable[dict], key: str) -> int:
     return len(existing) - before
 
 
-def _append_snapshot_rows(path: Path, rows: Iterable[dict]) -> int:
+def _upsert_snapshot_rows(path: Path, rows: Iterable[dict]) -> tuple[int, int]:
     existing = {
         str(row.get("snapshot_key") or ""): row
         for row in _read_rows(path)
         if row.get("snapshot_key")
     }
-    before = len(existing)
+    added = updated = 0
     for row in rows:
         key = str(row.get("snapshot_key") or "")
         if key:
-            existing[key] = row
+            if key in existing:
+                merged = dict(existing[key])
+                for name, value in row.items():
+                    if value not in (None, ""):
+                        merged[name] = value
+                existing[key] = merged
+                updated += 1
+            else:
+                existing[key] = row
+                added += 1
     _write_rows(path, [existing[k] for k in sorted(existing)])
-    return len(existing) - before
+    return added, updated
+
+
+def _seed_from_previous_submission(
+    repo_root: Path,
+    output: Path,
+    safe_node: str,
+) -> str:
+    """Seed a new daily package from the latest prior cumulative package."""
+    root = repo_root / "data_submissions" / "zhihu"
+    previous = sorted(
+        (
+            path
+            for path in root.glob(f"*_{safe_node}")
+            if path.is_dir() and path != output
+        ),
+        key=lambda path: path.name,
+    )
+    if not previous:
+        return ""
+    source = previous[-1]
+    for filename in TABLES:
+        source_file = source / filename
+        target_file = output / filename
+        if source_file.exists() and not target_file.exists():
+            shutil.copy2(source_file, target_file)
+    return str(source)
 
 
 def export_zhihu_submission(
@@ -272,6 +428,7 @@ def export_zhihu_submission(
     )
     output = repo_root / "data_submissions" / "zhihu" / f"{date_text}_{safe_node}"
     output.mkdir(parents=True, exist_ok=True)
+    seeded_from = _seed_from_previous_submission(repo_root, output, safe_node)
 
     keywords = [str(x).strip() for x in cfg.get("keywords", []) if str(x).strip()]
     monitoring_start = str(cfg.get("monitoring_start_time") or "")
@@ -288,7 +445,10 @@ def export_zhihu_submission(
     comments: dict[str, dict] = {}
     content_snapshots: dict[str, dict] = {}
     comment_snapshots: dict[str, dict] = {}
-    account_posts: dict[str, list[tuple[dict, dict]]] = {}
+    # One content can be returned by many keyword searches. Keep exactly one
+    # latest raw row per author/content pair so table 5 does not multiply the
+    # same post's engagement by its number of search hits.
+    account_posts: dict[str, dict[str, tuple[dict, dict]]] = {}
     account_meta: dict[str, dict] = {}
 
     raw_rows = [(path, raw) for path in raw_files for raw in _read_rows(path)]
@@ -310,6 +470,7 @@ def export_zhihu_submission(
             monitoring_start,
             require_topic=True,
             require_publish_time=require_publish_time,
+            scope_cfg=cfg,
         )
         if valid:
             cid = _content_id(probe)
@@ -328,6 +489,7 @@ def export_zhihu_submission(
             monitoring_start,
             require_topic=not is_comment,
             require_publish_time=require_publish_time,
+            scope_cfg=cfg,
         )
         parent_id = str(record.get("content_id") or "").strip()
         if is_comment and parent_id not in valid_content_ids:
@@ -370,21 +532,20 @@ def export_zhihu_submission(
                 },
                 "comment_id",
             )
-            if snapshot_due:
-                snap = {
-                    "content_id": parent_id,
-                    "comment_id": comment_id,
-                    "platform": "知乎",
-                    "snapshot_time": now_text,
-                    "comment_reply_count": _public_value(
-                        raw, "sub_comment_count", "reply_count"
-                    ),
-                    "comment_like_count": _public_value(
-                        raw, "like_count", "liked_count", "voteup_count"
-                    ),
-                }
-                snap["snapshot_key"] = f"{parent_id}:{comment_id}:{current_bucket}"
-                comment_snapshots[comment_id] = snap
+            snap = {
+                "content_id": parent_id,
+                "comment_id": comment_id,
+                "platform": "知乎",
+                "snapshot_time": now_text,
+                "comment_reply_count": _public_value(
+                    raw, "sub_comment_count", "reply_count"
+                ),
+                "comment_like_count": _public_value(
+                    raw, "like_count", "liked_count", "voteup_count"
+                ),
+            }
+            snap["snapshot_key"] = f"{parent_id}:{comment_id}:{current_bucket}"
+            comment_snapshots[comment_id] = snap
             continue
 
         content_seen += 1
@@ -429,30 +590,29 @@ def export_zhihu_submission(
             "content_id",
         )
 
-        if snapshot_due:
-            snap = {
-                "content_id": content_id,
-                "platform": "知乎",
-                "snapshot_time": now_text,
-                "view_count": _public_value(raw, "view_count", "views"),
-                "like_count": _public_value(
-                    raw, "voteup_count", "like_count", "likes"
-                ),
-                "comment_count": _public_value(
-                    raw, "comment_count", "comments_count", "comments"
-                ),
-                "repost_count": _public_value(raw, "repost_count", "forward_count"),
-                "share_count": _public_value(raw, "share_count", "shares"),
-                "favorite_count": _public_value(
-                    raw, "favorite_count", "favorites", "collected_count"
-                ),
-            }
-            snap["snapshot_key"] = f"{content_id}:{current_bucket}"
-            content_snapshots[content_id] = snap
+        snap = {
+            "content_id": content_id,
+            "platform": "知乎",
+            "snapshot_time": now_text,
+            "view_count": _public_value(raw, "view_count", "views"),
+            "like_count": _public_value(
+                raw, "voteup_count", "like_count", "likes"
+            ),
+            "comment_count": _public_value(
+                raw, "comment_count", "comments_count", "comments"
+            ),
+            "repost_count": _public_value(raw, "repost_count", "forward_count"),
+            "share_count": _public_value(raw, "share_count", "shares"),
+            "favorite_count": _public_value(
+                raw, "favorite_count", "favorites", "collected_count"
+            ),
+        }
+        snap["snapshot_key"] = f"{content_id}:{current_bucket}"
+        content_snapshots[content_id] = snap
 
         author_id = str(record.get("author_id") or "").strip()
-        if snapshot_due and author_id:
-            account_posts.setdefault(author_id, []).append((record, raw))
+        if author_id:
+            account_posts.setdefault(author_id, {})[content_id] = (record, raw)
             meta = account_meta.setdefault(
                 author_id,
                 {
@@ -494,22 +654,21 @@ def export_zhihu_submission(
         output / "table2_comments.jsonl", comments.values(), "comment_id"
     )
 
-    table3_added = table4_added = table5_changed = 0
-    if snapshot_due:
-        table3_added = _append_snapshot_rows(
-            output / "table3_content_engagement.jsonl",
-            content_snapshots.values(),
-        )
-        table4_added = _append_snapshot_rows(
-            output / "table4_comment_engagement.jsonl",
-            comment_snapshots.values(),
-        )
+    table3_added, table3_updated = _upsert_snapshot_rows(
+        output / "table3_content_engagement.jsonl",
+        content_snapshots.values(),
+    )
+    table4_added, table4_updated = _upsert_snapshot_rows(
+        output / "table4_comment_engagement.jsonl",
+        comment_snapshots.values(),
+    )
 
-        account_rows: list[dict] = []
-        for author_id, post_pairs in account_posts.items():
-            meta = dict(account_meta[author_id])
-            raw_posts = [raw for _, raw in post_pairs]
-            account_row = {
+    account_rows: list[dict] = []
+    for author_id, posts_by_content in account_posts.items():
+        meta = dict(account_meta[author_id])
+        post_pairs = list(posts_by_content.values())
+        raw_posts = [raw for _, raw in post_pairs]
+        account_row = {
                 **meta,
                 "related_post_count": len(
                     {_content_id(rec) for rec, _ in post_pairs if _content_id(rec)}
@@ -535,21 +694,21 @@ def export_zhihu_submission(
                 ]),
                 "total_engagement": "",
                 "collection_time": now_text,
-            }
-            interaction_parts = [
-                account_row["like_count"],
-                account_row["comment_count"],
-                account_row["repost_count"],
-                account_row["favorite_count"],
-            ]
-            if all(value != "" for value in interaction_parts):
-                account_row["total_engagement"] = sum(
-                    int(value) for value in interaction_parts
-                )
-            account_rows.append(account_row)
-        table5_changed = _upsert_rows(
-            output / "table5_accounts.jsonl", account_rows, "author_id"
-        )
+        }
+        interaction_parts = [
+            account_row["like_count"],
+            account_row["comment_count"],
+            account_row["repost_count"],
+            account_row["favorite_count"],
+        ]
+        if all(value != "" for value in interaction_parts):
+            account_row["total_engagement"] = sum(
+                int(value) for value in interaction_parts
+            )
+        account_rows.append(account_row)
+    table5_changed = _upsert_rows(
+        output / "table5_accounts.jsonl", account_rows, "author_id"
+    )
 
     # Always leave a complete five-file submission package, even after a zero-hit cycle.
     for filename in TABLES:
@@ -560,6 +719,7 @@ def export_zhihu_submission(
     manifest = {
         "platform": "zhihu",
         "node_id": safe_node,
+        "seeded_from_previous_submission": seeded_from,
         "generated_at": now_text,
         "monitoring_start_time": monitoring_start,
         "keywords": keywords,
@@ -577,7 +737,9 @@ def export_zhihu_submission(
             else previous_manifest.get("last_hourly_snapshot_bucket", "")
         ),
         "table3_snapshot_rows_added": table3_added,
+        "table3_snapshot_rows_updated": table3_updated,
         "table4_snapshot_rows_added": table4_added,
+        "table4_snapshot_rows_updated": table4_updated,
         "table5_accounts_changed": table5_changed,
         "last_hourly_snapshot_bucket": (
             current_bucket
