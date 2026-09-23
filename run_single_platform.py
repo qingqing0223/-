@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import subprocess
 import time
@@ -12,30 +13,39 @@ PLATFORMS = {"xhs", "dy", "wb", "ks", "bili", "toutiao", "zhihu"}
 
 
 def _install_kuaishou_unknown_comment_queue_fallback() -> None:
-    """Install the Kuaishou-specific five-minute realtime policy.
+    """Install the Kuaishou realtime comment policy.
 
-    Kuaishou search JSONL currently exposes a ``comment_count`` field but may leave
-    it at zero even when comments are retrievable. The fallback therefore lets
-    newly discovered Kuaishou videos enter the persistent detail queue even when
-    the public count is unknown. The queue-only priority value is never written
-    back as a claimed platform comment count.
+    Search stays discovery-only. New videos enter the bounded deep-comment queue
+    even when Kuaishou reports a zero/unknown public comment count.
 
-    Realtime deep-comment crawling is also given a finite wall-clock budget and a
-    realtime per-video comment cap. Historical backfill remains separate and may
-    crawl to natural end; the realtime path must not let a very large thread delay
-    the next new-content discovery indefinitely.
-
-    Kuaishou detail subprocesses are intentionally isolated per candidate. A
-    transient browser/API failure on one video must not prevent the remaining
-    queued videos from being tried in the same realtime budget.
+    There is intentionally no preflight that requires an already-running browser
+    on 127.0.0.1:9222. The pinned MediaCrawler can launch its own CDP browser
+    when CDP_CONNECT_EXISTING=False and its Kuaishou core falls back to standard
+    Playwright if CDP launch fails.
     """
     import monitor.crawler_runner as crawler_runner
+    from monitor.final_realtime_policy import (
+        _rollback_jsonl,
+        _snapshot_jsonl,
+        _terminate_process_tree,
+    )
 
     if getattr(crawler_runner, "_promotion_week_ks_unknown_count_fallback", False):
         return
 
     original_update = crawler_runner._update_queue_from_content
     original_detail = crawler_runner._run_detail_comment_recovery
+    original_mark = crawler_runner._mark_queue_batch
+
+    def store_outcome(requested, attempted, successful, empty, failed):
+        setattr(crawler_runner, "_promotion_week_last_detail_outcome", {
+            "platform": "ks",
+            "requested": list(requested),
+            "attempted": list(attempted),
+            "successful": list(successful),
+            "empty": list(empty),
+            "failed": list(failed),
+        })
 
     def update_with_kuaishou_fallback(platform: str, content_files: list[Path], queue: dict) -> None:
         original_update(platform, content_files, queue)
@@ -49,8 +59,10 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                 item["queue_signal"] = "visible_comment_count"
                 item["comment_count_unknown"] = False
                 continue
+            # Queue-only signal. Do not write a fabricated count to persisted data.
+            # Kuaishou has been observed to show 0 while comments are still retrievable.
             item["visible_comment_count"] = 1
-            item["queue_signal"] = "kuaishou_unknown_comment_count"
+            item["queue_signal"] = "kuaishou_zero_or_unknown_comment_count"
             item["comment_count_unknown"] = True
 
     def bounded_kuaishou_detail(
@@ -65,31 +77,41 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
     ) -> tuple[int | None, int]:
         if platform != "ks" or not bool(cfg.get("realtime_mode", False)):
             return original_detail(
-                cfg,
-                platform,
-                candidates,
-                output_dir,
-                stdout_log,
-                stderr_log,
+                cfg, platform, candidates, output_dir, stdout_log, stderr_log,
                 batch_size=batch_size,
             )
         if not candidates:
+            store_outcome([], [], [], [], [])
             return 0, 0
 
-        budget_seconds = max(30, min(int(cfg.get("kuaishou_realtime_detail_budget_seconds", 120)), 180))
-        realtime_comment_cap = max(20, min(int(cfg.get("kuaishou_realtime_max_comments_per_video", 300)), 2000))
+        budget_seconds = max(
+            30, min(int(cfg.get("kuaishou_realtime_detail_budget_seconds", 120)), 180)
+        )
+        candidate_timeout = max(
+            20, min(int(cfg.get("kuaishou_realtime_candidate_timeout_seconds", 60)), 150)
+        )
+        realtime_comment_cap = max(
+            20, min(int(cfg.get("kuaishou_realtime_max_comments_per_video", 300)), 2000)
+        )
         deadline = time.monotonic() + budget_seconds
-        attempts = 0
-        success_count = 0
+
+        attempted: list[str] = []
+        successful: list[str] = []
+        empty: list[str] = []
+        failed: list[str] = []
         first_failure_rc: int | None = None
 
         for identifier in candidates:
             remaining = deadline - time.monotonic()
-            if remaining <= 5:
+            if remaining <= 10:
                 with stdout_log.open("a", encoding="utf-8") as out:
-                    out.write("\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED before next candidate\n")
+                    out.write(
+                        "\n[monitor] KUAISHOU_REALTIME_DETAIL_SOFT_BUDGET_EXHAUSTED "
+                        "next_candidate_stays_pending=yes\n"
+                    )
                 break
 
+            timeout_seconds = max(10, min(candidate_timeout, int(remaining)))
             cmd = [
                 "uv", "run", "main.py",
                 "--platform", platform,
@@ -103,53 +125,102 @@ def _install_kuaishou_unknown_comment_queue_fallback() -> None:
                 "--save_data_path", str(output_dir),
                 "--max_comments_count_singlenotes", str(realtime_comment_cap),
             ]
+
+            snapshot = _snapshot_jsonl(output_dir)
+            attempted.append(identifier)
             with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
                 out.write(
-                    f"\n[monitor] KUAISHOU_REALTIME_DETAIL candidate={attempts + 1}/{len(candidates)} "
-                    f"budget_remaining={int(remaining)}s comment_cap={realtime_comment_cap}\n"
+                    f"\n[monitor] KUAISHOU_REALTIME_DETAIL candidate={len(attempted)}/{len(candidates)} "
+                    f"budget_remaining={int(remaining)}s candidate_timeout={timeout_seconds}s "
+                    f"comment_cap={realtime_comment_cap} external_cdp_preflight=no\n"
                 )
-                try:
-                    proc = subprocess.run(
-                        cmd,
-                        cwd=cfg["media_crawler_root"],
-                        stdout=out,
-                        stderr=err,
-                        text=True,
-                        timeout=max(5, int(remaining)),
-                    )
-                except subprocess.TimeoutExpired:
-                    out.write(
-                        "\n[monitor] KUAISHOU_REALTIME_DETAIL_BUDGET_EXHAUSTED "
-                        "partial_rows_preserved=yes\n"
-                    )
-                    attempts += 1
-                    break
+                popen_kwargs = {
+                    "cwd": cfg["media_crawler_root"],
+                    "stdout": out,
+                    "stderr": err,
+                    "text": True,
+                }
+                if os.name == "nt":
+                    popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                else:
+                    popen_kwargs["start_new_session"] = True
 
-            attempts += 1
-            if proc.returncode == 0:
-                success_count += 1
+                proc = subprocess.Popen(cmd, **popen_kwargs)
+                try:
+                    proc.wait(timeout=timeout_seconds)
+                except subprocess.TimeoutExpired:
+                    _terminate_process_tree(proc)
+                    _rollback_jsonl(output_dir, snapshot)
+                    failed.append(identifier)
+                    if first_failure_rc is None:
+                        first_failure_rc = 124
+                    out.write(
+                        "[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_TIMEOUT "
+                        "process_tree_terminated=yes; partial_jsonl_rolled_back=yes; "
+                        "candidate_remains_retryable=yes\n"
+                    )
+                    continue
+
+            if proc.returncode != 0:
+                _rollback_jsonl(output_dir, snapshot)
+                failed.append(identifier)
+                if first_failure_rc is None:
+                    first_failure_rc = proc.returncode
                 with stdout_log.open("a", encoding="utf-8") as out:
-                    out.write("[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_SUCCESS\n")
+                    out.write(
+                        f"[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_FAILED rc={proc.returncode}; "
+                        "partial_jsonl_rolled_back=yes; continuing_with_next_candidate=yes\n"
+                    )
                 continue
 
-            if first_failure_rc is None:
-                first_failure_rc = proc.returncode
-            with stdout_log.open("a", encoding="utf-8") as out:
-                out.write(
-                    f"[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_FAILED rc={proc.returncode}; "
-                    "continuing_with_next_candidate=yes\n"
-                )
+            after = _snapshot_jsonl(output_dir)
+            comment_growth = any(
+                "comment" in path.name.lower() and size > int(snapshot.get(path, 0))
+                for path, size in after.items()
+            )
+            if comment_growth:
+                successful.append(identifier)
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write(
+                        "[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_SUCCESS "
+                        "comments_persisted=yes\n"
+                    )
+            else:
+                empty.append(identifier)
+                with stdout_log.open("a", encoding="utf-8") as out:
+                    out.write(
+                        "[monitor] KUAISHOU_REALTIME_DETAIL_CANDIDATE_EMPTY "
+                        "rc=0 comments_persisted=no; candidate_remains_retryable=yes\n"
+                    )
 
-        if success_count > 0:
-            return 0, attempts
+        store_outcome(candidates, attempted, successful, empty, failed)
+        if successful:
+            return 0, len(attempted)
         if first_failure_rc is not None:
-            return first_failure_rc, attempts
-        return 0, attempts
+            return first_failure_rc, len(attempted)
+        return 0, len(attempted)
+
+    def precise_queue_mark(queue: dict, candidates: list[str], success: bool) -> None:
+        outcome = getattr(crawler_runner, "_promotion_week_last_detail_outcome", None)
+        if isinstance(outcome, dict) and outcome.get("platform") == "ks":
+            if list(outcome.get("requested") or []) == list(candidates):
+                successful = list(outcome.get("successful") or [])
+                empty = list(outcome.get("empty") or [])
+                failed = list(outcome.get("failed") or [])
+                if successful:
+                    original_mark(queue, successful, True)
+                if empty:
+                    original_mark(queue, empty, False)
+                if failed:
+                    original_mark(queue, failed, False)
+                setattr(crawler_runner, "_promotion_week_last_detail_outcome", None)
+                return
+        original_mark(queue, candidates, success)
 
     crawler_runner._update_queue_from_content = update_with_kuaishou_fallback
     crawler_runner._run_detail_comment_recovery = bounded_kuaishou_detail
+    crawler_runner._mark_queue_batch = precise_queue_mark
     crawler_runner._promotion_week_ks_unknown_count_fallback = True
-
 
 def _install_douyin_realtime_policy() -> None:
     """Bound and isolate Douyin deep-comment work inside the five-minute cycle.
