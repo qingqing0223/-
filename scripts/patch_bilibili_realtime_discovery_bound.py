@@ -39,182 +39,122 @@ def _patch_search_call(segment: str) -> str:
     if MARKER in segment:
         return segment
 
-    old = '''                videos_res = await self.bili_client.search_video_by_keyword(
-                    keyword=keyword,
-                    page=page,
-                    page_size=bili_limit_count,
-                    order=SearchOrderType.DEFAULT,
-                    pubtime_begin_s=0,  # Publish date start timestamp
-                    pubtime_end_s=0,  # Publish date end timestamp
-                )
-'''
-    new = f'''                # {MARKER}: realtime search uses newest-first ordering and the
-                # configured formal monitoring window. Historical/backfill subprocesses
-                # do not set PROMOTION_WEEK_BILI_REALTIME_DISCOVERY and retain the
-                # upstream comprehensive-search behavior.
-                _bili_realtime = (
-                    os.environ.get("PROMOTION_WEEK_BILI_REALTIME_DISCOVERY", "").strip()
-                    == "1"
-                )
-                _bili_order = SearchOrderType.DEFAULT
-                _bili_pubtime_begin_s = 0
-                _bili_pubtime_end_s = 0
-                if _bili_realtime:
-                    if (
-                        os.environ.get("PROMOTION_WEEK_BILI_SEARCH_ORDER", "")
-                        .strip()
-                        .lower()
-                        == "pubdate"
-                    ):
-                        _bili_order = SearchOrderType.LAST_PUBLISH
-                    try:
-                        _bili_pubtime_begin_s = max(
-                            0,
-                            int(
-                                os.environ.get(
-                                    "PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S",
-                                    "0",
-                                )
-                                or 0
-                            ),
-                        )
-                    except Exception:
-                        _bili_pubtime_begin_s = 0
-                    try:
-                        _bili_pubtime_end_s = max(
-                            0,
-                            int(
-                                os.environ.get(
-                                    "PROMOTION_WEEK_BILI_PUBTIME_END_S",
-                                    "0",
-                                )
-                                or 0
-                            ),
-                        )
-                    except Exception:
-                        _bili_pubtime_end_s = 0
+    lines = segment.splitlines(keepends=True)
+    call_idx = -1
+    for idx, line in enumerate(lines):
+        if "videos_res = await self.bili_client.search_video_by_keyword(" in line:
+            call_idx = idx
+            break
+    if call_idx < 0:
+        raise RuntimeError("Bilibili search_video_by_keyword call not found")
 
-                videos_res = await self.bili_client.search_video_by_keyword(
-                    keyword=keyword,
-                    page=page,
-                    page_size=bili_limit_count,
-                    order=_bili_order,
-                    pubtime_begin_s=_bili_pubtime_begin_s,
-                    pubtime_end_s=_bili_pubtime_end_s,
-                )
-'''
-    if old not in segment:
-        # A prior local patch may have changed comments/whitespace.  Fall back to
-        # replacing the three argument lines inside search_by_keywords only.
-        if (
-            "order=SearchOrderType.DEFAULT," not in segment
-            or "pubtime_begin_s=0" not in segment
-            or "pubtime_end_s=0" not in segment
-        ):
-            raise RuntimeError("Bilibili realtime search-call anchor not found")
+    call_indent = lines[call_idx][: len(lines[call_idx]) - len(lines[call_idx].lstrip())]
+    arg_indent = call_indent + "    "
+    marker = (
+        f'{call_indent}# {MARKER}: realtime search uses newest-first ordering and the formal window.\n'
+        f'{call_indent}_bili_realtime = (\n'
+        f'{arg_indent}os.environ.get("PROMOTION_WEEK_BILI_REALTIME_DISCOVERY", "").strip() == "1"\n'
+        f'{call_indent})\n'
+        f'{call_indent}_bili_order = (\n'
+        f'{arg_indent}SearchOrderType.LAST_PUBLISH\n'
+        f'{arg_indent}if _bili_realtime\n'
+        f'{arg_indent}and os.environ.get("PROMOTION_WEEK_BILI_SEARCH_ORDER", "").strip().lower() == "pubdate"\n'
+        f'{arg_indent}else SearchOrderType.DEFAULT\n'
+        f'{call_indent})\n'
+        f'{call_indent}try:\n'
+        f'{arg_indent}_bili_pubtime_begin_s = (\n'
+        f'{arg_indent}    max(0, int(os.environ.get("PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S", "0") or 0))\n'
+        f'{arg_indent}    if _bili_realtime else 0\n'
+        f'{arg_indent})\n'
+        f'{call_indent}except Exception:\n'
+        f'{arg_indent}_bili_pubtime_begin_s = 0\n'
+        f'{call_indent}try:\n'
+        f'{arg_indent}_bili_pubtime_end_s = (\n'
+        f'{arg_indent}    max(0, int(os.environ.get("PROMOTION_WEEK_BILI_PUBTIME_END_S", "0") or 0))\n'
+        f'{arg_indent}    if _bili_realtime else 0\n'
+        f'{arg_indent})\n'
+        f'{call_indent}except Exception:\n'
+        f'{arg_indent}_bili_pubtime_end_s = 0\n'
+    )
+    lines.insert(call_idx, marker)
+    segment = "".join(lines)
 
-        marker = f'''                # {MARKER}: realtime search environment.
-                _bili_realtime = (
-                    os.environ.get("PROMOTION_WEEK_BILI_REALTIME_DISCOVERY", "").strip()
-                    == "1"
-                )
-                _bili_order = (
-                    SearchOrderType.LAST_PUBLISH
-                    if _bili_realtime
-                    and os.environ.get("PROMOTION_WEEK_BILI_SEARCH_ORDER", "").strip().lower()
-                    == "pubdate"
-                    else SearchOrderType.DEFAULT
-                )
-                try:
-                    _bili_pubtime_begin_s = (
-                        max(0, int(os.environ.get("PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S", "0") or 0))
-                        if _bili_realtime else 0
-                    )
-                except Exception:
-                    _bili_pubtime_begin_s = 0
-                try:
-                    _bili_pubtime_end_s = (
-                        max(0, int(os.environ.get("PROMOTION_WEEK_BILI_PUBTIME_END_S", "0") or 0))
-                        if _bili_realtime else 0
-                    )
-                except Exception:
-                    _bili_pubtime_end_s = 0
-'''
-        call_anchor = "                videos_res = await self.bili_client.search_video_by_keyword(\n"
-        if call_anchor not in segment:
-            raise RuntimeError("Bilibili search_video_by_keyword call not found")
-        segment = segment.replace(call_anchor, marker + call_anchor, 1)
+    if "order=SearchOrderType.DEFAULT," not in segment:
+        raise RuntimeError("Bilibili search order argument not found")
+    if "pubtime_begin_s=0" not in segment or "pubtime_end_s=0" not in segment:
+        raise RuntimeError("Bilibili search time-window arguments not found")
+
+    segment = segment.replace(
+        "order=SearchOrderType.DEFAULT,",
+        "order=_bili_order,",
+        1,
+    )
+    segment = segment.replace(
+        "pubtime_begin_s=0,  # Publish date start timestamp",
+        "pubtime_begin_s=_bili_pubtime_begin_s,",
+        1,
+    )
+    if "pubtime_begin_s=0" in segment:
         segment = segment.replace(
-            "                    order=SearchOrderType.DEFAULT,",
-            "                    order=_bili_order,",
+            "pubtime_begin_s=0,",
+            "pubtime_begin_s=_bili_pubtime_begin_s,",
             1,
         )
+    segment = segment.replace(
+        "pubtime_end_s=0,  # Publish date end timestamp",
+        "pubtime_end_s=_bili_pubtime_end_s,",
+        1,
+    )
+    if "pubtime_end_s=0" in segment:
         segment = segment.replace(
-            "                    pubtime_begin_s=0,  # Publish date start timestamp",
-            "                    pubtime_begin_s=_bili_pubtime_begin_s,",
+            "pubtime_end_s=0,",
+            "pubtime_end_s=_bili_pubtime_end_s,",
             1,
         )
-        segment = segment.replace(
-            "                    pubtime_end_s=0,  # Publish date end timestamp",
-            "                    pubtime_end_s=_bili_pubtime_end_s,",
-            1,
-        )
-        return segment
-
-    return segment.replace(old, new, 1)
-
+    return segment
 
 def _patch_fanout_bound(segment: str) -> str:
-    # V1 already installed on many student machines. Keep it and only add the V2
-    # search-order/window logic above.
     if (
         "PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD" in segment
         and "video_list = video_list[:_bili_realtime_items_per_keyword]" in segment
     ):
         return segment
 
-    old = '''                if not video_list:
-                    utils.logger.info(f"[BilibiliCrawler.search_by_keywords] No more videos for '{keyword}', moving to next keyword.")
-                    break
+    lines = segment.splitlines(keepends=True)
+    semaphore_idx = -1
+    for idx, line in enumerate(lines):
+        if "semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)" in line:
+            semaphore_idx = idx
+            break
+    if semaphore_idx < 0:
+        raise RuntimeError("Bilibili realtime fan-out semaphore anchor not found")
 
-                semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)
-'''
-    new = '''                if not video_list:
-                    utils.logger.info(f"[BilibiliCrawler.search_by_keywords] No more videos for '{keyword}', moving to next keyword.")
-                    break
-
-                if os.environ.get("PROMOTION_WEEK_BILI_REALTIME_DISCOVERY", "").strip() == "1":
-                    try:
-                        _bili_realtime_items_per_keyword = max(
-                            1,
-                            min(
-                                int(
-                                    os.environ.get(
-                                        "PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD",
-                                        "5",
-                                    )
-                                    or 5
-                                ),
-                                len(video_list),
-                            ),
-                        )
-                    except Exception:
-                        _bili_realtime_items_per_keyword = min(5, len(video_list))
-
-                    if len(video_list) > _bili_realtime_items_per_keyword:
-                        utils.logger.info(
-                            f"[BILIBILI_REALTIME_DISCOVERY_BOUND] "
-                            f"keyword={keyword} original={len(video_list)} "
-                            f"selected={_bili_realtime_items_per_keyword}"
-                        )
-                        video_list = video_list[:_bili_realtime_items_per_keyword]
-
-                semaphore = asyncio.Semaphore(config.MAX_CONCURRENCY_NUM)
-'''
-    if old not in segment:
-        raise RuntimeError("Bilibili realtime fan-out anchor not found")
-    return segment.replace(old, new, 1)
-
+    indent = lines[semaphore_idx][: len(lines[semaphore_idx]) - len(lines[semaphore_idx].lstrip())]
+    i1 = indent + "    "
+    i2 = indent + "        "
+    i3 = indent + "            "
+    block = (
+        f'{indent}if os.environ.get("PROMOTION_WEEK_BILI_REALTIME_DISCOVERY", "").strip() == "1":\n'
+        f'{i1}try:\n'
+        f'{i2}_bili_realtime_items_per_keyword = max(\n'
+        f'{i3}1,\n'
+        f'{i3}min(\n'
+        f'{i3}    int(os.environ.get("PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD", "5") or 5),\n'
+        f'{i3}    len(video_list),\n'
+        f'{i3}),\n'
+        f'{i2})\n'
+        f'{i1}except Exception:\n'
+        f'{i2}_bili_realtime_items_per_keyword = min(5, len(video_list))\n'
+        f'{i1}if len(video_list) > _bili_realtime_items_per_keyword:\n'
+        f'{i2}utils.logger.info(\n'
+        f'{i3}f"[BILIBILI_REALTIME_DISCOVERY_BOUND] keyword={{keyword}} "\n'
+        f'{i3}f"original={{len(video_list)}} selected={{_bili_realtime_items_per_keyword}}"\n'
+        f'{i2})\n'
+        f'{i2}video_list = video_list[:_bili_realtime_items_per_keyword]\n'
+        f'\n'
+    )
+    lines.insert(semaphore_idx, block)
+    return "".join(lines)
 
 def patch_core(root: Path) -> None:
     path = root / "media_platform/bilibili/core.py"
