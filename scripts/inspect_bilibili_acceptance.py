@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from monitor.bilibili_policy import is_bilibili_campaign_relevant
+from monitor.campaign_scope import POLICY_VERSION, CORE_KEYWORDS, all_search_queries
 
 
 def _load(path: Path) -> dict:
@@ -318,19 +319,16 @@ def main() -> int:
         for row in classified_content
     )
 
-    expected_keywords = [
-        "2026年民族团结进步宣传周",
-        "首个民族团结进步宣传周",
-        "促进民族团结进步，奋进伟大复兴征程",
-        "民族团结进步倡议",
-        "民族团结进步宣传周主场活动",
-        "石榴花开——铸牢中华民族共同体意识",
-    ]
+    expected_keywords = list(CORE_KEYWORDS)
     formal_scope_config = (
         str(cfg.get("monitoring_start_time") or "")
         == "2026-09-16T00:00:00+08:00"
         and list(cfg.get("keywords") or []) == expected_keywords
+        and bool(cfg.get("campaign_search_expand", False))
+        and bool(cfg.get("campaign_strict_admission", False))
+        and str(cfg.get("campaign_keyword_policy_version") or "") == POLICY_VERSION
     )
+    expanded_query_count = len(all_search_queries())
 
     checks = {
         "crawler_success": str(run.get("state") or "") == "SUCCESS" and int(run.get("return_code") or 0) == 0,
@@ -421,6 +419,12 @@ def main() -> int:
             "filtered_before_start_comment_records": ingest.get("filtered_before_start_comment_records", 0),
             "region_records": ingest.get("region_records", 0),
             "classification_degraded": ingest.get("classification_degraded", False),
+        },
+        "keyword_policy": {
+            "policy_version": POLICY_VERSION,
+            "core_keyword_count": len(expected_keywords),
+            "expanded_search_query_count": expanded_query_count,
+            "search_broad_admission_strict": True,
         },
         "checks": checks,
         "note": "Public coarse platform-displayed region labels only; real network IP and precise location are rejected.",
