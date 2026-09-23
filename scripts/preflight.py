@@ -233,6 +233,23 @@ def _check_mediacrawler_platforms(root: Path) -> tuple[bool, str]:
     return True, "local MediaCrawler exposes the 6 native platform codes; Toutiao uses the project Playwright adapter"
 
 
+def _check_mediacrawler_platform(root: Path, platform: str) -> tuple[bool, str]:
+    if not (root / "main.py").exists():
+        return False, f"MediaCrawler main.py missing under {root}"
+    candidates = [
+        root / "config" / "base_config.py",
+        root / "cmd_arg" / "arg.py",
+        root / "main.py",
+    ]
+    text = "\n".join(
+        p.read_text(encoding="utf-8", errors="replace")
+        for p in candidates if p.exists()
+    )
+    if platform not in text:
+        return False, f"local MediaCrawler code did not expose platform: {platform}"
+    return True, f"local MediaCrawler exposes platform: {platform}"
+
+
 def _check_toutiao_adapter() -> tuple[bool, str]:
     path = ROOT / "scripts" / "toutiao_crawler.py"
     if not path.exists():
@@ -350,10 +367,14 @@ def main() -> int:
     try:
         runtime_cfg = _load_json(runtime_config)
         crawler_root = Path(runtime_cfg["media_crawler_root"])
-        ok, detail = _check_mediacrawler_platforms(crawler_root)
+        if args.platform in MEDIACRAWLER_PLATFORMS:
+            ok, detail = _check_mediacrawler_platform(crawler_root, args.platform)
+        else:
+            ok, detail = _check_mediacrawler_platforms(crawler_root)
         add("local MediaCrawler native-platform support", ok, detail)
-        ok, detail = _check_mediacrawler_comment_cli(crawler_root)
-        add("local MediaCrawler final comment/deep-paging CLI support", ok, detail)
+        if args.platform != "toutiao":
+            ok, detail = _check_mediacrawler_comment_cli(crawler_root)
+            add("local MediaCrawler final comment/deep-paging CLI support", ok, detail)
         if not args.runtime_only or args.platform in (None, "toutiao"):
             ok, detail = _check_toutiao_adapter()
             add("Toutiao project adapter", ok, detail)
