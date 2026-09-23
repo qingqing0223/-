@@ -219,6 +219,13 @@ if ($Platform -eq "bili") {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     Write-Host "Bilibili patch stack verified: login/network/full-local-fields/public-region/detail/nested-order/realtime-window." -ForegroundColor Green
+    Write-Host "Starting Bilibili official session bootstrap before realtime monitor..." -ForegroundColor Cyan
+    Write-Host "Manual login/security verification is outside the five-minute realtime clock." -ForegroundColor Yellow
+    & .\scripts\bootstrap_bilibili_session_windows.ps1 -Config $resolvedConfig -MediaCrawlerRoot $BiliMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili login/session is not verified. Timed monitor will not start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 if ($Platform -eq "ks") {
@@ -347,7 +354,7 @@ Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Config:   $Config" -ForegroundColor Cyan
 Write-Host "Realtime target: complete discovery + bounded deep-comment + ingestion cycle within 300 seconds." -ForegroundColor Yellow
-Write-Host "Enabled: six-keyword discovery, first-level comments, nested replies, parent/root hierarchy, public coarse IP-region fields when exposed, source/content type reporting, engagement/time fields, dedupe, checkpoint/resume, persistent deep queue and GitHub aggregate sync." -ForegroundColor Yellow
+Write-Host "Enabled: 11 core campaign queries + rotating recovery queries, strict topic admission, first-level comments, nested replies, parent/root hierarchy, public coarse IP-region fields when exposed, source/content type reporting, engagement/time fields, dedupe, checkpoint/resume, persistent deep queue and GitHub aggregate sync." -ForegroundColor Yellow
 Write-Host "Timeout/non-zero detail candidates are isolated; partial JSONL from interrupted candidates is rolled back and the candidate remains retryable." -ForegroundColor Yellow
 Write-Host "Historical exhaustive backfill is separate from realtime. It can page toward natural end without blocking five-minute new-content discovery." -ForegroundColor Yellow
 Write-Host "Official login/captcha/security verification must be completed manually when requested; automatic bypass is not used." -ForegroundColor Yellow
