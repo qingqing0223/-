@@ -44,8 +44,26 @@ jobs:
           python scripts/patch_xhs_public_regions.py --root /tmp/MediaCrawler
           python scripts/patch_xhs_public_regions.py --root /tmp/MediaCrawler --check
           python -m py_compile scripts/toutiao_crawler.py
+          python scripts/patch_kuaishou_startup_resilience.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_startup_resilience.py --root /tmp/MediaCrawler --check
+          python scripts/patch_kuaishou_login_resilience.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_login_resilience.py --root /tmp/MediaCrawler --check
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler
           python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler --check
+          python scripts/patch_kuaishou_comment_hierarchy.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_comment_hierarchy.py --root /tmp/MediaCrawler --check
+          python scripts/patch_kuaishou_engagement_fields.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_engagement_fields.py --root /tmp/MediaCrawler --check
+          python scripts/patch_kuaishou_creator_trial_safety.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_creator_trial_safety.py --root /tmp/MediaCrawler --check
+          python scripts/patch_kuaishou_public_metrics.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_public_metrics.py --root /tmp/MediaCrawler --check
+          # Re-apply the Kuaishou stack once to verify idempotent student restarts.
+          python scripts/patch_kuaishou_comment_regions.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_comment_hierarchy.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_engagement_fields.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_creator_trial_safety.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_public_metrics.py --root /tmp/MediaCrawler
           set +e
           python scripts/patch_weibo_realtime_resilience.py --root /tmp/MediaCrawler 2>&1 | tee /tmp/weibo_patch.log
           rc=${PIPESTATUS[0]}
@@ -79,12 +97,17 @@ jobs:
             'scripts/test_kuaishou_realtime_5min_windows.ps1',
             'scripts/test_douyin_realtime_5min_windows.ps1',
             'scripts/test_remaining_platform_realtime_5min_windows.ps1',
-            'scripts/check_public_region_acceptance_windows.ps1'
+            'scripts/check_public_region_acceptance_windows.ps1',
+            'scripts/enable_mediacrawler_cdp.ps1',
+            'scripts/start_student_platform_windows.ps1',
+            'scripts/final_student_update_windows.ps1'
           )
           foreach ($path in $paths) {
-            $bytes = [System.IO.File]::ReadAllBytes($path)
-            if ($bytes | Where-Object { $_ -gt 127 }) {
-              throw "$path must remain ASCII-only for Windows PowerShell 5.1 compatibility"
+            if ($path -like 'scripts/test_*' -or $path -like 'scripts/check_public_region_acceptance_windows.ps1') {
+              $bytes = [System.IO.File]::ReadAllBytes($path)
+              if ($bytes | Where-Object { $_ -gt 127 }) {
+                throw "$path must remain ASCII-only for Windows PowerShell 5.1 compatibility"
+              }
             }
             $tokens = $null
             $errors = $null
