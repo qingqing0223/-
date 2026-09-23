@@ -136,6 +136,7 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "bili_realtime_discovery_max_notes_count" 20
     Set-ConfigProperty $cfgObj "bili_realtime_search_concurrency" 4
     Set-ConfigProperty $cfgObj "bili_realtime_items_per_keyword" 5
+    Set-ConfigProperty $cfgObj "bili_realtime_search_timeout_seconds" 120
     Set-ConfigProperty $cfgObj "bili_realtime_detail_budget_seconds" 70
     Set-ConfigProperty $cfgObj "bili_realtime_candidate_timeout_seconds" 100
     Set-ConfigProperty $cfgObj "bili_realtime_max_comments_per_video" 20
@@ -161,6 +162,38 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($resolvedConfig, $json, $utf8NoBom)
     Write-Host "Local config upgraded to final five-minute realtime + queued deep-comment matrix." -ForegroundColor Green
+}
+
+if ($Platform -eq "bili") {
+    $biliCfgObj = Get-Content $resolvedConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+    $BiliMediaCrawlerRoot = [string]$biliCfgObj.media_crawler_root
+    if (-not $BiliMediaCrawlerRoot) {
+        Write-Host "ERROR: media_crawler_root is missing from $resolvedConfig" -ForegroundColor Red
+        exit 42
+    }
+    if (-not (Test-Path (Join-Path $BiliMediaCrawlerRoot "main.py"))) {
+        Write-Host "ERROR: MediaCrawler root is invalid: $BiliMediaCrawlerRoot" -ForegroundColor Red
+        exit 43
+    }
+
+    $biliPatches = @(
+        "patch_bilibili_login_resilience.py",
+        "patch_bilibili_comment_detail.py",
+        "patch_bilibili_network_resilience.py",
+        "patch_bilibili_realtime_comment_bounds.py",
+        "patch_bilibili_realtime_comment_order.py",
+        "patch_bilibili_realtime_discovery_bound.py"
+    )
+
+    foreach ($patch in $biliPatches) {
+        Write-Host "Applying/verifying Bilibili patch: $patch" -ForegroundColor Cyan
+        & $PythonExe (Join-Path ".\scripts" $patch) --root $BiliMediaCrawlerRoot
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        & $PythonExe (Join-Path ".\scripts" $patch) --root $BiliMediaCrawlerRoot --check
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
+    Write-Host "Bilibili patch stack verified: login/network/detail/nested-order/realtime-window." -ForegroundColor Green
 }
 
 if ($Platform -eq "ks") {
