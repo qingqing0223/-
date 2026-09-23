@@ -50,12 +50,66 @@ def _latest_classified_rows(path: Path) -> list[dict]:
 
 def _load_profile_rows(files: Iterable[Path]) -> list[dict]:
     rows: list[dict] = []
+
     for path in files:
-        if "account_info" not in path.name.lower():
+        low_name = path.name.lower()
+
+        # Existing dedicated account-info files.
+        if "account_info" in low_name:
+            for row in read_jsonl(path):
+                if isinstance(row, dict):
+                    rows.append(row)
             continue
+
+        # PROMOTION_WEEK_BILI_PUBLIC_CREATOR_META_TABLE5_V1
+        # Reuse public creator metadata already saved in Bilibili content rows.
+        if "content" not in low_name or "comment" in low_name:
+            continue
+
         for row in read_jsonl(path):
-            if isinstance(row, dict):
-                rows.append(row)
+            if not isinstance(row, dict):
+                continue
+
+            creator_hash = _clean(row.get("creator_hash"))
+            creator_mid = _clean(row.get("creator_mid"))
+            creator_name = _clean(row.get("creator_name"))
+            profile_url = _clean(row.get("creator_profile_url"))
+            follower_count = row.get("follower_count")
+            # PROMOTION_WEEK_BILI_PUBLIC_FOLLOWING_TABLE5_V1
+            following_count = row.get("following_count")
+
+            if not any((
+                creator_hash,
+                creator_mid,
+                creator_name,
+                profile_url,
+                follower_count not in ("", None),
+                following_count not in ("", None),
+            )):
+                continue
+
+            rows.append({
+                # Match classified Table-1 rows by the existing anonymized ID.
+                "creator_id": creator_hash or creator_mid,
+
+                # Expose only public publisher metadata in Table 5.
+                "account_id": creator_mid,
+                "account_name": creator_name,
+                "profile_url": profile_url,
+                "followers": (
+                    follower_count
+                    if follower_count not in ("", None)
+                    else None
+                ),
+                "following": (
+                    following_count
+                    if following_count not in ("", None)
+                    else None
+                ),
+                "public_metrics_only": True,
+                "source": "bili_content_public_creator_meta",
+            })
+
     return rows
 
 

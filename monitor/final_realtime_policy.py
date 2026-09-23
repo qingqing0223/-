@@ -269,16 +269,17 @@ def install_final_realtime_policy(platform: str) -> None:
 
             if proc.returncode == 0:
                 comment_growth = False
-                if platform == "toutiao":
-                    after_snapshot = _snapshot_jsonl(output_dir)
-                    for path, size in after_snapshot.items():
-                        if "comment" not in path.name.lower():
-                            continue
-                        if size > int(snapshot.get(path, 0)):
-                            comment_growth = True
-                            break
-                else:
-                    comment_growth = True
+                after_snapshot = _snapshot_jsonl(output_dir)
+
+                # A detail crawl is successful only when a comment JSONL file
+                # was actually created or grew. Do not treat rc=0 alone as
+                # evidence that comments were persisted.
+                for path, size in after_snapshot.items():
+                    if "comment" not in path.name.lower():
+                        continue
+                    if size > int(snapshot.get(path, 0)):
+                        comment_growth = True
+                        break
 
                 if comment_growth:
                     successful.append(identifier)

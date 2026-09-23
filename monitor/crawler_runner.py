@@ -7,6 +7,12 @@ import os
 import subprocess
 import time
 
+from monitor.bilibili_cumulative import (
+    DEFAULT_BILI_EFFECTIVE_START_TIME,
+    is_bili_effective_content,
+    merge_bilibili_cumulative,
+)
+
 
 @dataclass
 class PlatformRun:
@@ -88,8 +94,6 @@ def _as_count(value) -> int:
         return 0
 
 
-from monitor.topic_filter import is_campaign_relevant
-
 _COMMENT_COUNT_KEYS = (
     "comment_count", "comments_count", "comment_num", "video_comment",
     "total_comments", "reply_count", "total_replay_num",
@@ -125,18 +129,114 @@ def _detail_recovery_candidates(platform: str, content_files: list[Path], max_it
     candidates = []
     seen = set()
     for row in _iter_jsonl(content_files):
-        if platform == "bili" and not is_campaign_relevant(row):
+        if platform == "bili" and not is_bili_effective_content(row):
             continue
-        if _visible_comment_count(row) <= 0:
+        # Bilibili content discovery is topic-driven.  A relevant video must not
+        # disappear merely because it currently has no comments.  Comment
+        # recovery applies its own count gate immediately before crawling.
+        if platform != "bili" and _visible_comment_count(row) <= 0:
             continue
         identifier = _detail_identifier(platform, row)
         if not identifier or identifier in seen:
             continue
         seen.add(identifier)
         candidates.append(identifier)
+        if platform != "bili" and len(candidates) >= max_items:
+            break
+    return candidates
+
+
+def _bili_content_discovery_candidates(
+    content_files: list[Path],
+    effective_start_time: str = DEFAULT_BILI_EFFECTIVE_START_TIME,
+) -> list[str]:
+    """Return every unique, topic-relevant Bilibili video found by search."""
+    candidates = []
+    seen = set()
+    for row in _iter_jsonl(content_files):
+        if not is_bili_effective_content(row, effective_start_time):
+            continue
+        identifier = str(
+            row.get("video_id") or row.get("bvid") or row.get("video_url") or ""
+        ).strip()
+        if not identifier or identifier in seen:
+            continue
+        seen.add(identifier)
+        candidates.append(identifier)
+    return candidates
+
+
+def _comment_recovery_candidates(
+    platform: str,
+    content_files: list[Path],
+    discovery_candidates: list[str],
+    max_items: int,
+) -> list[str]:
+    """Limit discovered identifiers to content with visible comments."""
+    discovered = set(discovery_candidates)
+    candidates = []
+    seen = set()
+    for row in _iter_jsonl(content_files):
+        identifier = _detail_identifier(platform, row)
+        if (
+            not identifier
+            or identifier not in discovered
+            or identifier in seen
+            or _visible_comment_count(row) <= 0
+        ):
+            continue
+        seen.add(identifier)
+        candidates.append(identifier)
         if len(candidates) >= max_items:
             break
     return candidates
+
+
+def _run_bili_content_detail_discovery(
+    cfg: dict,
+    candidates: list[str],
+    output_dir: Path,
+    stdout_log: Path,
+    stderr_log: Path,
+) -> tuple[int | None, int]:
+    """Persist Bilibili video details without coupling discovery to comments."""
+    if not candidates:
+        return 0, 0
+
+    batch_size = max(1, int(cfg.get("bili_realtime_content_detail_batch_size", 10)))
+    batches = 0
+    first_failure_rc: int | None = None
+    for start in range(0, len(candidates), batch_size):
+        batch = candidates[start:start + batch_size]
+        cmd = [
+            "uv", "run", "main.py",
+            "--platform", "bili",
+            "--lt", cfg.get("login_type", "qrcode"),
+            "--type", "detail",
+            "--specified_id", ",".join(batch),
+            "--max_concurrency_num", str(cfg.get("max_concurrency_num", 1)),
+            "--get_comment", "no",
+            "--get_sub_comment", "no",
+            "--save_data_option", cfg.get("save_data_option", "jsonl"),
+            "--save_data_path", str(output_dir),
+        ]
+        with stdout_log.open("a", encoding="utf-8") as out, stderr_log.open("a", encoding="utf-8") as err:
+            out.write(
+                f"\n[monitor] BILI_REALTIME_CONTENT_DETAIL "
+                f"batch={batches + 1} items={len(batch)} comments=no\n"
+            )
+            proc = subprocess.run(
+                cmd,
+                cwd=cfg["media_crawler_root"],
+                stdout=out,
+                stderr=err,
+                text=True,
+            )
+        batches += 1
+        if proc.returncode != 0 and first_failure_rc is None:
+            first_failure_rc = proc.returncode
+
+    return first_failure_rc if first_failure_rc is not None else 0, batches
 
 
 def _queue_path(cfg: dict, platform: str) -> Path:
@@ -164,7 +264,7 @@ def _update_queue_from_content(platform: str, content_files: list[Path], queue: 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     items = queue.setdefault("items", {})
     for row in _iter_jsonl(content_files):
-        if platform == "bili" and not is_campaign_relevant(row):
+        if platform == "bili" and not is_bili_effective_content(row):
             continue
         identifier = _detail_identifier(platform, row)
         if not identifier:
@@ -425,6 +525,11 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         )))
         if realtime_mode else _effective_notes_limit(cfg)
     )
+    if realtime_mode and code == "bili":
+        # Pubdate + API time-window filtering makes later pages meaningful. Scan
+        # beyond the old one-page cap so relevant videos are not hidden behind
+        # the first 20 results for a keyword.
+        notes_limit = max(notes_limit, 100)
     search_concurrency = max(1, int(cfg.get("max_concurrency_num", 1)))
     if realtime_mode:
         platform_search_default = 4 if code == "bili" else search_concurrency
@@ -484,19 +589,30 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         if realtime_mode and code in {"bili", "wb", "xhs"}:
             search_env = os.environ.copy()
             if code == "bili":
-                try:
-                    realtime_items_per_keyword = max(
-                        1,
-                        min(
-                            int(cfg.get("bili_realtime_items_per_keyword", 5)),
-                            20,
-                        ),
-                    )
-                except Exception:
-                    realtime_items_per_keyword = 5
+                # The MediaCrawler realtime patch filters each API page by the
+                # effective time window and strict topic gate before detail. Do
+                # not reintroduce the old five-item fan-out loss after filtering.
+                realtime_items_per_keyword = 20
                 search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
                 search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
                     realtime_items_per_keyword
+                )
+
+                effective_start = str(
+                    cfg.get("bili_effective_start_time")
+                    or DEFAULT_BILI_EFFECTIVE_START_TIME
+                ).strip()
+                start_dt = datetime.fromisoformat(effective_start.replace("Z", "+00:00"))
+                search_env["PROMOTION_WEEK_BILI_EFFECTIVE_START_TIME"] = effective_start
+                search_env["PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S"] = str(int(start_dt.timestamp()))
+                search_env["PROMOTION_WEEK_BILI_PUBTIME_END_S"] = str(int(time.time()))
+                search_env["PROMOTION_WEEK_BILI_SEARCH_ORDER"] = "pubdate"
+                monitor_root = str(Path(__file__).resolve().parents[1])
+                search_env["PROMOTION_WEEK_MONITOR_ROOT"] = monitor_root
+                existing_pythonpath = str(search_env.get("PYTHONPATH") or "").strip()
+                search_env["PYTHONPATH"] = (
+                    monitor_root + os.pathsep + existing_pythonpath
+                    if existing_pythonpath else monitor_root
                 )
             elif code == "wb":
                 # Realtime Weibo search uses snippets only; full-text enrichment
@@ -579,17 +695,51 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
 
     comments_expected_this_cycle = monitor_comments_enabled
 
-    if not error and realtime_mode and monitor_comments_enabled and content_rows > 0:
+    if (
+        not error
+        and realtime_mode
+        and content_rows > 0
+        and (monitor_comments_enabled or code == "bili")
+    ):
         qpath = _queue_path(cfg, code)
         queue = _load_queue(qpath)
         _update_queue_from_content(code, content_files, queue)
+
+        # Bilibili content detail is a discovery/save stage of its own. It is
+        # deliberately independent from the comment queue: every unique topic-
+        # relevant video is detailed with comments disabled, including videos
+        # whose visible comment count is zero.
+        if code == "bili":
+            effective_start = str(
+                cfg.get("bili_effective_start_time")
+                or DEFAULT_BILI_EFFECTIVE_START_TIME
+            )
+            content_candidates = _bili_content_discovery_candidates(
+                content_files, effective_start
+            )
+            content_detail_rc, _ = _run_bili_content_detail_discovery(
+                cfg,
+                content_candidates,
+                output_dir,
+                stdout_log,
+                stderr_log,
+            )
+            if content_detail_rc not in (0, None):
+                rc = content_detail_rc
+            content_files = find_content_jsonl(output_dir)
+            content_rows = _count_jsonl_rows(content_files)
+
         refresh_seconds = max(300, int(cfg.get("realtime_comment_refresh_seconds", 900)))
         realtime_detail_default = 1 if code == "bili" else int(cfg.get("realtime_detail_max_items_per_cycle", 12))
         max_items = max(1, int(cfg.get(
             f"{code}_realtime_detail_max_items_per_cycle",
             realtime_detail_default,
         )))
-        recovery_candidates = _select_queue_candidates(queue, max_items, refresh_seconds)
+        recovery_candidates = (
+            _select_queue_candidates(queue, max_items, refresh_seconds)
+            if monitor_comments_enabled
+            else []
+        )
         comments_expected_this_cycle = bool(recovery_candidates)
         if recovery_candidates:
             recovery_rc, recovery_batches = _run_detail_comment_recovery(
@@ -609,6 +759,8 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
             content_rows = _count_jsonl_rows(content_files)
             comment_rows = _count_jsonl_rows(comment_files)
         deep_queue_pending = _queue_pending_count(queue, refresh_seconds)
+        if code == "bili":
+            merge_bilibili_cumulative(cfg, content_files, comment_files)
         queue["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         queue["pending_due"] = deep_queue_pending
         _save_queue(qpath, queue)
@@ -621,7 +773,10 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         and bool(cfg.get("detail_comment_recovery", True))
     ):
         max_items = max(1, int(cfg.get("detail_comment_recovery_max_items", 30)))
-        recovery_candidates = _detail_recovery_candidates(code, content_files, max_items)
+        discovery_candidates = _detail_recovery_candidates(code, content_files, max_items)
+        recovery_candidates = _comment_recovery_candidates(
+            code, content_files, discovery_candidates, max_items
+        )
         comments_expected_this_cycle = bool(recovery_candidates)
         if recovery_candidates:
             recovery_rc, recovery_batches = _run_detail_comment_recovery(
