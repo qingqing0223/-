@@ -179,6 +179,12 @@ if ($Platform -eq "ks") {
     & .\scripts\enable_mediacrawler_cdp.ps1 -MediaCrawlerRoot $KsMediaCrawlerRoot
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+    Write-Host "Applying Kuaishou realtime discovery slice patch..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_kuaishou_realtime_search.py --root $KsMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & $PythonExe .\scripts\patch_kuaishou_realtime_search.py --root $KsMediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
     Write-Host "Applying Kuaishou startup resilience patch..." -ForegroundColor Cyan
     & $PythonExe .\scripts\patch_kuaishou_startup_resilience.py --root $KsMediaCrawlerRoot
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
