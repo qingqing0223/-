@@ -209,6 +209,10 @@ def _update_queue_from_content(platform: str, content_files: list[Path], queue: 
             "retry_count": 0,
         })
         item["last_seen_at"] = now
+        item.setdefault("last_deep_attempt_at", "")
+        item.setdefault("last_deep_outcome", "")
+        item.setdefault("next_retry_at", "")
+        item.setdefault("retry_count", 0)
         if platform == "toutiao" and str(row.get("comment_count_source") or "") == "render_data":
             # Toutiao RENDER_DATA is article-specific and can safely correct an
             # earlier false-positive whole-page count, including resetting it to 0.
@@ -267,9 +271,9 @@ def _select_queue_candidates(queue: dict, max_items: int, refresh_seconds: int) 
         outcome = str(item.get("last_deep_outcome") or "").strip().lower()
         retry_count = max(0, int(item.get("retry_count") or 0))
 
-        if not last_attempt_ts:
+        if not last_attempt_ts and retry_count == 0:
             priority = 0
-        elif outcome in {"timeout", "failed"}:
+        elif outcome in {"timeout", "failed"} or (not last_attempt_ts and retry_count > 0):
             priority = 1
         elif outcome == "empty":
             priority = 2
