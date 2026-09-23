@@ -1,5 +1,6 @@
 param(
-    [string]$BaseConfig = ".\config\monitoring.local.json"
+    [string]$BaseConfig = ".\config\monitoring.local.json",
+    [string]$MediaCrawlerRoot = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,13 +20,21 @@ Write-Host "=== Bilibili local realtime acceptance ===" -ForegroundColor Cyan
 Write-Host "Branch code is tested locally before any student handoff." -ForegroundColor Yellow
 Write-Host ""
 
-python .\scripts\build_bilibili_acceptance_config.py --base $resolvedBase --output $TestConfig
+$builderArgs = @(
+    ".\scripts\build_bilibili_acceptance_config.py",
+    "--base", $resolvedBase,
+    "--output", $TestConfig
+)
+if ($MediaCrawlerRoot) {
+    $builderArgs += @("--media-crawler-root", $MediaCrawlerRoot)
+}
+python @builderArgs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $cfg = Get-Content $TestConfig -Raw -Encoding UTF8 | ConvertFrom-Json
-$MediaCrawlerRoot = [string]$cfg.media_crawler_root
-if (-not $MediaCrawlerRoot -or -not (Test-Path (Join-Path $MediaCrawlerRoot "main.py"))) {
-    Write-Host "ERROR: invalid media_crawler_root: $MediaCrawlerRoot" -ForegroundColor Red
+$EffectiveMediaCrawlerRoot = [string]$cfg.media_crawler_root
+if (-not $EffectiveMediaCrawlerRoot -or -not (Test-Path (Join-Path $EffectiveMediaCrawlerRoot "main.py"))) {
+    Write-Host "ERROR: invalid media_crawler_root: $EffectiveMediaCrawlerRoot" -ForegroundColor Red
     exit 3
 }
 
@@ -41,17 +50,17 @@ $patches = @(
 
 foreach ($patch in $patches) {
     Write-Host "Applying Bilibili patch: $patch" -ForegroundColor Cyan
-    python (Join-Path ".\scripts" $patch) --root $MediaCrawlerRoot
+    python (Join-Path ".\scripts" $patch) --root $EffectiveMediaCrawlerRoot
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    python (Join-Path ".\scripts" $patch) --root $MediaCrawlerRoot --check
+    python (Join-Path ".\scripts" $patch) --root $EffectiveMediaCrawlerRoot --check
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
 Write-Host "Applying public coarse-region persistence patch..." -ForegroundColor Cyan
-python .\scripts\patch_mediacrawler_public_regions.py --root $MediaCrawlerRoot
+python .\scripts\patch_mediacrawler_public_regions.py --root $EffectiveMediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-python .\scripts\verify_mediacrawler_public_regions.py --root $MediaCrawlerRoot
+python .\scripts\verify_mediacrawler_public_regions.py --root $EffectiveMediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host ""
