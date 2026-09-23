@@ -19,10 +19,11 @@ if (-not $MediaCrawlerRoot -or -not (Test-Path (Join-Path $MediaCrawlerRoot "mai
     exit 3
 }
 
-$keyword = "民族团结进步宣传周"
-if ($cfg.keywords -and $cfg.keywords.Count -gt 0) {
-    $keyword = [string]$cfg.keywords[0]
+if (-not $cfg.keywords -or $cfg.keywords.Count -lt 1) {
+    Write-Host "ERROR: config has no keywords; cannot bootstrap Kuaishou session." -ForegroundColor Red
+    exit 4
 }
+$keyword = [string]$cfg.keywords[0]
 
 $stateRoot = Join-Path ([string]$cfg.data_root) "state\ks_login_bootstrap"
 New-Item -ItemType Directory -Path $stateRoot -Force | Out-Null
