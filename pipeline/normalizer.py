@@ -17,6 +17,19 @@ def _str(v):
     return "" if v is None else str(v)
 
 
+def _first_nested(raw: dict, container_keys: tuple[str, ...], *keys):
+    value = _first(raw, *keys)
+    if value is not None and value != "":
+        return value
+    for container_key in container_keys:
+        nested = raw.get(container_key)
+        if isinstance(nested, dict):
+            value = _first(nested, *keys)
+            if value is not None and value != "":
+                return value
+    return None
+
+
 def _to_int(v):
     if v is None or v == "":
         return 0
@@ -33,6 +46,25 @@ def _to_int(v):
         return int(float(s))
     except Exception:
         return 0
+
+
+def _to_optional_int(v):
+    """Parse a public count while preserving missing/unparseable as None."""
+    if v is None or v == "":
+        return None
+    if isinstance(v, (int, float)):
+        return int(v)
+    s = str(v).strip().replace(",", "").replace("，", "")
+    try:
+        if s.lower().endswith("w"):
+            return int(float(s[:-1]) * 10000)
+        if s.endswith("万"):
+            return int(float(s[:-1]) * 10000)
+        if s.lower().endswith("k"):
+            return int(float(s[:-1]) * 1000)
+        return int(float(s))
+    except Exception:
+        return None
 
 
 def _to_iso_time(v):
@@ -186,6 +218,14 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
     favorites = _first(raw, "favorites", "favorite_count", "favoriteCount", "video_favorite_count", "collected_count")
     danmaku = _first(raw, "danmaku", "danmaku_count", "video_danmaku")
     coins = _first(raw, "coins", "coin_count", "video_coin_count")
+    follower_count = _first_nested(
+        raw, ("user", "user_info", "author", "creator"),
+        "fan", "fan_count", "fans", "fans_count", "follower_count", "followers_count"
+    )
+    following_count = _first_nested(
+        raw, ("user", "user_info", "author", "creator"),
+        "follow", "following", "following_count", "follow_count"
+    )
 
     record_type = _detect_record_type(raw, platform, comment_id)
 
@@ -270,10 +310,12 @@ def normalize_record(raw: dict, source_file: str = "", platform_hint: str = "") 
         "author_id": _str(author_id),
         "author_avatar": _str(author_avatar),
         "author_profile_url": _str(author_profile_url),
+        "follower_count": _to_optional_int(follower_count) if platform == "ks" else _to_int(follower_count),
+        "following_count": _to_optional_int(following_count) if platform == "ks" else _to_int(following_count),
         "reply_to_author": _str(reply_to_author),
         "url": _str(url),
-        "likes": _to_int(likes),
-        "comments": _to_int(comments),
+        "likes": _to_optional_int(likes) if platform == "ks" else _to_int(likes),
+        "comments": _to_optional_int(comments) if platform == "ks" else _to_int(comments),
         "shares": _to_int(shares),
         "views": _to_int(views),
         "favorites": _to_int(favorites),
