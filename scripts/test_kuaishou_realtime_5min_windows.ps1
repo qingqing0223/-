@@ -27,6 +27,12 @@ Write-Host "Configuring Kuaishou browser lifecycle (self-launched CDP; no extern
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 
+Write-Host "Applying/verifying Kuaishou realtime discovery slice..." -ForegroundColor Cyan
+python .\scripts\patch_kuaishou_realtime_search.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_kuaishou_realtime_search.py --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 Write-Host "Applying/verifying Kuaishou startup resilience patch..." -ForegroundColor Cyan
 python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -112,6 +118,15 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 Write-Host "Realtime test config: $TestConfig" -ForegroundColor Cyan
 Write-Host "Realtime test data:   $platformTestRoot" -ForegroundColor Cyan
 Write-Host ""
+Write-Host "[0/4] Verifying reusable Kuaishou login session before the timed cycle..." -ForegroundColor Cyan
+& .\scripts\bootstrap_kuaishou_session_windows.ps1 -Config $TestConfig
+$bootstrapCode = $LASTEXITCODE
+if ($bootstrapCode -ne 0) {
+    Write-Host "Blocking gap: Kuaishou login/session is not verified. Timed acceptance will not start." -ForegroundColor Red
+    exit $bootstrapCode
+}
+Write-Host ""
+
 Write-Host "[1/4] Running one bounded realtime cycle..." -ForegroundColor Cyan
 $started = Get-Date
 python .\run_single_platform.py --platform ks --config $TestConfig --once
