@@ -319,6 +319,14 @@ def main() -> int:
         for row in classified_content
     )
 
+    classified_topic_metadata_complete = bool(classified_content) and all(
+        row.get("is_valid_monitoring_data") is True
+        and isinstance(row.get("matched_keywords"), list)
+        and bool(row.get("matched_keywords"))
+        and not str(row.get("invalid_reason") or "").strip()
+        for row in classified_content
+    )
+
     expected_keywords = list(CORE_KEYWORDS)
     formal_scope_config = (
         str(cfg.get("monitoring_start_time") or "")
@@ -352,6 +360,7 @@ def main() -> int:
         "publisher_metrics_present": publisher_metrics_present,
         "nested_root_field_complete": nested_root_field_complete,
         "classified_topic_clean": classified_topic_clean,
+        "classified_topic_metadata_complete": classified_topic_metadata_complete,
     }
 
     # A quiet realtime cycle can legitimately have no nested replies among the
@@ -377,6 +386,7 @@ def main() -> int:
         checks["publisher_metrics_present"],
         checks["nested_root_field_complete"],
         checks["classified_topic_clean"],
+        checks["classified_topic_metadata_complete"],
     ])
 
     out = {
