@@ -31,6 +31,7 @@ if (-not $MediaCrawlerRoot -or -not (Test-Path (Join-Path $MediaCrawlerRoot "mai
 
 $patches = @(
     "patch_bilibili_login_resilience.py",
+    "patch_bilibili_data_fields.py",
     "patch_bilibili_comment_detail.py",
     "patch_bilibili_network_resilience.py",
     "patch_bilibili_realtime_comment_bounds.py",
@@ -46,6 +47,12 @@ foreach ($patch in $patches) {
     python (Join-Path ".\scripts" $patch) --root $MediaCrawlerRoot --check
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
+
+Write-Host "Applying public coarse-region persistence patch..." -ForegroundColor Cyan
+python .\scripts\patch_mediacrawler_public_regions.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\verify_mediacrawler_public_regions.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host ""
 Write-Host "[1/3] Running preflight on isolated formal-scope config..." -ForegroundColor Cyan
