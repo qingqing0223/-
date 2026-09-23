@@ -84,17 +84,87 @@ def patch_client(root: Path) -> None:
             raise DataFetchError(msg)
         if ok_code != 1:
             raise DataFetchError(str(payload.get("msg") or "unknown response"))
-        rows = payload.get("data")
+        body = payload.get("data")
+        if isinstance(body, dict):
+            rows = body.get("data") or body.get("comments") or []
+            next_max_id = body.get(
+                "max_id",
+                payload.get("max_id", 0),
+            )
+            next_max_id_type = body.get(
+                "max_id_type",
+                payload.get("max_id_type", 0),
+            )
+        elif isinstance(body, list):
+            rows = body
+            next_max_id = payload.get("max_id", 0)
+            next_max_id_type = payload.get("max_id_type", 0)
+        else:
+            rows = []
+            next_max_id = 0
+            next_max_id_type = 0
+
         if not isinstance(rows, list):
             rows = []
+
         return {{
             "data": rows,
-            "max_id": payload.get("max_id", 0),
-            "max_id_type": payload.get("max_id_type", 0),
+            "max_id": next_max_id,
+            "max_id_type": next_max_id_type,
         }}
 
 '''
         text = replace_once(text, anchor, method + anchor, "weibo child endpoint")
+
+    # Upgrade already-patched V2 trees that still assume payload["data"]
+    # is always a list. Weibo hotFlowChild can also return a nested envelope.
+    legacy_payload = (
+        '        rows = payload.get("data")\n'
+        '        if not isinstance(rows, list):\n'
+        '            rows = []\n'
+        '        return {\n'
+        '            "data": rows,\n'
+        '            "max_id": payload.get("max_id", 0),\n'
+        '            "max_id_type": payload.get("max_id_type", 0),\n'
+        '        }\n'
+    )
+    nested_payload = (
+        '        body = payload.get("data")\n'
+        '        if isinstance(body, dict):\n'
+        '            rows = body.get("data") or body.get("comments") or []\n'
+        '            next_max_id = body.get(\n'
+        '                "max_id",\n'
+        '                payload.get("max_id", 0),\n'
+        '            )\n'
+        '            next_max_id_type = body.get(\n'
+        '                "max_id_type",\n'
+        '                payload.get("max_id_type", 0),\n'
+        '            )\n'
+        '        elif isinstance(body, list):\n'
+        '            rows = body\n'
+        '            next_max_id = payload.get("max_id", 0)\n'
+        '            next_max_id_type = payload.get("max_id_type", 0)\n'
+        '        else:\n'
+        '            rows = []\n'
+        '            next_max_id = 0\n'
+        '            next_max_id_type = 0\n'
+        '\n'
+        '        if not isinstance(rows, list):\n'
+        '            rows = []\n'
+        '\n'
+        '        return {\n'
+        '            "data": rows,\n'
+        '            "max_id": next_max_id,\n'
+        '            "max_id_type": next_max_id_type,\n'
+        '        }\n'
+    )
+
+    if legacy_payload in text:
+        text = text.replace(
+            legacy_payload,
+            nested_payload,
+            1,
+        )
 
     # Replace the upstream embedded-only sub-comment helper with a bounded,
     # deduplicating paginator.  Historical backfill can naturally exhaust it;
@@ -270,6 +340,12 @@ def check(root: Path) -> dict:
         result["child_endpoint"] = (
             'async def get_note_sub_comments_page(' in client_text
             and '"/comments/hotFlowChild"' in client_text
+            and 'body = payload.get("data")' in client_text
+            and 'isinstance(body, dict)' in client_text
+            and 'next_max_id = body.get(' in client_text
+            and '"max_id"' in client_text
+            and 'next_max_id_type = body.get(' in client_text
+            and '"max_id_type"' in client_text
         )
         result["child_pagination"] = (
             "child pagination guard reached" in client_text
