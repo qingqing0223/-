@@ -101,6 +101,26 @@ Write-Host "Acceptance data:   $($cfg.data_root)_bili" -ForegroundColor DarkGray
 if ($inspectCode -ne 0) {
     Write-Host "BILIBILI LOCAL ACCEPTANCE NOT YET COMPLETE." -ForegroundColor Red
     Write-Host "Keep this branch local/review-only; do not hand it to students yet." -ForegroundColor Yellow
+
+    $platformRoot = ([string]$cfg.data_root) + "_bili"
+    $statusPath = Join-Path $platformRoot "status\latest_status.json"
+    if (Test-Path $statusPath) {
+        try {
+            $statusObj = Get-Content $statusPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $runObj = @($statusObj.platform_runs)[0]
+            Write-Host ""
+            Write-Host "=== Latest Bilibili stdout/stderr tail ===" -ForegroundColor Cyan
+            foreach ($logPath in @([string]$runObj.stdout_log, [string]$runObj.stderr_log)) {
+                if ($logPath -and (Test-Path $logPath)) {
+                    Write-Host "--- $logPath ---" -ForegroundColor DarkGray
+                    Get-Content $logPath -Tail 80 -Encoding UTF8
+                }
+            }
+        } catch {
+            Write-Host "Could not print latest Bilibili log tail: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    }
+
     exit $inspectCode
 }
 
