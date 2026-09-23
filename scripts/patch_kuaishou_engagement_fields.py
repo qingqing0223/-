@@ -138,6 +138,61 @@ def _replace_or_insert_comment_like(text: str) -> str:
     return "".join(lines)
 
 
+
+
+def _patch_core_detail_comment_count(root: Path) -> None:
+    path = root / "media_platform" / "kuaishou" / "core.py"
+    if not path.exists():
+        raise RuntimeError(f"Kuaishou core file not found: {path}")
+    text = _read(path)
+    marker = "PROMOTION_WEEK_KS_DETAIL_COMMENT_COUNT_V1"
+    if marker in text:
+        ast.parse(text, filename=str(path))
+        return
+
+    anchor = '''                detail = result.get("visionVideoDetail")
+                if detail:
+                    photo = detail.get("photo", {})
+                    author = detail.get("author", {})
+'''
+    replacement = '''                detail = result.get("visionVideoDetail")
+                if detail:
+                    photo = detail.get("photo", {})
+                    author = detail.get("author", {})
+                    # PROMOTION_WEEK_KS_DETAIL_COMMENT_COUNT_V1:
+                    # Fetch the platform-displayed public comment total before
+                    # persisting the detail row.  The comment-region patch makes
+                    # get_video_comments fall back to the public H5 representation
+                    # when REST V2 is unavailable.
+                    if all(
+                        photo.get(key) in (None, "")
+                        for key in ("commentCount", "commentCountV2", "commentsCount", "comment_count")
+                    ):
+                        try:
+                            _ks_comment_summary = await self.ks_client.get_video_comments(video_id, "")
+                            _ks_public_count = (
+                                _ks_comment_summary.get("commentCountV2")
+                                if isinstance(_ks_comment_summary, dict)
+                                else None
+                            )
+                            if _ks_public_count in (None, "") and isinstance(_ks_comment_summary, dict):
+                                _ks_public_count = _ks_comment_summary.get("commentCount")
+                            if _ks_public_count not in (None, ""):
+                                photo["commentCount"] = _ks_public_count
+                                utils.logger.info(
+                                    f"[KS_DETAIL_COMMENT_COUNT] video={video_id} count={_ks_public_count}"
+                                )
+                        except Exception as _ks_count_exc:
+                            utils.logger.warning(
+                                f"[KS_DETAIL_COMMENT_COUNT] video={video_id} unavailable: "
+                                f"{type(_ks_count_exc).__name__}: {_ks_count_exc}"
+                            )
+'''
+    if anchor not in text:
+        raise RuntimeError("Kuaishou detail comment-count anchor not found")
+    text = text.replace(anchor, replacement, 1)
+    _write(path, text)
+
 def patch_store(root: Path) -> None:
     path = root / "store" / "kuaishou" / "__init__.py"
     if not path.exists():
@@ -160,6 +215,7 @@ def check(root: Path) -> dict:
         "video_comment_count_present": False,
         "comment_like_present": False,
         "missing_is_not_forced_to_zero": False,
+        "detail_comment_count_enrichment_present": False,
         "ok": False,
     }
     if not path.exists():
@@ -195,6 +251,18 @@ def check(root: Path) -> dict:
     except Exception:
         pass
 
+    core = root / "media_platform" / "kuaishou" / "core.py"
+    if core.exists():
+        try:
+            core_text = _read(core)
+            ast.parse(core_text, filename=str(core))
+            result["detail_comment_count_enrichment_present"] = (
+                "PROMOTION_WEEK_KS_DETAIL_COMMENT_COUNT_V1" in core_text
+                and "[KS_DETAIL_COMMENT_COUNT]" in core_text
+            )
+        except Exception:
+            pass
+    result["ok"] = bool(result["ok"] and result["detail_comment_count_enrichment_present"])
     result["purpose"] = (
         "persist_kuaishou_video_likes_platform_comment_count_and_comment_likes_"
         "without_conflating_missing_fields_with_real_zero"
@@ -204,6 +272,7 @@ def check(root: Path) -> dict:
 
 def apply(root: Path) -> dict:
     patch_store(root)
+    _patch_core_detail_comment_count(root)
     return check(root)
 
 
