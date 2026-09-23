@@ -7,7 +7,7 @@ from pipeline.io_utils import read_jsonl, append_jsonl, read_json, write_json
 from pipeline.normalizer import normalize_record
 from pipeline.classifier import classify_records
 from pipeline.language_detector import is_minority_language
-from monitor.bilibili_policy import is_bilibili_campaign_relevant
+from monitor.bilibili_policy import evaluate_bilibili_campaign_relevance
 
 
 COUNTRY_ONLY_REGION_LABELS = {"中国", "中国大陆", "中华人民共和国", "China", "Mainland China", "PRC", "CN"}
@@ -178,7 +178,8 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
                 )
                 if not scan_rec or scan_rec.get("record_type") == "comment":
                     continue
-                if not is_bilibili_campaign_relevant(scan_rec):
+                decision = evaluate_bilibili_campaign_relevance(scan_rec)
+                if not decision.valid:
                     continue
                 if _before_monitoring_start(scan_rec, monitoring_start_time):
                     continue
@@ -215,9 +216,18 @@ def ingest_and_classify(platform: str, jsonl_files: list[Path], state_path: Path
                     if not parent_content_id or parent_content_id not in valid_bili_content_ids:
                         topic_filtered_comment_records += 1
                         continue
-                elif not is_bilibili_campaign_relevant(rec):
-                    topic_filtered_content_records += 1
-                    continue
+                    rec["is_valid_monitoring_data"] = True
+                    rec["invalid_reason"] = ""
+                    rec["topic_filter_reason"] = "parent_content_admitted"
+                else:
+                    decision = evaluate_bilibili_campaign_relevance(rec)
+                    rec["matched_keywords"] = list(decision.matched_keywords)
+                    rec["is_valid_monitoring_data"] = bool(decision.valid)
+                    rec["invalid_reason"] = "" if decision.valid else decision.reason
+                    rec["topic_filter_reason"] = decision.reason
+                    if not decision.valid:
+                        topic_filtered_content_records += 1
+                        continue
 
             normalized_records += 1
             if rec.get("record_type") == "comment":
