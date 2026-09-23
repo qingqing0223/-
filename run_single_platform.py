@@ -641,12 +641,12 @@ def main():
             max(1, int(cfg.get("bili_realtime_search_concurrency", 4))),
         )
         cfg["bili_realtime_items_per_keyword"] = min(
-            8,
-            max(1, int(cfg.get("bili_realtime_items_per_keyword", 5))),
+            5,
+            max(1, int(cfg.get("bili_realtime_items_per_keyword", 3))),
         )
         cfg["bili_realtime_search_timeout_seconds"] = min(
             150,
-            max(60, int(cfg.get("bili_realtime_search_timeout_seconds", 120))),
+            max(90, int(cfg.get("bili_realtime_search_timeout_seconds", 150))),
         )
         cfg["bili_realtime_detail_max_items_per_cycle"] = min(
             3,
