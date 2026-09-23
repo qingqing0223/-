@@ -19,7 +19,13 @@ Write-Host "=== Kuaishou five-minute realtime acceptance ===" -ForegroundColor C
 Write-Host "This is a single bounded REALTIME cycle, not historical full backfill." -ForegroundColor Yellow
 Write-Host "Discovery is prioritized; comment detail work has a finite time budget." -ForegroundColor Yellow
 Write-Host "Comment IP-region is now a strict acceptance item because Kuaishou publicly displays it." -ForegroundColor Yellow
+Write-Host "Video likes, platform comment count, follower/following and comment likes are also strict live acceptance items." -ForegroundColor Yellow
 Write-Host ""
+
+Write-Host "Configuring Kuaishou browser lifecycle (self-launched CDP; no external 9222 dependency)..." -ForegroundColor Cyan
+& .\scripts\enable_mediacrawler_cdp.ps1 -MediaCrawlerRoot $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 
 Write-Host "Applying/verifying Kuaishou startup resilience patch..." -ForegroundColor Cyan
 python .\scripts\patch_kuaishou_startup_resilience.py --root $MediaCrawlerRoot
@@ -44,6 +50,23 @@ python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python .\scripts\patch_kuaishou_comment_regions.py --root $MediaCrawlerRoot --check
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Write-Host "Applying/verifying Kuaishou video/comment engagement persistence..." -ForegroundColor Cyan
+python .\scripts\patch_kuaishou_engagement_fields.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_kuaishou_engagement_fields.py --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Write-Host "Applying/verifying Kuaishou public follower/following/comment-like metrics..." -ForegroundColor Cyan
+python .\scripts\patch_kuaishou_creator_trial_safety.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_kuaishou_creator_trial_safety.py --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_kuaishou_public_metrics.py --root $MediaCrawlerRoot
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+python .\scripts\patch_kuaishou_public_metrics.py --root $MediaCrawlerRoot --check
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+$env:KUAISHOU_PUBLIC_METRICS = "1"
 
 function Set-ConfigProperty($obj, [string]$name, $value) {
     if ($obj.PSObject.Properties.Name -contains $name) {
@@ -89,7 +112,7 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 Write-Host "Realtime test config: $TestConfig" -ForegroundColor Cyan
 Write-Host "Realtime test data:   $platformTestRoot" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "[1/3] Running one bounded realtime cycle..." -ForegroundColor Cyan
+Write-Host "[1/4] Running one bounded realtime cycle..." -ForegroundColor Cyan
 $started = Get-Date
 python .\run_single_platform.py --platform ks --config $TestConfig --once
 $runCode = $LASTEXITCODE
@@ -100,7 +123,7 @@ if ($runCode -ne 0) {
 }
 
 Write-Host ""
-Write-Host "[2/3] Reprocessing the latest raw cycle, then inspecting comments + hierarchy acceptance..." -ForegroundColor Cyan
+Write-Host "[2/4] Reprocessing the latest raw cycle, then inspecting comments + hierarchy acceptance..." -ForegroundColor Cyan
 python .\scripts\reprocess_kuaishou_latest_raw.py --config $TestConfig
 $reprocessCode = $LASTEXITCODE
 if ($reprocessCode -ne 0) {
@@ -110,15 +133,21 @@ python .\scripts\inspect_kuaishou_acceptance.py --config $TestConfig
 $inspectCode = $LASTEXITCODE
 
 Write-Host ""
-Write-Host "[3/3] Strictly verifying Kuaishou comment public IP-region restoration..." -ForegroundColor Cyan
+Write-Host "[3/4] Strictly verifying Kuaishou comment public IP-region restoration..." -ForegroundColor Cyan
 python .\scripts\inspect_kuaishou_comment_regions.py --config $TestConfig
 $regionCode = $LASTEXITCODE
 if ($regionCode -ne 0) { $inspectCode = $regionCode }
 
 Write-Host ""
+Write-Host "[4/4] Strictly verifying Kuaishou public engagement/profile metric persistence..." -ForegroundColor Cyan
+python .\scripts\inspect_kuaishou_metrics_acceptance.py --config $TestConfig
+$metricCode = $LASTEXITCODE
+if ($metricCode -ne 0) { $inspectCode = $metricCode }
+
+Write-Host ""
 if ($inspectCode -eq 0) {
-    Write-Host "KUAISHOU REALTIME LIVE ACCEPTANCE PASSED, INCLUDING COMMENT PUBLIC IP-REGION." -ForegroundColor Green
-    Write-Host "The restored chain now covers discovery, first-level comments, nested replies, parent/root and comment public region." -ForegroundColor Green
+    Write-Host "KUAISHOU REALTIME LIVE ACCEPTANCE PASSED." -ForegroundColor Green
+    Write-Host "Verified: discovery, first-level comments, nested replies, parent/root, comment public region, video likes, platform comment count, follower/following and comment likes." -ForegroundColor Green
 } else {
     Write-Host "Kuaishou realtime acceptance still has a blocking gap." -ForegroundColor Yellow
     if ($regionCode -ne 0) {
@@ -164,7 +193,7 @@ if ($inspectCode -eq 0) {
         Write-Host "Running automatic high-level failure diagnosis..." -ForegroundColor Cyan
         python .\scripts\diagnose_kuaishou_latest_failure.py --config $TestConfig
     }
-    Write-Host "Do not start a long historical recrawl. Send the [3/3] JSON plus the automatic diagnostic lines above." -ForegroundColor Yellow
+    Write-Host "Do not start a long historical recrawl. Send the [2/4]-[4/4] JSON plus the automatic diagnostic lines above." -ForegroundColor Yellow
 }
 
 exit $inspectCode
