@@ -426,7 +426,10 @@ def export_zhihu_submission(
     comments: dict[str, dict] = {}
     content_snapshots: dict[str, dict] = {}
     comment_snapshots: dict[str, dict] = {}
-    account_posts: dict[str, list[tuple[dict, dict]]] = {}
+    # One content can be returned by many keyword searches. Keep exactly one
+    # latest raw row per author/content pair so table 5 does not multiply the
+    # same post's engagement by its number of search hits.
+    account_posts: dict[str, dict[str, tuple[dict, dict]]] = {}
     account_meta: dict[str, dict] = {}
 
     raw_rows = [(path, raw) for path in raw_files for raw in _read_rows(path)]
@@ -590,7 +593,7 @@ def export_zhihu_submission(
 
         author_id = str(record.get("author_id") or "").strip()
         if author_id:
-            account_posts.setdefault(author_id, []).append((record, raw))
+            account_posts.setdefault(author_id, {})[content_id] = (record, raw)
             meta = account_meta.setdefault(
                 author_id,
                 {
@@ -642,8 +645,9 @@ def export_zhihu_submission(
     )
 
     account_rows: list[dict] = []
-    for author_id, post_pairs in account_posts.items():
+    for author_id, posts_by_content in account_posts.items():
         meta = dict(account_meta[author_id])
+        post_pairs = list(posts_by_content.values())
         raw_posts = [raw for _, raw in post_pairs]
         account_row = {
                 **meta,

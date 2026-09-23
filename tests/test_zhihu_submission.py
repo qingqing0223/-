@@ -191,6 +191,11 @@ def test_exports_only_tables_1_to_5_with_strict_scope_and_dedupe(tmp_path):
     assert len(table5) == 1
     assert table5[0]["is_key_account"] is True
     assert table5[0]["account_type"] == "中央媒体"
+    # The same post was returned by two keyword searches. Account engagement
+    # must use the deduplicated post's latest values, not 12+15 and 2+2.
+    assert table5[0]["related_post_count"] == 1
+    assert table5[0]["like_count"] == 15
+    assert table5[0]["comment_count"] == 2
     # Zhihu did not expose repost/favorite in this fixture; keep blank, not 0.
     assert table5[0]["repost_count"] == ""
     assert table5[0]["total_engagement"] == ""
