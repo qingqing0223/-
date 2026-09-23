@@ -44,6 +44,8 @@ jobs:
           python scripts/patch_xhs_public_regions.py --root /tmp/MediaCrawler
           python scripts/patch_xhs_public_regions.py --root /tmp/MediaCrawler --check
           python -m py_compile scripts/toutiao_crawler.py
+          python scripts/patch_kuaishou_realtime_search.py --root /tmp/MediaCrawler
+          python scripts/patch_kuaishou_realtime_search.py --root /tmp/MediaCrawler --check
           python scripts/patch_kuaishou_startup_resilience.py --root /tmp/MediaCrawler
           python scripts/patch_kuaishou_startup_resilience.py --root /tmp/MediaCrawler --check
           python scripts/patch_kuaishou_login_resilience.py --root /tmp/MediaCrawler
@@ -99,6 +101,7 @@ jobs:
             'scripts/test_remaining_platform_realtime_5min_windows.ps1',
             'scripts/check_public_region_acceptance_windows.ps1',
             'scripts/enable_mediacrawler_cdp.ps1',
+            'scripts/bootstrap_kuaishou_session_windows.ps1',
             'scripts/start_student_platform_windows.ps1',
             'scripts/final_student_update_windows.ps1'
           )
