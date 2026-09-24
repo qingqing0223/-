@@ -539,7 +539,8 @@ def main():
         cfg["collection_only"] = True
 
     if args.platform == "dy" and bool(cfg.get("realtime_mode", False)):
-        # Keep Douyin's live loop on a start-to-start five-minute cadence.
+        cfg["collection_only"] = True
+        # Keep Douyin's live loop on the configured start-to-start cadence.
         # Historical exhaustive crawling remains a separate backfill job.
         try:
             configured_discovery = int(cfg.get("realtime_discovery_max_notes_count", 20))

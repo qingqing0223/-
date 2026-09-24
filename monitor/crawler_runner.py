@@ -514,7 +514,22 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
         ]
         search_cwd = cfg["media_crawler_root"]
 
-    if not realtime_mode:
+    if realtime_mode and code == "dy":
+        try:
+            realtime_comment_cap = max(
+                1,
+                min(
+                    int(cfg.get("dy_realtime_max_comments_per_video", 200)),
+                    2000,
+                ),
+            )
+        except Exception:
+            realtime_comment_cap = 200
+        cmd.extend([
+            "--max_comments_count_singlenotes",
+            str(realtime_comment_cap),
+        ])
+    elif not realtime_mode:
         max_comments = _effective_comment_limit(cfg)
         if max_comments is not None:
             cmd.extend(["--max_comments_count_singlenotes", str(max_comments)])
@@ -565,7 +580,18 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
 
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             search_timeout = None
-            if realtime_mode and code == "wb":
+            if realtime_mode and code == "dy":
+                try:
+                    search_timeout = max(
+                        60,
+                        min(
+                            int(cfg.get("dy_realtime_search_timeout_seconds", 2400)),
+                            3300,
+                        ),
+                    )
+                except Exception:
+                    search_timeout = 2400
+            elif realtime_mode and code == "wb":
                 try:
                     search_timeout = max(60, min(
                         int(cfg.get("wb_realtime_search_timeout_seconds", 150)),
@@ -620,6 +646,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 rc = 124
                 status = "failed"
                 timeout_marker = {
+                    "dy": "DOUYIN_REALTIME_SEARCH_TIMEOUT",
                     "wb": "WB_REALTIME_SEARCH_TIMEOUT",
                     "xhs": "XHS_REALTIME_SEARCH_TIMEOUT",
                     "toutiao": "TOUTIAO_REALTIME_SEARCH_TIMEOUT",
