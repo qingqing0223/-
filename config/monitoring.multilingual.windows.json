@@ -48,7 +48,8 @@
       "enabled": true
     },
     {
-      "code": "toutiao", "name": "今日头条",
+      "code": "toutiao",
+      "name": "今日头条",
       "enabled": true
     },
     {
@@ -58,16 +59,25 @@
     }
   ],
   "keywords": [
+    "民族团结进步宣传周",
     "2026年民族团结进步宣传周",
     "首个民族团结进步宣传周",
-    "促进民族团结进步，奋进伟大复兴征程",
-    "民族团结进步倡议",
+    "民族团结进步宣传周启动",
+    "民族团结进步宣传周活动",
     "民族团结进步宣传周主场活动",
-    "石榴花开——铸牢中华民族共同体意识"
+    "2026年民族团结进步宣传周主场活动",
+    "民族团结进步宣传周主题宣传片",
+    "民族团结进步倡议",
+    "民族团结进步倡议书",
+    "促进民族团结进步，奋进伟大复兴征程"
   ],
   "event_id": "promotion_week_2026_preheat",
   "event_name": "2026年民族团结进步宣传周预热阶段舆情监测",
   "monitoring_start_time": "2026-09-16T00:00:00+08:00",
   "results_date": "",
-  "results_date_mode": "auto"
+  "results_date_mode": "auto",
+  "campaign_search_expand": true,
+  "campaign_strict_admission": true,
+  "campaign_keyword_policy_version": "promotion_week_search_v2_20260923",
+  "realtime_supplemental_keywords_per_cycle": 5
 }

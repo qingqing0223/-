@@ -175,6 +175,7 @@ def install_final_realtime_policy(platform: str) -> None:
         attempted: list[str] = []
         successful: list[str] = []
         empty: list[str] = []
+        timed_out: list[str] = []
         failed: list[str] = []
         first_failure_rc: int | None = None
 
@@ -257,7 +258,7 @@ def install_final_realtime_policy(platform: str) -> None:
                 except subprocess.TimeoutExpired:
                     _terminate_process_tree(proc)
                     _rollback_jsonl(output_dir, snapshot)
-                    failed.append(identifier)
+                    timed_out.append(identifier)
                     if first_failure_rc is None:
                         first_failure_rc = 124
                     out.write(
@@ -268,17 +269,12 @@ def install_final_realtime_policy(platform: str) -> None:
                     continue
 
             if proc.returncode == 0:
-                comment_growth = False
-                if platform == "toutiao":
-                    after_snapshot = _snapshot_jsonl(output_dir)
-                    for path, size in after_snapshot.items():
-                        if "comment" not in path.name.lower():
-                            continue
-                        if size > int(snapshot.get(path, 0)):
-                            comment_growth = True
-                            break
-                else:
-                    comment_growth = True
+                after_snapshot = _snapshot_jsonl(output_dir)
+                comment_growth = any(
+                    "comment" in path.name.lower()
+                    and size > int(snapshot.get(path, 0))
+                    for path, size in after_snapshot.items()
+                )
 
                 if comment_growth:
                     successful.append(identifier)
@@ -333,6 +329,7 @@ def install_final_realtime_policy(platform: str) -> None:
             "attempted": attempted,
             "successful": successful,
             "empty": empty,
+            "timed_out": timed_out,
             "failed": failed,
         })
 
@@ -349,13 +346,16 @@ def install_final_realtime_policy(platform: str) -> None:
             if requested == list(candidates):
                 successful = list(outcome.get("successful") or [])
                 empty = list(outcome.get("empty") or [])
+                timed_out = list(outcome.get("timed_out") or [])
                 failed = list(outcome.get("failed") or [])
                 if successful:
-                    original_mark(queue, successful, True)
+                    crawler_runner._mark_queue_outcome(queue, successful, "success")
                 if empty:
-                    original_mark(queue, empty, False)
+                    crawler_runner._mark_queue_outcome(queue, empty, "empty")
+                if timed_out:
+                    crawler_runner._mark_queue_outcome(queue, timed_out, "timeout")
                 if failed:
-                    original_mark(queue, failed, False)
+                    crawler_runner._mark_queue_outcome(queue, failed, "failed")
                 # Unattempted candidates are deliberately untouched, so they stay
                 # eligible in the persistent queue next cycle.
                 setattr(crawler_runner, "_promotion_week_last_detail_outcome", None)

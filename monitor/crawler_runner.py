@@ -7,6 +7,9 @@ import os
 import subprocess
 import time
 
+from monitor.bilibili_policy import is_bilibili_campaign_relevant
+from monitor.campaign_scope import select_realtime_queries
+
 
 @dataclass
 class PlatformRun:
@@ -41,6 +44,39 @@ def _tail_text(*paths: Path, max_chars: int = 16000) -> str:
         except Exception:
             pass
     return "\n".join(parts).lower()
+
+
+def _terminate_realtime_search_tree(proc: subprocess.Popen) -> None:
+    """Terminate uv + MediaCrawler + browser descendants after a realtime search timeout.
+
+    On Windows, subprocess.run(timeout=...) only guarantees that the immediate
+    uv launcher is stopped. A surviving Python/Chrome child can keep Bilibili's
+    persistent browser profile locked, which makes the subsequent detail/comment
+    subprocess fail immediately. Kill the whole process tree before deep-comment
+    recovery starts.
+    """
+    if proc.poll() is not None:
+        return
+    try:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+                timeout=10,
+            )
+        else:
+            proc.kill()
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+    try:
+        proc.wait(timeout=10)
+    except Exception:
+        pass
 
 
 def _log_line_has_markers(
@@ -157,6 +193,8 @@ def _detail_recovery_candidates(platform: str, content_files: list[Path], max_it
     candidates = []
     seen = set()
     for row in _iter_jsonl(content_files):
+        if platform == "bili" and not is_bilibili_campaign_relevant(row):
+            continue
         if _visible_comment_count(row) <= 0:
             continue
         identifier = _detail_identifier(platform, row)
@@ -194,6 +232,10 @@ def _update_queue_from_content(platform: str, content_files: list[Path], queue: 
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     items = queue.setdefault("items", {})
     for row in _iter_jsonl(content_files):
+        # Bilibili search is intentionally broad, but only topic-relevant
+        # content enters the persistent comment queue.
+        if platform == "bili" and not is_bilibili_campaign_relevant(row):
+            continue
         identifier = _detail_identifier(platform, row)
         if not identifier:
             continue
@@ -489,6 +531,7 @@ def _classify_state(
             "xhs_realtime_search_timeout" in text
             or "toutiao_realtime_search_timeout" in text
             or "ks_realtime_search_timeout" in text
+            or "bili_realtime_search_timeout" in text
         )
         and content_row_count > 0
     ):
@@ -555,6 +598,25 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
 
     monitor_comments_enabled = str(cfg.get("get_comment", "no")).lower() in {"yes", "true", "1", "y", "t"}
     realtime_mode = bool(cfg.get("realtime_mode", False))
+    search_keywords = list(cfg.get("keywords") or [])
+    if realtime_mode and bool(cfg.get("campaign_search_expand", False)):
+        try:
+            supplemental_per_cycle = max(
+                0,
+                int(cfg.get(
+                    f"{code}_realtime_supplemental_keywords_per_cycle",
+                    cfg.get("realtime_supplemental_keywords_per_cycle", 5),
+                )),
+            )
+        except Exception:
+            supplemental_per_cycle = 5
+        cadence = max(60, int(cfg.get("interval_seconds", 300)))
+        bucket = int(time.time() // cadence)
+        search_keywords = select_realtime_queries(
+            search_keywords,
+            supplemental_count=supplemental_per_cycle,
+            bucket=bucket,
+        )
     search_get_comment = "no" if realtime_mode else str(cfg.get("get_comment", "no"))
     search_get_sub_comment = "no" if realtime_mode else str(cfg.get("get_sub_comment", "no"))
     realtime_notes_default = 20 if code in {"bili", "wb"} else int(cfg.get("realtime_discovery_max_notes_count", 60))
@@ -583,7 +645,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
             "uv", "run", "--project", str(cfg["media_crawler_root"]),
             "python", str(repo_root / "scripts" / "toutiao_crawler.py"),
             "--mode", "search",
-            "--keywords", ",".join(cfg["keywords"]),
+            "--keywords", ",".join(search_keywords),
             "--save-data-path", str(output_dir),
             "--profile-dir", str(profile_dir),
             "--max-notes", str(notes_limit),
@@ -596,7 +658,7 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
             "--platform", code,
             "--lt", cfg.get("login_type", "qrcode"),
             "--type", "search",
-            "--keywords", ",".join(cfg["keywords"]),
+            "--keywords", ",".join(search_keywords),
             "--crawler_max_notes_count", str(notes_limit),
             "--max_concurrency_num", str(search_concurrency),
             "--get_comment", search_get_comment,
@@ -621,23 +683,45 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
     deep_queue_pending = 0
     try:
         search_env = None
-        if realtime_mode and code in {"bili", "wb", "xhs", "ks"}:
+        if code == "bili" or (
+            realtime_mode and code in {"wb", "xhs", "ks"}
+        ):
             search_env = os.environ.copy()
             if code == "bili":
-                try:
-                    realtime_items_per_keyword = max(
-                        1,
-                        min(
-                            int(cfg.get("bili_realtime_items_per_keyword", 5)),
-                            20,
-                        ),
+                # Both realtime and the one-time historical catch-up are scoped
+                # to the formal monitoring window. Realtime additionally applies
+                # a per-keyword fan-out bound; historical catch-up does not.
+                search_env["PROMOTION_WEEK_BILI_SEARCH_ORDER"] = "pubdate"
+                start_text = str(cfg.get("monitoring_start_time") or "").strip()
+                if start_text:
+                    try:
+                        start_dt = datetime.fromisoformat(
+                            start_text.replace("Z", "+00:00")
+                        )
+                        if start_dt.tzinfo is None:
+                            start_dt = start_dt.replace(tzinfo=timezone.utc)
+                        search_env["PROMOTION_WEEK_BILI_PUBTIME_BEGIN_S"] = str(
+                            int(start_dt.timestamp())
+                        )
+                    except Exception:
+                        pass
+                search_env["PROMOTION_WEEK_BILI_PUBTIME_END_S"] = str(int(time.time()))
+
+                if realtime_mode:
+                    try:
+                        realtime_items_per_keyword = max(
+                            1,
+                            min(
+                                int(cfg.get("bili_realtime_items_per_keyword", 3)),
+                                20,
+                            ),
+                        )
+                    except Exception:
+                        realtime_items_per_keyword = 3
+                    search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
+                    search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
+                        realtime_items_per_keyword
                     )
-                except Exception:
-                    realtime_items_per_keyword = 5
-                search_env["PROMOTION_WEEK_BILI_REALTIME_DISCOVERY"] = "1"
-                search_env["PROMOTION_WEEK_BILI_REALTIME_ITEMS_PER_KEYWORD"] = str(
-                    realtime_items_per_keyword
-                )
             elif code == "wb":
                 # Realtime Weibo search uses snippets only; full-text enrichment
                 # remains in the historical/backfill path.
@@ -670,7 +754,18 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
 
         with stdout_log.open("w", encoding="utf-8") as out, stderr_log.open("w", encoding="utf-8") as err:
             search_timeout = None
-            if realtime_mode and code == "wb":
+            if realtime_mode and code == "bili":
+                try:
+                    search_timeout = max(
+                        60,
+                        min(
+                            int(cfg.get("bili_realtime_search_timeout_seconds", 150)),
+                            150,
+                        ),
+                    )
+                except Exception:
+                    search_timeout = 150
+            elif realtime_mode and code == "wb":
                 try:
                     search_timeout = max(60, min(
                         int(cfg.get("wb_realtime_search_timeout_seconds", 150)),
@@ -715,33 +810,63 @@ def run_platform(cfg: dict, platform_cfg: dict, run_root: Path) -> PlatformRun:
                 except Exception:
                     search_timeout = 150
             try:
-                proc = subprocess.run(
-                    cmd,
-                    cwd=search_cwd,
-                    stdout=out,
-                    stderr=err,
-                    text=True,
-                    env=search_env,
-                    timeout=search_timeout,
-                )
-                rc = proc.returncode
+                if realtime_mode and code == "bili" and search_timeout is not None:
+                    popen_kwargs = {
+                        "cwd": search_cwd,
+                        "stdout": out,
+                        "stderr": err,
+                        "text": True,
+                        "env": search_env,
+                    }
+                    if os.name == "nt":
+                        popen_kwargs["creationflags"] = getattr(
+                            subprocess, "CREATE_NEW_PROCESS_GROUP", 0
+                        )
+                    bili_search_proc = subprocess.Popen(cmd, **popen_kwargs)
+                    try:
+                        bili_search_proc.wait(timeout=search_timeout)
+                    except subprocess.TimeoutExpired:
+                        _terminate_realtime_search_tree(bili_search_proc)
+                        # Allow Chrome's persistent-profile lock files to settle
+                        # before the deep-comment subprocess reuses the profile.
+                        time.sleep(1.0)
+                        raise
+                    rc = bili_search_proc.returncode
+                else:
+                    proc = subprocess.run(
+                        cmd,
+                        cwd=search_cwd,
+                        stdout=out,
+                        stderr=err,
+                        text=True,
+                        env=search_env,
+                        timeout=search_timeout,
+                    )
+                    rc = proc.returncode
                 status = "ok" if rc == 0 else "failed"
             except subprocess.TimeoutExpired:
-                # Realtime discovery is intentionally bounded.  subprocess.run()
-                # terminates the child on timeout; any JSONL rows already flushed
-                # remain usable and are ingested below.
+                # Realtime discovery is intentionally bounded. Any JSONL rows
+                # already flushed remain usable. For Bilibili the whole uv /
+                # Python / Chrome process tree has already been terminated so
+                # the persistent profile can be reused by detail recovery.
                 rc = 124
                 status = "failed"
                 timeout_marker = {
+                    "bili": "BILI_REALTIME_SEARCH_TIMEOUT",
                     "wb": "WB_REALTIME_SEARCH_TIMEOUT",
                     "xhs": "XHS_REALTIME_SEARCH_TIMEOUT",
                     "ks": "KS_REALTIME_SEARCH_TIMEOUT",
                     "toutiao": "TOUTIAO_REALTIME_SEARCH_TIMEOUT",
                     "zhihu": "ZHIHU_REALTIME_SEARCH_TIMEOUT",
                 }.get(code, "REALTIME_SEARCH_TIMEOUT")
+                cleanup_note = (
+                    " process_tree_terminated=yes; profile_lock_released=yes;"
+                    if code == "bili"
+                    else ""
+                )
                 err.write(
-                    f"\n[monitor] {timeout_marker} timeout={search_timeout}s; "
-                    "partial_jsonl_preserved=yes\n"
+                    f"\n[monitor] {timeout_marker} timeout={search_timeout}s;"
+                    f"{cleanup_note} partial_jsonl_preserved=yes\n"
                 )
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"

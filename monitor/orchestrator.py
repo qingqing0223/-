@@ -11,6 +11,7 @@ from .keyword_pack import apply_keyword_pack
 from pipeline.io_utils import write_json
 from dashboard_adapter.suqi_pusher import deliver_with_outbox
 from .zhihu_submission import export_zhihu_submission
+from .account_info import build_table5_account_rows, write_table5_account_snapshots
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -45,6 +46,7 @@ def run_one_cycle(cfg: dict) -> dict:
             runs.append(future.result())
 
     ingests = []
+    account_info_snapshots = []
     new_classified_rows = []
     include_comments = bool(cfg.get("ingest_comments", False))
     for run in runs:
@@ -145,6 +147,24 @@ def run_one_cycle(cfg: dict) -> dict:
                     "was preserved and ingested"
                 )
             ingests.append(summary)
+
+            if run.platform == "bili":
+                # Table 5 for Bilibili is derived from the same local view/detail
+                # JSONL used by this cycle. Exact public account metadata stays
+                # local; the public GitHub publisher path remains aggregate/
+                # anonymized.
+                account_rows = build_table5_account_rows(
+                    "bili",
+                    [
+                        a for a in (cfg.get("accounts") or [])
+                        if str(a.get("platform") or "") == "bili"
+                    ],
+                    classified_path,
+                    raw_files=files,
+                )
+                account_info_snapshots.append(
+                    write_table5_account_snapshots(data_root, account_rows)
+                )
         except Exception as exc:
             ingests.append({
                 "platform": run.platform,
@@ -199,6 +219,7 @@ def run_one_cycle(cfg: dict) -> dict:
         "collection_only": collection_only,
         "platform_runs": [r.__dict__ for r in runs],
         "ingest": ingests,
+        "account_info": account_info_snapshots,
         "dashboard_push": dashboard_push,
         "classified_output": str(classified_path),
         "dashboard_outbox": str(dashboard_outbox_path),

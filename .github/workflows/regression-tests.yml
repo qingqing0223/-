@@ -33,6 +33,10 @@ jobs:
           git -C /tmp/MediaCrawler checkout --quiet 60e66f2a925816960bbd44af5d6c9b8385d79335
           python scripts/patch_mediacrawler_public_regions.py --root /tmp/MediaCrawler
           python scripts/verify_mediacrawler_public_regions.py --root /tmp/MediaCrawler
+          python scripts/patch_bilibili_data_fields.py --root /tmp/MediaCrawler
+          python scripts/patch_bilibili_data_fields.py --root /tmp/MediaCrawler --check
+          python scripts/patch_bilibili_realtime_discovery_bound.py --root /tmp/MediaCrawler
+          python scripts/patch_bilibili_realtime_discovery_bound.py --root /tmp/MediaCrawler --check
           python scripts/patch_douyin_startup_resilience.py --root /tmp/MediaCrawler
           python scripts/patch_douyin_startup_resilience.py --root /tmp/MediaCrawler --check
           python scripts/patch_douyin_comment_request_profile.py --root /tmp/MediaCrawler
@@ -103,11 +107,12 @@ jobs:
             'scripts/check_public_region_acceptance_windows.ps1',
             'scripts/enable_mediacrawler_cdp.ps1',
             'scripts/bootstrap_kuaishou_session_windows.ps1',
+            'scripts/bootstrap_bilibili_session_windows.ps1',
             'scripts/start_student_platform_windows.ps1',
             'scripts/final_student_update_windows.ps1'
           )
           foreach ($path in $paths) {
-            if ($path -like 'scripts/test_*' -or $path -like 'scripts/check_public_region_acceptance_windows.ps1' -or $path -like 'scripts/bootstrap_kuaishou_session_windows.ps1') {
+            if ($path -like 'scripts/test_*' -or $path -like 'scripts/check_public_region_acceptance_windows.ps1' -or $path -like 'scripts/bootstrap_kuaishou_session_windows.ps1' -or $path -like 'scripts/bootstrap_bilibili_session_windows.ps1') {
               $bytes = [System.IO.File]::ReadAllBytes($path)
               if ($bytes | Where-Object { $_ -gt 127 }) {
                 throw "$path must remain ASCII-only for Windows PowerShell 5.1 compatibility"
