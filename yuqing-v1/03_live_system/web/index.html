@@ -137,7 +137,7 @@
           </div>
         </section>
         <section class="panel">
-          <div class="panel-title"><h2>地区信息流</h2><span id="regionFeedTag">地区汇总</span></div>
+          <div class="panel-title"><h2>地区信息流</h2><span id="regionFeedTag">地区评论</span></div>
           <div id="regionFeed" class="feed" style="padding:6px"></div>
         </section>
       </aside>
@@ -596,28 +596,15 @@
     function quotesByPlatform(platformName){
       return (D.quotes||[]).filter(q=>canonicalPlatformName(q.platform)===platformName);
     }
-    function regionSummaryRows(regionOrGroup){
+    function regionCommentsByRegion(regionOrGroup){
       const name=typeof regionOrGroup==="string"?regionOrGroup:(regionOrGroup&&regionOrGroup.name)||"";
       const provinces=new Set(regionProvinces(name).map(normalizeProvince));
-      const generatedAt=String(D.generatedAt||D.source?.generatedAt||"");
-      return (D.provinces||[])
-        .filter(row=>provinces.has(normalizeProvince(row.name||row.region||"")))
-        .map(row=>{
-          const total=Number(row.total??row.value??row.total_information_count??0);
-          const published=Number(row.publishedCount??row.published_content_count??0);
-          const comments=Number(row.commentCount??row.comment_and_reply_count??0);
-          const percentage=Number(row.percentage??0);
-          return {
-            region:String(row.name||row.region||"未标注地区"),
-            province:String(row.name||row.region||""),
-            platform:"POMS 表7地区统计",
-            account:`发布 ${fmt(published)}｜评论及回复 ${fmt(comments)}`,
-            collectedAt:generatedAt,
-            total,
-            text:`累计监测信息 ${fmt(total)} 条${percentage>0?`，占全部信息 ${percentage.toFixed(1)}%`:""}。`
-          };
-        })
-        .filter(row=>row.total>0);
+      const spec=FOCUS_REGIONS.find(r=>r.name===name);
+      const keys=spec?spec.match:[name];
+      return (D.regionComments||[]).filter(row=>{
+        const region=String(row.region||row.province||"");
+        return provinces.has(normalizeProvince(region)) || keys.some(key=>region.includes(key));
+      });
     }
     function latestDate(rows){
       return rows.map(q=>q.date).filter(Boolean).sort().pop()||"未标注";
@@ -645,10 +632,10 @@
       return String(text||"").replace(/T/g," ").replace(/(\.\d+)?([+-]\d{2}:?\d{2}|Z)$/,"");
     }
     function feedTimestamp(row){
-      return String(row?.collectedAt||row?.collected_at||row?.createdAt||row?.created_at||row?.publishedAt||row?.published_at||row?.date||"");
+      return String(row?.commentedAt||row?.commented_at||row?.collectedAt||row?.collected_at||row?.createdAt||row?.created_at||row?.publishedAt||row?.published_at||row?.date||"");
     }
     function feedPublisher(row){
-      return row?.publisher||row?.author||row?.account||row?.nickname||row?.user||"未标注发布者";
+      return row?.label||row?.publisher||row?.author||row?.account||row?.nickname||row?.user||"未标注发布者";
     }
     function byTimeline(rows){
       const t=activeTimeline();
@@ -656,9 +643,9 @@
       const exact=rows.filter(q=>q.date===t.date);
       return exact.length?exact:rows;
     }
-    function renderFeed(id,rows,emptyText,count,rollKey){
+    function renderFeed(id,rows,emptyText,count,rollKey,filterByTimeline=true){
       const box=$(id);
-      const source=byTimeline(rows);
+      const source=filterByTimeline?byTimeline(rows):rows;
       const items=rollKey?pickRolling(source,count,rollKey):pickLatest(source,count);
       box.innerHTML=items.length?items.map(q=>`<article class="feed-item"><div class="feed-head"><span>${escapeHtml(q.region||q.group||"未标注地区")}</span><span>${escapeHtml(q.platform||"未标注平台")}</span><span>${escapeHtml(feedPublisher(q))}</span><span>${escapeHtml(formatDateText(feedTimestamp(q))||"未标注时间")}</span></div><p>${escapeHtml(q.text||q.content||q.title||"")}</p></article>`).join(""):`<div class="empty">${emptyText}</div>`;
     }
@@ -686,16 +673,11 @@
     function renderRegionPanel(){
       const rows=regionFocusRows;
       const r=activeRegion();
-      const quotes=quotesByRegion(r.name);
-      // POMS 表10暂不携带地区字段时，地区原话无法可靠匹配；回退到
-      // 表7的地区统计，确保 GitHub Pages 仍能展示真实的地区汇总口径。
-      const summaries=regionSummaryRows(r.name);
-      const feedRows=quotes.length?quotes:summaries;
-      const feedLabel=quotes.length?"真实原话":"POMS 表7地区汇总";
+      const comments=regionCommentsByRegion(r.name);
       $("regionMeta").innerHTML="";
       charts.region.setOption(focusRegionOption(rows,r.name),true);
-      renderFeed("regionFeed",feedRows,"该地区暂无表7统计数据",1,"regionFeedIndex");
-      $("regionFeedTag").textContent=`${r.name}｜${feedLabel}｜${feedRows.length} 条`;
+      renderFeed("regionFeed",comments,"该地区暂无可公开展示的评论",3,"regionFeedIndex",false);
+      $("regionFeedTag").textContent=`${r.name}｜评论 ${comments.length} 条｜滚动展示`;
     }
     function renderPlatformPanel(){
       const rows=platformRows();

@@ -69,7 +69,9 @@ export DASHSCOPE_API_KEY="你的 DashScope API Key"
 
 ### POMS 后端快照同步（GitHub Pages）
 
-当大屏发布在 GitHub Pages 时，浏览器不能直接读取仅提供 HTTP 的 POMS 服务。Pages 工作流每 5 分钟在服务端读取 POMS 的表6—表13，执行 `scripts/sync_poms_dashboard.py`，生成同域的 `web/assets/poms-dashboard.json`；页面每 30 秒检查一次该快照。
+当大屏发布在 GitHub Pages 时，浏览器不能直接读取仅提供 HTTP 的 POMS 服务。Pages 工作流每 5 分钟在服务端读取 POMS 的表1、表2和表6—表13，执行 `scripts/sync_poms_dashboard.py`，生成同域的 `web/assets/poms-dashboard.json`；页面每 30 秒检查一次该快照。
+
+地区信息流按**发布内容账号 IP 属地**归属其下评论，公开快照只包含评论文本、平台、评论时间和地区；不包含评论人 ID、评论人账号、主页或原始链接。表1、表2会分页读取，地区面板一次显示 3 条并轮播全部可公开评论。
 
 在仓库 **Settings → Secrets and variables → Actions** 中创建 `POMS_URL` Repository secret，值为后端组提供的服务根地址。大屏只调用 GET 接口，不需要也绝不能配置 API Key。若该 Secret 未配置，工作流仍会发布仓库中的最近快照，但不会从 POMS 刷新数据。
 

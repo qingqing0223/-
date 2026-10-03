@@ -25,6 +25,10 @@ DEFAULT_OUTPUT = ROOT / "yuqing-v1/03_live_system/web/assets/poms-dashboard.json
 CHINA_TIMEZONE = timezone(timedelta(hours=8))
 
 TABLE_PATHS = {
+    # 表1、表2用于公开大屏的地区评论流：按发布内容账号 IP 属地归属评论。
+    # 只保留经允许公开的评论文本、平台、时间和地区，绝不写入评论人 ID、账号或链接。
+    "published_contents": "published_content_basic_information",
+    "comments": "comment_basic_information",
     "platforms": "overall_and_platform_distribution_statistics",
     "regions": "regional_distribution_statistics",
     "top_contents": "top_10_key_communication_contents",
@@ -63,6 +67,18 @@ def fetch_rows(base_url: str, path: str, timeout: int) -> list[dict[str, Any]]:
     if not isinstance(data, list):
         raise RuntimeError(f"POMS returned a non-list payload for {path}")
     return [row for row in data if isinstance(row, dict)]
+
+
+def fetch_paginated_rows(base_url: str, table_name: str, timeout: int, page_size: int = 500) -> list[dict[str, Any]]:
+    """Read every page from a raw POMS table (the API caps each page at 500 rows)."""
+    rows: list[dict[str, Any]] = []
+    page = 1
+    while True:
+        page_rows = fetch_rows(base_url, f"{table_name}?page={page}&page_size={page_size}", timeout)
+        rows.extend(page_rows)
+        if len(page_rows) < page_size:
+            return rows
+        page += 1
 
 
 def date_part(value: Any) -> str:
@@ -181,6 +197,43 @@ def build_snapshot(source: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         }
         for row in source["classification"]
     ]
+    content_by_id = {
+        text(row.get("published_content_id")): row
+        for row in source["published_contents"]
+        if text(row.get("published_content_id"))
+    }
+    region_comments = []
+    seen_comments = set()
+    for comment in source["comments"]:
+        if comment.get("is_valid_comment") is False:
+            continue
+        content_id = text(comment.get("corresponding_published_content_id"))
+        content = content_by_id.get(content_id)
+        if not content or content.get("is_valid_monitoring_data") is False:
+            continue
+        region = text(content.get("account_ip_location")).strip()
+        comment_text = text(comment.get("comment_text")).strip()
+        if not region or not comment_text:
+            continue
+        commented_at = text(comment.get("commented_at"))
+        comment_id = text(comment.get("comment_id"))
+        unique_key = comment_id or (content_id, comment_text, commented_at)
+        if unique_key in seen_comments:
+            continue
+        seen_comments.add(unique_key)
+        # 此快照将公开部署：刻意不包含 commenter_user_id、账号、主页或 URL。
+        region_comments.append(
+            {
+                "region": region,
+                "province": region,
+                "platform": text(comment.get("platform_name")) or text(content.get("platform_name")) or "未标注平台",
+                "text": comment_text,
+                "commentedAt": commented_at,
+                "date": date_part(commented_at),
+                "label": "公众评论",
+            }
+        )
+    region_comments.sort(key=lambda row: row["commentedAt"], reverse=True)
 
     return {
         "source": {"mode": "poms-snapshot", "label": "POMS 后端快照", "generatedAt": iso_now()},
@@ -215,6 +268,7 @@ def build_snapshot(source: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         "trendHourly": trend_hourly,
         "hotTop": top_contents,
         "quotes": quotes,
+        "regionComments": region_comments,
         "attitude": {
             "macro": [
                 {"name": "支持认可", "value": supportive},
@@ -251,7 +305,14 @@ def main() -> int:
     if not args.base_url:
         parser.error("POMS_URL or --base-url is required")
 
-    source = {name: fetch_rows(args.base_url, path, args.timeout) for name, path in TABLE_PATHS.items()}
+    source = {
+        name: (
+            fetch_paginated_rows(args.base_url, path, args.timeout)
+            if name in {"published_contents", "comments"}
+            else fetch_rows(args.base_url, path, args.timeout)
+        )
+        for name, path in TABLE_PATHS.items()
+    }
     snapshot = build_snapshot(source)
     write_json_atomic(args.output, snapshot)
     print(json.dumps({"ok": True, "output": str(args.output), "row_counts": {k: len(v) for k, v in source.items()}}, ensure_ascii=False))
