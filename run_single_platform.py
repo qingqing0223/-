@@ -730,10 +730,11 @@ def main():
         cfg["wb_realtime_max_comments_per_video"] = min(
             100, max(20, int(cfg.get("wb_realtime_max_comments_per_video", 100)))
         )
-        # A real transport/risk-control failure should not trigger rapid repeated
-        # requests from the student watchdog.
+        # Keep the WB monitoring cadence at 300 seconds even after a
+        # transport/network failure. Platform verification signals still stop
+        # automatic polling entirely and require manual handling.
         cfg["network_error_cooldown_seconds"] = max(
-            600, int(cfg.get("network_error_cooldown_seconds", 300))
+            300, int(cfg.get("network_error_cooldown_seconds", 300))
         )
         cfg["overrun_cooldown_seconds"] = max(
             120, int(cfg.get("overrun_cooldown_seconds", 60))
