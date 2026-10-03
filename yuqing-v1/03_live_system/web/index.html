@@ -137,7 +137,7 @@
           </div>
         </section>
         <section class="panel">
-          <div class="panel-title"><h2>地区信息流</h2><span id="regionFeedTag">真实原话</span></div>
+          <div class="panel-title"><h2>地区信息流</h2><span id="regionFeedTag">地区汇总</span></div>
           <div id="regionFeed" class="feed" style="padding:6px"></div>
         </section>
       </aside>
@@ -596,6 +596,29 @@
     function quotesByPlatform(platformName){
       return (D.quotes||[]).filter(q=>canonicalPlatformName(q.platform)===platformName);
     }
+    function regionSummaryRows(regionOrGroup){
+      const name=typeof regionOrGroup==="string"?regionOrGroup:(regionOrGroup&&regionOrGroup.name)||"";
+      const provinces=new Set(regionProvinces(name).map(normalizeProvince));
+      const generatedAt=String(D.generatedAt||D.source?.generatedAt||"");
+      return (D.provinces||[])
+        .filter(row=>provinces.has(normalizeProvince(row.name||row.region||"")))
+        .map(row=>{
+          const total=Number(row.total??row.value??row.total_information_count??0);
+          const published=Number(row.publishedCount??row.published_content_count??0);
+          const comments=Number(row.commentCount??row.comment_and_reply_count??0);
+          const percentage=Number(row.percentage??0);
+          return {
+            region:String(row.name||row.region||"未标注地区"),
+            province:String(row.name||row.region||""),
+            platform:"POMS 表7地区统计",
+            account:`发布 ${fmt(published)}｜评论及回复 ${fmt(comments)}`,
+            collectedAt:generatedAt,
+            total,
+            text:`累计监测信息 ${fmt(total)} 条${percentage>0?`，占全部信息 ${percentage.toFixed(1)}%`:""}。`
+          };
+        })
+        .filter(row=>row.total>0);
+    }
     function latestDate(rows){
       return rows.map(q=>q.date).filter(Boolean).sort().pop()||"未标注";
     }
@@ -663,11 +686,16 @@
     function renderRegionPanel(){
       const rows=regionFocusRows;
       const r=activeRegion();
-      const q=quotesByRegion(r.name);
+      const quotes=quotesByRegion(r.name);
+      // POMS 表10暂不携带地区字段时，地区原话无法可靠匹配；回退到
+      // 表7的地区统计，确保 GitHub Pages 仍能展示真实的地区汇总口径。
+      const summaries=regionSummaryRows(r.name);
+      const feedRows=quotes.length?quotes:summaries;
+      const feedLabel=quotes.length?"真实原话":"POMS 表7地区汇总";
       $("regionMeta").innerHTML="";
       charts.region.setOption(focusRegionOption(rows,r.name),true);
-      renderFeed("regionFeed",q,"该地区暂无可展示样本",1,"regionFeedIndex");
-      $("regionFeedTag").textContent=`${r.name}｜${q.length} 条`;
+      renderFeed("regionFeed",feedRows,"该地区暂无表7统计数据",1,"regionFeedIndex");
+      $("regionFeedTag").textContent=`${r.name}｜${feedLabel}｜${feedRows.length} 条`;
     }
     function renderPlatformPanel(){
       const rows=platformRows();

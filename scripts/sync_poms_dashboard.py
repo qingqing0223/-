@@ -97,6 +97,11 @@ def build_snapshot(source: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
             "name": text(row.get("region")) or "未标注地区",
             "value": number(row.get("total_information_count")),
             "total": number(row.get("total_information_count")),
+            # 表7不仅驱动地图和地区图，也作为 GitHub Pages 地区信息流的
+            # 可展示汇总来源。保留原始统计口径，前端无需猜测或二次计算。
+            "publishedCount": number(row.get("published_content_count")),
+            "commentCount": number(row.get("comment_and_reply_count")),
+            "percentage": number(row.get("percentage")),
             "support": 0,
         }
         for row in region_source
