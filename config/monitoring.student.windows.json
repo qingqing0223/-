@@ -80,12 +80,17 @@
     }
   ],
   "keywords": [
+    "民族团结进步宣传周",
     "2026年民族团结进步宣传周",
     "首个民族团结进步宣传周",
-    "促进民族团结进步，奋进伟大复兴征程",
-    "民族团结进步倡议",
+    "民族团结进步宣传周启动",
+    "民族团结进步宣传周活动",
     "民族团结进步宣传周主场活动",
-    "石榴花开——铸牢中华民族共同体意识"
+    "2026年民族团结进步宣传周主场活动",
+    "民族团结进步宣传周主题宣传片",
+    "民族团结进步倡议",
+    "民族团结进步倡议书",
+    "促进民族团结进步，奋进伟大复兴征程"
   ],
   "kuaishou_realtime_detail_budget_seconds": 105,
   "kuaishou_realtime_candidate_timeout_seconds": 45,
@@ -98,5 +103,9 @@
   "ks_realtime_detail_max_items_per_cycle": 4,
   "ks_realtime_failed_retry_base_seconds": 600,
   "ks_realtime_failed_retry_cap_seconds": 3600,
-  "ks_realtime_empty_retry_seconds": 1800
+  "ks_realtime_empty_retry_seconds": 1800,
+  "campaign_search_expand": true,
+  "campaign_strict_admission": true,
+  "campaign_keyword_policy_version": "promotion_week_search_v2_20260923",
+  "realtime_supplemental_keywords_per_cycle": 5
 }

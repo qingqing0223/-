@@ -100,6 +100,24 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "github_diagnostic_samples" $true
     Set-ConfigProperty $cfgObj "github_diagnostic_sample_rows_per_type" 5
     Set-ConfigProperty $cfgObj "max_concurrency_num" 1
+    Set-ConfigProperty $cfgObj "campaign_search_expand" $true
+    Set-ConfigProperty $cfgObj "campaign_strict_admission" $true
+    Set-ConfigProperty $cfgObj "campaign_keyword_policy_version" "promotion_week_search_v2_20260923"
+    Set-ConfigProperty $cfgObj "realtime_supplemental_keywords_per_cycle" 5
+    $campaignKeywords = @(
+        "民族团结进步宣传周",
+        "2026年民族团结进步宣传周",
+        "首个民族团结进步宣传周",
+        "民族团结进步宣传周启动",
+        "民族团结进步宣传周活动",
+        "民族团结进步宣传周主场活动",
+        "2026年民族团结进步宣传周主场活动",
+        "民族团结进步宣传周主题宣传片",
+        "民族团结进步倡议",
+        "民族团结进步倡议书",
+        "促进民族团结进步，奋进伟大复兴征程"
+    )
+    Set-ConfigProperty $cfgObj "keywords" $campaignKeywords
     if ($Platform -eq "wb") {
         Set-ConfigProperty $cfgObj "network_error_cooldown_seconds" 600
         Set-ConfigProperty $cfgObj "overrun_cooldown_seconds" 120
@@ -130,12 +148,13 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     Set-ConfigProperty $cfgObj "dy_realtime_candidate_timeout_seconds" 105
     Set-ConfigProperty $cfgObj "dy_realtime_max_comments_per_video" 200
     # Bilibili search fetches one fixed page (up to 20 videos) per keyword and
-    # sleeps inside each video-detail task.  A single worker made six-keyword
-    # discovery exceed the five-minute SLA, so realtime search uses modest
+    # sleeps inside each video-detail task.  The new search policy always keeps
+    # the 11 core queries and rotates supplemental recovery queries, so realtime uses modest
     # platform-local concurrency without changing other platforms or historical backfill.
     Set-ConfigProperty $cfgObj "bili_realtime_discovery_max_notes_count" 20
     Set-ConfigProperty $cfgObj "bili_realtime_search_concurrency" 4
-    Set-ConfigProperty $cfgObj "bili_realtime_items_per_keyword" 5
+    Set-ConfigProperty $cfgObj "bili_realtime_items_per_keyword" 3
+    Set-ConfigProperty $cfgObj "bili_realtime_search_timeout_seconds" 150
     Set-ConfigProperty $cfgObj "bili_realtime_detail_budget_seconds" 70
     Set-ConfigProperty $cfgObj "bili_realtime_candidate_timeout_seconds" 100
     Set-ConfigProperty $cfgObj "bili_realtime_max_comments_per_video" 20
@@ -161,6 +180,52 @@ if ([System.IO.Path]::GetFileName($resolvedConfig) -like "*.local.json") {
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($resolvedConfig, $json, $utf8NoBom)
     Write-Host "Local config upgraded to final five-minute realtime + queued deep-comment matrix." -ForegroundColor Green
+}
+
+if ($Platform -eq "bili") {
+    $biliCfgObj = Get-Content $resolvedConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+    $BiliMediaCrawlerRoot = [string]$biliCfgObj.media_crawler_root
+    if (-not $BiliMediaCrawlerRoot) {
+        Write-Host "ERROR: media_crawler_root is missing from $resolvedConfig" -ForegroundColor Red
+        exit 42
+    }
+    if (-not (Test-Path (Join-Path $BiliMediaCrawlerRoot "main.py"))) {
+        Write-Host "ERROR: MediaCrawler root is invalid: $BiliMediaCrawlerRoot" -ForegroundColor Red
+        exit 43
+    }
+
+    $biliPatches = @(
+        "patch_bilibili_login_resilience.py",
+        "patch_bilibili_data_fields.py",
+        "patch_bilibili_comment_detail.py",
+        "patch_bilibili_network_resilience.py",
+        "patch_bilibili_realtime_comment_bounds.py",
+        "patch_bilibili_realtime_comment_order.py",
+        "patch_bilibili_realtime_discovery_bound.py"
+    )
+
+    foreach ($patch in $biliPatches) {
+        Write-Host "Applying/verifying Bilibili patch: $patch" -ForegroundColor Cyan
+        & $PythonExe (Join-Path ".\scripts" $patch) --root $BiliMediaCrawlerRoot
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        & $PythonExe (Join-Path ".\scripts" $patch) --root $BiliMediaCrawlerRoot --check
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
+    Write-Host "Applying/verifying public coarse-region persistence patch for Bilibili..." -ForegroundColor Cyan
+    & $PythonExe .\scripts\patch_mediacrawler_public_regions.py --root $BiliMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & $PythonExe .\scripts\verify_mediacrawler_public_regions.py --root $BiliMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    Write-Host "Bilibili patch stack verified: login/network/full-local-fields/public-region/detail/nested-order/realtime-window." -ForegroundColor Green
+    Write-Host "Starting Bilibili official session bootstrap before realtime monitor..." -ForegroundColor Cyan
+    Write-Host "Manual login/security verification is outside the five-minute realtime clock." -ForegroundColor Yellow
+    & .\scripts\bootstrap_bilibili_session_windows.ps1 -Config $resolvedConfig -MediaCrawlerRoot $BiliMediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Bilibili login/session is not verified. Timed monitor will not start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 if ($Platform -eq "ks") {
@@ -289,7 +354,7 @@ Write-Host "Platform: $Platform" -ForegroundColor Cyan
 Write-Host "NodeId:   $NodeId" -ForegroundColor Cyan
 Write-Host "Config:   $Config" -ForegroundColor Cyan
 Write-Host "Realtime target: complete discovery + bounded deep-comment + ingestion cycle within 300 seconds." -ForegroundColor Yellow
-Write-Host "Enabled: six-keyword discovery, first-level comments, nested replies, parent/root hierarchy, public coarse IP-region fields when exposed, source/content type reporting, engagement/time fields, dedupe, checkpoint/resume, persistent deep queue and GitHub aggregate sync." -ForegroundColor Yellow
+Write-Host "Enabled: 11 core campaign queries + rotating recovery queries, strict topic admission, first-level comments, nested replies, parent/root hierarchy, public coarse IP-region fields when exposed, source/content type reporting, engagement/time fields, dedupe, checkpoint/resume, persistent deep queue and GitHub aggregate sync." -ForegroundColor Yellow
 Write-Host "Timeout/non-zero detail candidates are isolated; partial JSONL from interrupted candidates is rolled back and the candidate remains retryable." -ForegroundColor Yellow
 Write-Host "Historical exhaustive backfill is separate from realtime. It can page toward natural end without blocking five-minute new-content discovery." -ForegroundColor Yellow
 Write-Host "Official login/captcha/security verification must be completed manually when requested; automatic bypass is not used." -ForegroundColor Yellow

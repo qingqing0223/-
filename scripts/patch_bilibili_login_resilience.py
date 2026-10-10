@@ -8,6 +8,8 @@ from pathlib import Path
 MARKER = "PROMOTION_WEEK_BILI_LOGIN_RESILIENCE_V1"
 STARTUP_MARKER = "PROMOTION_WEEK_BILI_BROWSER_STARTUP_V2"
 NAVIGATION_MARKER = "PROMOTION_WEEK_BILI_HOME_NAVIGATION_V3"
+BOOTSTRAP_MARKER = "PROMOTION_WEEK_BILI_SESSION_BOOTSTRAP_V1"
+MANUAL_FALLBACK_MARKER = "PROMOTION_WEEK_BILI_LOGIN_MANUAL_FALLBACK_V2"
 
 
 def read(path: Path) -> str:
@@ -218,15 +220,36 @@ def patch_core(root: Path) -> None:
 '''
         text = replace_once(text, old, new, "Bilibili persistent browser retry")
 
+    # Session bootstrap is deliberately outside the five-minute crawler clock.
+    # It uses the ordinary official Bilibili login flow and only exits early once
+    # the persisted session has actually been verified.
+    if f"# {BOOTSTRAP_MARKER}: exit after session verification" not in text:
+        old = '''            crawler_type_var.set(config.CRAWLER_TYPE)
+'''
+        new = f'''            # {BOOTSTRAP_MARKER}: exit after session verification.
+            if os.environ.get("PROMOTION_WEEK_BILI_LOGIN_BOOTSTRAP", "").strip() == "1":
+                utils.logger.info(
+                    "[BILIBILI_SESSION_BOOTSTRAP_OK] verified official Bilibili "
+                    "session; persistent browser profile is ready"
+                )
+                return
+
+            crawler_type_var.set(config.CRAWLER_TYPE)
+'''
+        text = replace_once(
+            text,
+            old,
+            new,
+            "Bilibili session-bootstrap exit",
+        )
+
     write_py(path, text)
 
 def patch_login(root: Path) -> None:
     path = root / "media_platform/bilibili/login.py"
     text = read(path)
-    if f"# {MARKER}: resilient official login UI" in text:
-        return
-
-    old = '''        # click login button
+    if f"# {MARKER}: resilient official login UI" not in text:
+        old = '''        # click login button
         login_button_ele = self.context_page.locator(
             "xpath=//div[@class='right-entry__outside go-login-btn']//div"
         )
@@ -239,7 +262,7 @@ def patch_login(root: Path) -> None:
             selector=qrcode_img_selector
         )
 '''
-    new = f'''        # {MARKER}: resilient official login UI.
+        new = f'''        # {MARKER}: resilient official login UI.
         # Bilibili can render the login modal before the header click completes;
         # in that state .bili-mini-mask/.toast__mask intercept the old locator.
         # Detect an already-open QR modal first, otherwise use bounded selectors
@@ -314,7 +337,111 @@ def patch_login(root: Path) -> None:
             selector=qrcode_img_selector
         )
 '''
-    text = replace_once(text, old, new, "Bilibili official login UI resilience")
+        text = replace_once(text, old, new, "Bilibili official login UI resilience")
+
+    # Keep the browser alive even when Bilibili changes the login button/modal
+    # DOM. Automatic selector/QR detection is only a convenience; it must not
+    # terminate the official manual-login flow.
+    if f"# {MANUAL_FALLBACK_MARKER}: visible-browser fallback" not in text:
+        old = '''        if not login_open:
+            utils.logger.warning(
+                "[BILIBILI_LOGIN_REQUIRED] official QR login control/modal is unavailable. "
+                "Complete normal Bilibili login/security verification manually, then rerun."
+            )
+            raise RuntimeError(
+                "BILIBILI_LOGIN_REQUIRED: official login UI unavailable; manual login required"
+            )
+
+        base64_qrcode_img = await utils.find_login_qrcode(
+            self.context_page,
+            selector=qrcode_img_selector
+        )
+'''
+        new = f'''        # {MANUAL_FALLBACK_MARKER}: visible-browser fallback.
+        if not login_open:
+            utils.logger.warning(
+                "[BILIBILI_LOGIN_MANUAL_MODE] automatic login-control/QR "
+                "detection is unavailable. Keep the visible Bilibili browser "
+                "open and complete the site's normal login/security verification "
+                "manually; the process will keep waiting."
+            )
+            base64_qrcode_img = ""
+        else:
+            base64_qrcode_img = await utils.find_login_qrcode(
+                self.context_page,
+                selector=qrcode_img_selector
+            )
+'''
+        text = replace_once(
+            text,
+            old,
+            new,
+            "Bilibili visible-browser manual fallback",
+        )
+
+    # BILIBILI_LOGIN_MANUAL_WAIT_V1: do not close the visible browser merely
+    # because Bilibili changed the QR image DOM. Allow up to 600 seconds for
+    # normal manual login/security verification, then fail explicitly.
+    old = '''        if not base64_qrcode_img:
+            utils.logger.info("[BilibiliLogin.login_by_qrcode] login failed , have not found qrcode please check ....")
+            sys.exit()
+
+        # show login qrcode
+        partial_show_qrcode = functools.partial(utils.show_qrcode, base64_qrcode_img)
+        asyncio.get_running_loop().run_in_executor(executor=None, func=partial_show_qrcode)
+
+        utils.logger.info(f"[BilibiliLogin.login_by_qrcode] Waiting for scan code login, remaining time is 20s")
+        try:
+            await self.check_login_state()
+        except RetryError:
+            utils.logger.info("[BilibiliLogin.login_by_qrcode] Login bilibili failed by qrcode login method ...")
+            sys.exit()
+
+        wait_redirect_seconds = 5
+'''
+    new = '''        # BILIBILI_LOGIN_MANUAL_WAIT_V1
+        if base64_qrcode_img:
+            partial_show_qrcode = functools.partial(
+                utils.show_qrcode,
+                base64_qrcode_img,
+            )
+            asyncio.get_running_loop().run_in_executor(
+                executor=None,
+                func=partial_show_qrcode,
+            )
+            utils.logger.info(
+                "[BILIBILI_LOGIN_WAIT] QR detected. Complete the official "
+                "Bilibili login in the visible browser; waiting up to 600s."
+            )
+        else:
+            utils.logger.warning(
+                "[BILIBILI_LOGIN_WAIT] QR image was not extracted. Keep the "
+                "visible browser open and complete Bilibili's normal login/"
+                "security verification manually; waiting up to 600s."
+            )
+
+        try:
+            await self.check_login_state()
+        except RetryError as exc:
+            utils.logger.warning(
+                "[BILIBILI_LOGIN_REQUIRED] official login was not verified "
+                "within 600s"
+            )
+            raise RuntimeError(
+                "BILIBILI_LOGIN_REQUIRED: manual official login timed out"
+            ) from exc
+
+        utils.logger.info(
+            "[BILIBILI_LOGIN_VERIFIED] official Bilibili login session verified"
+        )
+        wait_redirect_seconds = 2
+'''
+    text = replace_once(
+        text,
+        old,
+        new,
+        "Bilibili manual visible-browser login wait",
+    )
     write_py(path, text)
 
 
@@ -333,6 +460,9 @@ def check(root: Path) -> dict:
         "standard_browser_mode": False,
         "persistent_launch_retry": False,
         "bounded_home_navigation": False,
+        "bootstrap_exit_marker": False,
+        "manual_browser_login_wait": False,
+        "manual_ui_fallback": False,
         "ok": False,
     }
     if not core.exists() or not login.exists():
@@ -376,6 +506,20 @@ def check(root: Path) -> dict:
             and "timeout=15000" in core_text
             and "[BILIBILI_HOME_NAVIGATION_DEGRADED]" in core_text
         )
+        result["bootstrap_exit_marker"] = (
+            "PROMOTION_WEEK_BILI_LOGIN_BOOTSTRAP" in core_text
+            and "[BILIBILI_SESSION_BOOTSTRAP_OK]" in core_text
+        )
+        result["manual_browser_login_wait"] = (
+            "BILIBILI_LOGIN_MANUAL_WAIT_V1" in login_text
+            and "[BILIBILI_LOGIN_WAIT]" in login_text
+            and "[BILIBILI_LOGIN_VERIFIED]" in login_text
+        )
+        result["manual_ui_fallback"] = (
+            "PROMOTION_WEEK_BILI_LOGIN_MANUAL_FALLBACK_V2" in login_text
+            and "[BILIBILI_LOGIN_MANUAL_MODE]" in login_text
+            and "official login UI unavailable; manual login required" not in login_text
+        )
         result["ok"] = all([
             result["session_probe_retry"],
             result["existing_qr_detection"],
@@ -385,6 +529,9 @@ def check(root: Path) -> dict:
             result["standard_browser_mode"],
             result["persistent_launch_retry"],
             result["bounded_home_navigation"],
+            result["bootstrap_exit_marker"],
+            result["manual_browser_login_wait"],
+            result["manual_ui_fallback"],
         ])
     except Exception:
         pass
