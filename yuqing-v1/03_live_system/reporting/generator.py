@@ -506,6 +506,8 @@ def setup_chinese_font() -> FontProperties:
     candidates = (
         Path("/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"),
         Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
+        Path("/System/Library/Fonts/STHeiti Medium.ttc"),
+        Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
     )
     font_path = next((p for p in candidates if p.exists()), None)
     plt.rcParams["axes.unicode_minus"] = False

@@ -22,6 +22,8 @@ results/YYYY-MM-DD/nodes/<platform>/<node>.json
 
 缓存以源节点文件、Prompt、分类口径、模板和生成器代码的 SHA-256 指纹为准：指纹未变化时直接下载已有 DOCX/PDF；数据变化后旧缓存不会作为最新报告返回。
 
+PDF 为可选产物：未安装 LibreOffice（或转换失败）时仅发布 DOCX，原因记录在当日 `metadata.json` 的 `pdf_note` 字段；macOS 会自动探测 `/Applications/LibreOffice.app` 内的转换程序。
+
 环境变量：
 
 - `DASHSCOPE_API_KEY`：必填，调用 Qwen3.8 Max。

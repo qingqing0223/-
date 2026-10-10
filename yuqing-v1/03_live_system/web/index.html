@@ -39,6 +39,8 @@
     .report-select{width:100%;border:1px solid rgba(119,190,226,.3);border-radius:6px;background:#0b2133;color:#eff9ff;padding:8px 10px;font:inherit;font-size:12px;outline:none}.report-select:focus{border-color:var(--cyan)}
     .report-status{min-height:58px;border:1px solid rgba(119,190,226,.16);border-radius:7px;background:rgba(5,19,31,.54);padding:10px 12px;font-size:12px;line-height:1.6;color:#c9e6f4}.report-status strong{color:#fff}.report-status.warn{border-color:rgba(238,203,114,.38);color:#f4dfa4}.report-status.error{border-color:rgba(217,111,106,.5);color:#ffc0bc}
     .report-storage{font-size:10px;color:#7faabf;overflow-wrap:anywhere}.report-modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 16px 16px}.report-action,.report-cancel{border-radius:6px;padding:8px 15px;font:inherit;font-size:12px;cursor:pointer}.report-cancel{border:1px solid rgba(119,190,226,.26);background:rgba(12,37,55,.8);color:#badbec}.report-action{border:1px solid rgba(56,189,232,.62);background:#17658b;color:#fff;font-weight:700}.report-action:disabled{cursor:not-allowed;opacity:.46}
+    .report-link{display:block;padding:8px 10px;border:1px solid rgba(119,190,226,.3);border-radius:6px;background:#0b2133;color:#c8f3ff;font-size:12px;text-decoration:none;overflow-wrap:anywhere}.report-link:hover{border-color:var(--cyan);color:#fff}
+    .report-pub-meta{font-size:10px;color:#7faabf;margin-top:5px}
     .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
     .kpi,.panel,.map-panel{border:1px solid var(--line);background:var(--panel);border-radius:8px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 28px rgba(0,0,0,.18);min-width:0;min-height:0}
@@ -189,6 +191,12 @@
     <div class="report-modal">
       <div class="report-modal-head"><h2 id="reportModalTitle">下载最新态势报告</h2><button id="reportCloseBtn" class="report-close" type="button" aria-label="关闭">×</button></div>
       <div class="report-modal-body">
+        <div class="report-field" id="pubReportRow" style="display:none"><label>已发布报告</label><div><a id="pubReportLink" class="report-link" href="#" download>—</a><div id="pubReportMeta" class="report-pub-meta"></div></div></div>
+        <div class="report-field"><label for="cloudCutoff">云端专报</label><div>
+          <input id="cloudCutoff" class="report-select" type="datetime-local" step="60" style="color-scheme:dark">
+          <div style="display:flex;gap:8px;margin-top:6px"><button id="cloudGenBtn" class="report-action" type="button" style="flex:1">生成并下载专报</button><button id="cloudLedgerBtn" class="report-cancel" type="button">查看台账</button></div>
+          <div id="cloudStatus" class="report-pub-meta">直连专报服务，生成约需 20–60 秒。</div>
+        </div></div>
         <div class="report-field"><label for="reportDate">报告日期</label><select id="reportDate" class="report-select"></select></div>
         <div class="report-field"><label for="reportFormat">文件格式</label><select id="reportFormat" class="report-select"><option value="docx">Word（.docx）</option><option value="pdf">PDF（.pdf）</option></select></div>
         <div id="reportStatus" class="report-status">正在读取可用日期……</div>
@@ -215,6 +223,7 @@
     const MUTED_BAR_COLORS=["#78cdda","#67bdd2","#56adca","#469dbf","#3f8eae","#5aa8c8","#7fb9c5","#9fb9c8"];
     let reportRows=[];
     let reportPollTimer=null;
+    let publishedReports=[];
     const reportStatusText={ready:"报告已生成，可直接下载",available:"数据已归档，首次下载前需要生成报告",collecting:"当天数据仍在统计和分析中",generating:"报告正在生成，请稍候",error:"报告生成失败",no_data:"该日期暂无爬取和分析结果"};
     function selectedReport(){
       const value=$("reportDate").value;
@@ -247,11 +256,81 @@
     }
     function loadReportRows(){
       return fetch("/api/reports",{cache:"no-store"}).then(async response=>{
-        const data=await response.json();
+        const text=await response.text();let data=null;
+        try{data=JSON.parse(text)}catch(_){}
+        if(!data)throw new Error(response.status===404
+          ?"当前页面没有本地报告后台；可用上方『云端专报』，或通过 http://127.0.0.1:8765 打开本地服务"
+          :`服务返回异常（HTTP ${response.status}）`);
         if(!response.ok)throw new Error(data.error||`API ${response.status}`);
         applyReportRows(data);
         return data;
       });
+    }
+    function loadPublishedReports(){
+      return fetch("assets/reports/manifest.json",{cache:"no-store"}).then(async response=>{
+        if(!response.ok)return null;
+        const manifest=await response.json();
+        const rows=manifest&&Array.isArray(manifest.reports)?manifest.reports.filter(item=>item&&item.file):[];
+        if(!rows.length)return null;
+        publishedReports=rows;
+        const latest=rows.find(item=>item.id===manifest.latest)||rows[0];
+        const link=$("pubReportLink");
+        link.href="assets/reports/"+encodeURIComponent(latest.file);
+        link.download=latest.file;
+        link.textContent="下载最新一期：" +(latest.title||latest.id||latest.file);
+        const bits=[latest.date||"",latest.size?Math.round(latest.size/1024)+" KB":"",latest.sha256?"SHA-256 "+String(latest.sha256).slice(0,12):""].filter(Boolean);
+        $("pubReportMeta").textContent=bits.join(" · ");
+        $("pubReportRow").style.display="";
+        return latest;
+      }).catch(()=>null);
+    }
+    const CLOUD_REPORT_BASE="https://u784746-8rhl-150771d4.westb.seetacloud.com:8443";
+    const CLOUD_REPORT_KEY=""; // 按《专报服务使用指南》如需带 Key：填在这里。注意公开页源码可见；服务当前未启用密钥校验，留空即可用；建议优先让专报服务提供免密钥公开入口。
+    const CLOUD_REPORT_ERRORS={400:"截止时间早于上一期，请选择更晚的时间",401:"服务要求 API Key，当前页面未配置",422:"时间格式不正确",429:"生成任务较多，请稍后重试",500:"服务端生成失败，请稍后重试"};
+    function localNowMinute(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes());}
+    function cloudPing(){
+      fetch(CLOUD_REPORT_BASE+"/api/v1/report/health",{cache:"no-store"}).then(async r=>{
+        const j=await r.json();
+        $("cloudStatus").textContent="云端服务在线"+(j&&j.数据来源?"（数据源："+j.数据来源+"）":"")+"；生成约 20–60 秒。";
+      }).catch(()=>{$("cloudStatus").textContent="云端服务暂不可达，可稍后重试。";});
+    }
+    function cloudLedgerPrefill(){
+      fetch(CLOUD_REPORT_BASE+"/api/v1/report/ledger",{cache:"no-store"}).then(r=>r.json()).then(j=>{
+        const matches=String((j&&j.台账)||"").match(/截止\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/g);
+        const latest=matches&&matches.length?matches[matches.length-1].replace(/^截止\s*/,""):"";
+        if(!$("cloudCutoff").value)$("cloudCutoff").value=latest||localNowMinute();
+      }).catch(()=>{if(!$("cloudCutoff").value)$("cloudCutoff").value=localNowMinute();});
+    }
+    function cloudDownload(){
+      const cutoff=$("cloudCutoff").value;
+      if(!cutoff){$("cloudStatus").textContent="请先选择截至时间。";return;}
+      const btn=$("cloudGenBtn");btn.disabled=true;$("cloudStatus").textContent="正在生成专报（约 20–60 秒），请勿关闭页面…";
+      const headers={};
+      if(CLOUD_REPORT_KEY)headers["X-API-Key"]=CLOUD_REPORT_KEY;
+      const opts={method:"POST",headers:headers};
+      if(typeof AbortSignal!=="undefined"&&AbortSignal.timeout)opts.signal=AbortSignal.timeout(180000);
+      fetch(CLOUD_REPORT_BASE+"/api/v1/report/generate?cutoff="+encodeURIComponent(cutoff)+"&download=true",opts).then(async response=>{
+        if(!response.ok){
+          let detail="";try{const j=await response.json();detail=j.detail||"";}catch(_){}
+          throw new Error(detail||CLOUD_REPORT_ERRORS[response.status]||("HTTP "+response.status));
+        }
+        const blob=await response.blob();
+        const disp=response.headers.get("Content-Disposition")||"";
+        const nameMatch=disp.match(/filename\*=UTF-8''([^;]+)/i);
+        let fileName="舆情专报-"+cutoff.slice(0,10)+".docx";
+        if(nameMatch){try{fileName=decodeURIComponent(nameMatch[1]);}catch(_){}}
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        a.href=url;a.download=fileName;a.click();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        $("cloudStatus").textContent="已生成并开始下载："+a.download+"（"+((blob.size/1024)|0)+" KB）";
+      }).catch(error=>{$("cloudStatus").textContent="生成失败："+error.message;}).finally(()=>{btn.disabled=false;});
+    }
+    function cloudLedger(){
+      $("cloudStatus").textContent="正在读取台账…";
+      fetch(CLOUD_REPORT_BASE+"/api/v1/report/ledger",{cache:"no-store"}).then(r=>r.json()).then(j=>{
+        $("cloudStatus").textContent=String((j&&j.台账)||"未返回台账").replace(/\s*\n\s*/g,"；");
+      }).catch(error=>{$("cloudStatus").textContent="台账读取失败："+error.message;});
     }
     function closeReportDialog(){
       $("reportModalMask").classList.remove("open");
@@ -261,7 +340,22 @@
       $("reportModalMask").classList.add("open");
       $("reportStatus").className="report-status";$("reportStatus").textContent="正在读取可用日期……";
       $("reportActionBtn").disabled=true;$("reportActionBtn").textContent="请稍候";
-      loadReportRows().catch(error=>{$("reportStatus").className="report-status error";$("reportStatus").textContent=`读取失败：${error.message}`});
+      $("pubReportRow").style.display="none";
+      const manifestPromise=loadPublishedReports();
+      cloudPing();
+      cloudLedgerPrefill();
+      loadReportRows().catch(async error=>{
+        await manifestPromise;
+        if(publishedReports.length){
+          $("reportStatus").className="report-status";
+          $("reportStatus").innerHTML="当前为公开页面，可直接下载上方已发布报告；<br>如需现场生成报告，请通过本地服务打开。";
+          $("reportStorage").textContent="";
+          $("reportActionBtn").disabled=true;$("reportActionBtn").textContent="不可下载";
+        }else{
+          $("reportStatus").className="report-status error";
+          $("reportStatus").textContent=`读取失败：${error.message}`;
+        }
+      });
     }
     function pollReport(dateText,format){
       if(!$("reportModalMask").classList.contains("open"))return;
@@ -298,6 +392,8 @@
     $("reportDate").addEventListener("change",updateReportDialog);
     $("reportFormat").addEventListener("change",updateReportDialog);
     $("reportActionBtn").addEventListener("click",handleReportAction);
+    $("cloudGenBtn").addEventListener("click",cloudDownload);
+    $("cloudLedgerBtn").addEventListener("click",cloudLedger);
     document.addEventListener("keydown",event=>{if(event.key==="Escape")closeReportDialog()});
     // 固定关注的 10 个重点地区（五个自治区 + 北京、上海、广州、武汉、哈尔滨），固定展示、不轮播
     const FOCUS_REGIONS=[

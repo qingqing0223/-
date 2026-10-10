@@ -153,7 +153,18 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json({"ok": True, "time": now_iso()})
             return
         if path == "/api/reports":
-            self._send_json(self.server.reports.list_reports())
+            try:
+                self._send_json(self.server.reports.list_reports())
+            except Exception as exc:
+                self._send_json(
+                    {
+                        "dates": [],
+                        "default_date": None,
+                        "error": f"报告模块未就绪：{type(exc).__name__}: {exc}",
+                        "hint": "请在运行服务端的 Python 中执行 pip install -r requirements-report.txt",
+                    },
+                    500,
+                )
             return
         if path == "/api/reports/status":
             qs = parse_qs(parsed.query)

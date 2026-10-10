@@ -23,6 +23,16 @@ def _generator():
     return generator
 
 
+def _find_libreoffice() -> str | None:
+    """定位 LibreOffice 命令行；macOS 的 App 包默认不在 PATH 中。"""
+    for name in ("libreoffice", "soffice"):
+        found = shutil.which(name)
+        if found:
+            return found
+    mac_bundle = "/Applications/LibreOffice.app/Contents/MacOS/soffice"
+    return mac_bundle if os.path.exists(mac_bundle) else None
+
+
 class ReportService:
     """Discover result dates, generate reports asynchronously, and cache them.
 
@@ -321,33 +331,43 @@ class ReportService:
             generator.fill_report(
                 self.template, docx_path, facts, narrative, combined_chart
             )
-            completed = subprocess.run(
-                [
-                    "libreoffice",
-                    "--headless",
-                    "--convert-to",
-                    "pdf",
-                    "--outdir",
-                    str(stage),
-                    str(docx_path),
-                ],
-                capture_output=True,
-                text=True,
-                timeout=180,
-            )
+            # PDF 为可选产物：转换失败不再让整个报告作废，DOCX 仍正常发布。
             pdf_path = stage / f"{prefix}.pdf"
-            if completed.returncode != 0 or not pdf_path.is_file():
-                raise ReportServiceError(
-                    "Word已生成，但PDF转换失败："
-                    + (completed.stderr or completed.stdout or "unknown error")[-500:]
+            formats = ["docx"]
+            pdf_note = ""
+            soffice = _find_libreoffice()
+            if soffice:
+                completed = subprocess.run(
+                    [
+                        soffice,
+                        "--headless",
+                        "--convert-to",
+                        "pdf",
+                        "--outdir",
+                        str(stage),
+                        str(docx_path),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=180,
                 )
+                if completed.returncode == 0 and pdf_path.is_file():
+                    formats.append("pdf")
+                else:
+                    pdf_note = (
+                        "PDF转换失败，已跳过："
+                        + (completed.stderr or completed.stdout or "unknown error")[-300:]
+                    )
+            else:
+                pdf_note = "未找到 libreoffice/soffice（PDF转换已跳过，仅发布 DOCX）"
 
             metadata = {
                 "date": target.isoformat(),
                 "generated_at": datetime.now(self.timezone).isoformat(timespec="seconds"),
                 "source_fingerprint": fingerprint,
                 "model": self.model,
-                "formats": ["docx", "pdf"],
+                "formats": formats,
+                "pdf_note": pdf_note,
                 "source_files": facts.get("source_files") or [],
             }
             generator.write_json(stage / "metadata.json", metadata)
@@ -366,7 +386,12 @@ class ReportService:
             raise ReportServiceError("下载格式只能是 docx 或 pdf")
         state = self.describe_date(target.isoformat())
         if format_name not in state.get("formats", []):
-            raise ReportServiceError(state.get("message") or "报告尚未生成")
+            if not state.get("formats"):
+                raise ReportServiceError(state.get("message") or "报告尚未生成")
+            available = "/".join(state["formats"])
+            raise ReportServiceError(
+                f"{format_name.upper()} 尚未生成（当前可下载格式：{available}）"
+            )
         path = self._artifact_paths(target)[format_name]
         if not path.is_file():
             raise ReportServiceError("报告文件不存在")
