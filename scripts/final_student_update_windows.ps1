@@ -173,6 +173,19 @@ if ($Platform -eq "wb") {
         Write-Host "ERROR: Weibo public-region verification failed. Monitor will NOT start." -ForegroundColor Red
         exit $LASTEXITCODE
     }
+
+    Write-Host "Applying Weibo public identity / originality / Table5 profile patch..." -ForegroundColor Cyan
+    python .\scripts\patch_weibo_public_identity.py --root $MediaCrawlerRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Weibo public identity patch failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+
+    python .\scripts\patch_weibo_public_identity.py --root $MediaCrawlerRoot --check
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: Weibo public identity verification failed. Monitor will NOT start." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 if ($Platform -eq "bili") {

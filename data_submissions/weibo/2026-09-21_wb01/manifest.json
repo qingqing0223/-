@@ -1,0 +1,14 @@
+{
+  "platform": "wb",
+  "node_id": "wb01",
+  "generated_at": "2026-09-21T10:46:04+08:00",
+  "monitoring_start_time": "2026-09-16T00:00:00+08:00",
+  "classification": "not_run_collection_group_scope_only",
+  "table1_rows": 117,
+  "table2_rows": 28,
+  "table3_rows": 2345,
+  "table4_rows": 55,
+  "table5_rows": 94,
+  "snapshot_hour": "2026-09-21T10:00:00+08:00",
+  "unsupported_public_fields_note": "Weibo metrics unavailable from the public collection interface remain blank; no estimates or substitute zeros."
+}
