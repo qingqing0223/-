@@ -191,18 +191,13 @@
     <div class="report-modal">
       <div class="report-modal-head"><h2 id="reportModalTitle">下载最新态势报告</h2><button id="reportCloseBtn" class="report-close" type="button" aria-label="关闭">×</button></div>
       <div class="report-modal-body">
-        <div class="report-field" id="pubReportRow" style="display:none"><label>已发布报告</label><div><a id="pubReportLink" class="report-link" href="#" download>—</a><div id="pubReportMeta" class="report-pub-meta"></div></div></div>
         <div class="report-field"><label for="cloudCutoff">云端专报</label><div>
           <input id="cloudCutoff" class="report-select" type="datetime-local" step="60" style="color-scheme:dark">
           <div style="display:flex;gap:8px;margin-top:6px"><button id="cloudGenBtn" class="report-action" type="button" style="flex:1">生成并下载专报</button><button id="cloudLedgerBtn" class="report-cancel" type="button">查看台账</button></div>
           <div id="cloudStatus" class="report-pub-meta">直连专报服务，生成约需 20–60 秒。</div>
         </div></div>
-        <div class="report-field"><label for="reportDate">报告日期</label><select id="reportDate" class="report-select"></select></div>
-        <div class="report-field"><label for="reportFormat">文件格式</label><select id="reportFormat" class="report-select"><option value="docx">Word（.docx）</option><option value="pdf">PDF（.pdf）</option></select></div>
-        <div id="reportStatus" class="report-status">正在读取可用日期……</div>
-        <div id="reportStorage" class="report-storage"></div>
       </div>
-      <div class="report-modal-actions"><button id="reportCancelBtn" class="report-cancel" type="button">取消</button><button id="reportActionBtn" class="report-action" type="button" disabled>请稍候</button></div>
+      <div class="report-modal-actions"><button id="reportCancelBtn" class="report-cancel" type="button">关闭</button></div>
     </div>
   </div>
   <script src="assets/echarts.min.js"></script>
@@ -221,69 +216,6 @@
     ];
     const COLORS=["#38bde8","#78cdda","#9fb9c8","#eecb72","#5aa8c8","#8fc7bf","#6f97b1","#b7c9d5","#d96f6a","#7f9caf"];
     const MUTED_BAR_COLORS=["#78cdda","#67bdd2","#56adca","#469dbf","#3f8eae","#5aa8c8","#7fb9c5","#9fb9c8"];
-    let reportRows=[];
-    let reportPollTimer=null;
-    let publishedReports=[];
-    const reportStatusText={ready:"报告已生成，可直接下载",available:"数据已归档，首次下载前需要生成报告",collecting:"当天数据仍在统计和分析中",generating:"报告正在生成，请稍候",error:"报告生成失败",no_data:"该日期暂无爬取和分析结果"};
-    function selectedReport(){
-      const value=$("reportDate").value;
-      return reportRows.find(row=>row.date===value)||null;
-    }
-    function reportDownloadUrl(row,format){
-      return `/api/reports/download?date=${encodeURIComponent(row.date)}&format=${encodeURIComponent(format)}`;
-    }
-    function updateReportDialog(){
-      const row=selectedReport(),format=$("reportFormat").value,status=$("reportStatus"),action=$("reportActionBtn");
-      if(!row){status.className="report-status error";status.textContent="没有可用的报告日期";action.disabled=true;action.textContent="不可下载";return}
-      const message=row.message||reportStatusText[row.status]||"";
-      const cacheNote=row.cached&&row.generated_at?`<br>缓存生成时间：${escapeHtml(String(row.generated_at).replace("T"," "))}`:"";
-      status.className="report-status"+(row.status==="error"?" error":row.status==="collecting"?" warn":"");
-      status.innerHTML=`<strong>${escapeHtml(row.date)}</strong><br>${escapeHtml(message)}${cacheNote}`;
-      const canDownload=(row.formats||[]).includes(format);
-      if(canDownload){action.disabled=false;action.textContent=row.status==="collecting"?"下载缓存版本":"下载报告"}
-      else if(row.status==="available"||row.status==="error"){action.disabled=false;action.textContent="生成并下载"}
-      else if(row.status==="generating"){action.disabled=true;action.textContent="正在生成……"}
-      else{action.disabled=true;action.textContent="暂不可下载"}
-    }
-    function applyReportRows(payload){
-      reportRows=Array.isArray(payload.dates)?payload.dates:[];
-      const select=$("reportDate"),previous=select.value;
-      select.innerHTML=reportRows.map(row=>`<option value="${escapeHtml(row.date)}">${escapeHtml(row.date)}</option>`).join("");
-      if(previous&&reportRows.some(row=>row.date===previous))select.value=previous;
-      else if(payload.default_date)select.value=payload.default_date;
-      $("reportStorage").textContent=payload.storage_root?"报告按日期归档；源数据未变化时直接下载已生成的缓存版本。":"";
-      updateReportDialog();
-    }
-    function loadReportRows(){
-      return fetch("/api/reports",{cache:"no-store"}).then(async response=>{
-        const text=await response.text();let data=null;
-        try{data=JSON.parse(text)}catch(_){}
-        if(!data)throw new Error(response.status===404
-          ?"当前页面没有本地报告后台；可用上方『云端专报』，或通过 http://127.0.0.1:8765 打开本地服务"
-          :`服务返回异常（HTTP ${response.status}）`);
-        if(!response.ok)throw new Error(data.error||`API ${response.status}`);
-        applyReportRows(data);
-        return data;
-      });
-    }
-    function loadPublishedReports(){
-      return fetch("assets/reports/manifest.json",{cache:"no-store"}).then(async response=>{
-        if(!response.ok)return null;
-        const manifest=await response.json();
-        const rows=manifest&&Array.isArray(manifest.reports)?manifest.reports.filter(item=>item&&item.file):[];
-        if(!rows.length)return null;
-        publishedReports=rows;
-        const latest=rows.find(item=>item.id===manifest.latest)||rows[0];
-        const link=$("pubReportLink");
-        link.href="assets/reports/"+encodeURIComponent(latest.file);
-        link.download=latest.file;
-        link.textContent="下载最新一期：" +(latest.title||latest.id||latest.file);
-        const bits=[latest.date||"",latest.size?Math.round(latest.size/1024)+" KB":"",latest.sha256?"SHA-256 "+String(latest.sha256).slice(0,12):""].filter(Boolean);
-        $("pubReportMeta").textContent=bits.join(" · ");
-        $("pubReportRow").style.display="";
-        return latest;
-      }).catch(()=>null);
-    }
     const CLOUD_REPORT_BASE="https://u784746-8rhl-150771d4.westb.seetacloud.com:8443";
     const CLOUD_REPORT_KEY=""; // 按《专报服务使用指南》如需带 Key：填在这里。注意公开页源码可见；服务当前未启用密钥校验，留空即可用；建议优先让专报服务提供免密钥公开入口。
     const CLOUD_REPORT_ERRORS={400:"截止时间早于上一期，请选择更晚的时间",401:"服务要求 API Key，当前页面未配置",422:"时间格式不正确",429:"生成任务较多，请稍后重试",500:"服务端生成失败，请稍后重试"};
@@ -324,7 +256,15 @@
         a.href=url;a.download=fileName;a.click();
         setTimeout(()=>URL.revokeObjectURL(url),4000);
         $("cloudStatus").textContent="已生成并开始下载："+a.download+"（"+((blob.size/1024)|0)+" KB）";
-      }).catch(error=>{$("cloudStatus").textContent="生成失败："+error.message;}).finally(()=>{btn.disabled=false;});
+      }).catch(error=>{
+        $("cloudStatus").textContent="生成失败："+error.message;
+        const m=String(error.message).match(/上一期[（(]\s*(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})\s*[)）]/);
+        if(m){
+          const fixed=m[1]+"T"+m[2];
+          $("cloudCutoff").value=fixed;
+          $("cloudStatus").textContent="已自动填入最新一期时间（"+fixed.replace("T"," ")+"），请再点一次「生成并下载专报」。";
+        }
+      }).finally(()=>{btn.disabled=false;});
     }
     function cloudLedger(){
       $("cloudStatus").textContent="正在读取台账…";
@@ -334,64 +274,17 @@
     }
     function closeReportDialog(){
       $("reportModalMask").classList.remove("open");
-      if(reportPollTimer){clearTimeout(reportPollTimer);reportPollTimer=null}
     }
     function openReportDialog(){
       $("reportModalMask").classList.add("open");
-      $("reportStatus").className="report-status";$("reportStatus").textContent="正在读取可用日期……";
-      $("reportActionBtn").disabled=true;$("reportActionBtn").textContent="请稍候";
-      $("pubReportRow").style.display="none";
-      const manifestPromise=loadPublishedReports();
+      $("cloudStatus").textContent="正在读取服务状态…";
       cloudPing();
       cloudLedgerPrefill();
-      loadReportRows().catch(async error=>{
-        await manifestPromise;
-        if(publishedReports.length){
-          $("reportStatus").className="report-status";
-          $("reportStatus").innerHTML="当前为公开页面，可直接下载上方已发布报告；<br>如需现场生成报告，请通过本地服务打开。";
-          $("reportStorage").textContent="";
-          $("reportActionBtn").disabled=true;$("reportActionBtn").textContent="不可下载";
-        }else{
-          $("reportStatus").className="report-status error";
-          $("reportStatus").textContent=`读取失败：${error.message}`;
-        }
-      });
-    }
-    function pollReport(dateText,format){
-      if(!$("reportModalMask").classList.contains("open"))return;
-      fetch(`/api/reports/status?date=${encodeURIComponent(dateText)}`,{cache:"no-store"}).then(async response=>{
-        const row=await response.json();
-        if(!response.ok)throw new Error(row.error||`API ${response.status}`);
-        const index=reportRows.findIndex(item=>item.date===row.date);
-        if(index>=0)reportRows[index]=row;else reportRows.push(row);
-        updateReportDialog();
-        if((row.formats||[]).includes(format)&&row.status!=="generating"){
-          window.location.href=reportDownloadUrl(row,format);
-          return;
-        }
-        if(row.status==="generating")reportPollTimer=setTimeout(()=>pollReport(dateText,format),2000);
-      }).catch(error=>{$("reportStatus").className="report-status error";$("reportStatus").textContent=`查询失败：${error.message}`;$("reportActionBtn").disabled=false;$("reportActionBtn").textContent="重试"});
-    }
-    function handleReportAction(){
-      const row=selectedReport(),format=$("reportFormat").value;
-      if(!row)return;
-      if((row.formats||[]).includes(format)){window.location.href=reportDownloadUrl(row,format);return}
-      $("reportActionBtn").disabled=true;$("reportActionBtn").textContent="正在启动……";
-      fetch("/api/reports/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date:row.date})}).then(async response=>{
-        const next=await response.json();
-        if(!response.ok)throw new Error(next.error||next.message||`API ${response.status}`);
-        const index=reportRows.findIndex(item=>item.date===next.date);if(index>=0)reportRows[index]=next;
-        updateReportDialog();
-        if(next.status==="generating")pollReport(next.date,format);
-      }).catch(error=>{$("reportStatus").className="report-status error";$("reportStatus").textContent=`生成失败：${error.message}`;$("reportActionBtn").disabled=false;$("reportActionBtn").textContent="重试"});
     }
     $("reportOpenBtn").addEventListener("click",openReportDialog);
     $("reportCloseBtn").addEventListener("click",closeReportDialog);
     $("reportCancelBtn").addEventListener("click",closeReportDialog);
     $("reportModalMask").addEventListener("click",event=>{if(event.target===$("reportModalMask"))closeReportDialog()});
-    $("reportDate").addEventListener("change",updateReportDialog);
-    $("reportFormat").addEventListener("change",updateReportDialog);
-    $("reportActionBtn").addEventListener("click",handleReportAction);
     $("cloudGenBtn").addEventListener("click",cloudDownload);
     $("cloudLedgerBtn").addEventListener("click",cloudLedger);
     document.addEventListener("keydown",event=>{if(event.key==="Escape")closeReportDialog()});
