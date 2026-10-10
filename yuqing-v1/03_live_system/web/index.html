@@ -225,11 +225,16 @@
       if(value&&value>cloudCeiling)cloudCeiling=value;
       $("cloudCutoff").max=cloudCeiling;
     }
+    function cloudSay(text,isError){
+      const el=$("cloudStatus");
+      el.textContent=text;
+      el.style.color=isError?"#ff9a94":"";
+    }
     function cloudPing(){
       fetch(CLOUD_REPORT_BASE+"/api/v1/report/health",{cache:"no-store"}).then(async r=>{
         const j=await r.json();
-        $("cloudStatus").textContent="云端服务在线"+(j&&j.数据来源?"（数据源："+j.数据来源+"）":"")+"；生成约 20–60 秒。";
-      }).catch(()=>{$("cloudStatus").textContent="云端服务暂不可达，可稍后重试。";});
+        cloudSay("云端服务在线"+(j&&j.数据来源?"（数据源："+j.数据来源+"）":"")+"；生成约 20–60 秒。");
+      }).catch(()=>{cloudSay("云端服务暂不可达，可稍后重试。",true);});
     }
     function cloudLedgerPrefill(){
       fetch(CLOUD_REPORT_BASE+"/api/v1/report/ledger",{cache:"no-store"}).then(r=>r.json()).then(j=>{
@@ -241,12 +246,12 @@
     }
     function cloudDownload(){
       const cutoff=$("cloudCutoff").value;
-      if(!cutoff){$("cloudStatus").textContent="请先选择截至时间。";return;}
+      if(!cutoff){cloudSay("请先选择截至时间。",true);return;}
       if(cloudCeiling&&cutoff>cloudCeiling){
-        $("cloudStatus").textContent="不能选择未来时间（"+cutoff.replace("T"," ")+"）；只能选择当前及更早时间——未来时间会占用台账，影响其他人出报。";
+        cloudSay("不能选择未来时间（"+cutoff.replace("T"," ")+"）；只能选择当前及更早时间——未来时间会占用台账，影响其他人出报。",true);
         return;
       }
-      const btn=$("cloudGenBtn");btn.disabled=true;$("cloudStatus").textContent="正在生成专报（约 20–60 秒），请勿关闭页面…";
+      const btn=$("cloudGenBtn");btn.disabled=true;cloudSay("正在生成专报（约 20–60 秒），请勿关闭页面…");
       const headers={};
       if(CLOUD_REPORT_KEY)headers["X-API-Key"]=CLOUD_REPORT_KEY;
       const opts={method:"POST",headers:headers};
@@ -265,29 +270,29 @@
         const a=document.createElement("a");
         a.href=url;a.download=fileName;a.click();
         setTimeout(()=>URL.revokeObjectURL(url),4000);
-        $("cloudStatus").textContent="已生成并开始下载："+a.download+"（"+((blob.size/1024)|0)+" KB）";
+        cloudSay("已生成并开始下载："+a.download+"（"+((blob.size/1024)|0)+" KB）");
       }).catch(error=>{
-        $("cloudStatus").textContent="生成失败："+error.message;
+        cloudSay("生成失败："+error.message,true);
         const m=String(error.message).match(/上一期[（(]\s*(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})\s*[)）]/);
         if(m){
           const fixed=m[1]+"T"+m[2];
           $("cloudCutoff").value=fixed;
-          $("cloudStatus").textContent="已自动填入最新一期时间（"+fixed.replace("T"," ")+"），请再点一次「生成并下载专报」。";
+          cloudSay("已自动填入最新一期时间（"+fixed.replace("T"," ")+"），请再点一次「生成并下载专报」。");
         }
       }).finally(()=>{btn.disabled=false;});
     }
     function cloudLedger(){
-      $("cloudStatus").textContent="正在读取台账…";
+      cloudSay("正在读取台账…");
       fetch(CLOUD_REPORT_BASE+"/api/v1/report/ledger",{cache:"no-store"}).then(r=>r.json()).then(j=>{
-        $("cloudStatus").textContent=String((j&&j.台账)||"未返回台账").replace(/\s*\n\s*/g,"；");
-      }).catch(error=>{$("cloudStatus").textContent="台账读取失败："+error.message;});
+        cloudSay(String((j&&j.台账)||"未返回台账").replace(/\s*\n\s*/g,"；"));
+      }).catch(error=>{cloudSay("台账读取失败："+error.message,true);});
     }
     function closeReportDialog(){
       $("reportModalMask").classList.remove("open");
     }
     function openReportDialog(){
       $("reportModalMask").classList.add("open");
-      $("cloudStatus").textContent="正在读取服务状态…";
+      cloudSay("正在读取服务状态…");
       cloudCeiling=localNowMinute();
       $("cloudCutoff").max=cloudCeiling;
       cloudPing();
