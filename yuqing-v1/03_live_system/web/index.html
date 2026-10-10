@@ -245,9 +245,7 @@
         const matches=String((j&&j.台账)||"").match(/截止\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/g);
         const latest=matches&&matches.length?matches[matches.length-1].replace(/^截止\s*/,""):"";
         if(latest)cloudSetCeiling(latest);
-        const cur=$("cloudCutoff").value;
-        if(!cur||cur===cloudAutoFill){$("cloudCutoff").value=latest||cur||localNowMinute();cloudAutoFill="";}
-      }).catch(()=>{if(!$("cloudCutoff").value)$("cloudCutoff").value=localNowMinute();});
+      }).catch(()=>{});
     }
     function cloudDownload(){
       const cutoff=$("cloudCutoff").value;
@@ -306,7 +304,10 @@
       cloudSay("正在读取服务状态…");
       cloudCeiling=localNowMinute();
       $("cloudCutoff").max=cloudCeiling;
-      if(!$("cloudCutoff").value){$("cloudCutoff").value=cloudCeiling;cloudAutoFill=cloudCeiling;}
+      if(!$("cloudCutoff").value||$("cloudCutoff").value===cloudAutoFill){
+        cloudAutoFill=cloudCeiling;
+        $("cloudCutoff").value=cloudCeiling;
+      }
       cloudPing();
       cloudLedgerPrefill();
     }
