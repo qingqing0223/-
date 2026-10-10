@@ -225,23 +225,28 @@
       if(value&&value>cloudCeiling)cloudCeiling=value;
       $("cloudCutoff").max=cloudCeiling;
     }
+    function cloudTimeout(ms){
+      return (typeof AbortSignal!=="undefined"&&AbortSignal.timeout)?AbortSignal.timeout(ms):undefined;
+    }
+    let cloudAutoFill="";
     function cloudSay(text,isError){
       const el=$("cloudStatus");
       el.textContent=text;
       el.style.color=isError?"#ff9a94":"";
     }
     function cloudPing(){
-      fetch(CLOUD_REPORT_BASE+"/api/v1/report/health",{cache:"no-store"}).then(async r=>{
+      fetch(CLOUD_REPORT_BASE+"/api/v1/report/health",{cache:"no-store",signal:cloudTimeout(8000)}).then(async r=>{
         const j=await r.json();
         cloudSay("云端服务在线"+(j&&j.数据来源?"（数据源："+j.数据来源+"）":"")+"；生成约 20–60 秒。");
-      }).catch(()=>{cloudSay("云端服务暂不可达，可稍后重试。",true);});
+      }).catch(()=>{cloudSay("云端服务暂不可达或响应慢，可重试。",true);});
     }
     function cloudLedgerPrefill(){
-      fetch(CLOUD_REPORT_BASE+"/api/v1/report/ledger",{cache:"no-store"}).then(r=>r.json()).then(j=>{
+      fetch(CLOUD_REPORT_BASE+"/api/v1/report/ledger",{cache:"no-store",signal:cloudTimeout(10000)}).then(r=>r.json()).then(j=>{
         const matches=String((j&&j.台账)||"").match(/截止\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/g);
         const latest=matches&&matches.length?matches[matches.length-1].replace(/^截止\s*/,""):"";
         if(latest)cloudSetCeiling(latest);
-        if(!$("cloudCutoff").value)$("cloudCutoff").value=latest||localNowMinute();
+        const cur=$("cloudCutoff").value;
+        if(!cur||cur===cloudAutoFill){$("cloudCutoff").value=latest||cur||localNowMinute();cloudAutoFill="";}
       }).catch(()=>{if(!$("cloudCutoff").value)$("cloudCutoff").value=localNowMinute();});
     }
     function cloudDownload(){
@@ -272,8 +277,14 @@
         setTimeout(()=>URL.revokeObjectURL(url),4000);
         cloudSay("已生成并开始下载："+a.download+"（"+((blob.size/1024)|0)+" KB）");
       }).catch(error=>{
-        cloudSay("生成失败："+error.message,true);
-        const m=String(error.message).match(/上一期[（(]\s*(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})\s*[)）]/);
+        const errName=String((error&&error.name)||"");
+        const errMsg=String((error&&error.message)||error||"");
+        if(/Timeout/i.test(errName)||/timed out|timeout/i.test(errMsg)){
+          cloudSay("生成失败：请求超时（服务或网络响应慢），请再点一次重试。",true);
+          return;
+        }
+        cloudSay("生成失败："+errMsg,true);
+        const m=errMsg.match(/上一期[（(]\s*(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})\s*[)）]/);
         if(m){
           const fixed=m[1]+"T"+m[2];
           $("cloudCutoff").value=fixed;
@@ -295,6 +306,7 @@
       cloudSay("正在读取服务状态…");
       cloudCeiling=localNowMinute();
       $("cloudCutoff").max=cloudCeiling;
+      if(!$("cloudCutoff").value){$("cloudCutoff").value=cloudCeiling;cloudAutoFill=cloudCeiling;}
       cloudPing();
       cloudLedgerPrefill();
     }
