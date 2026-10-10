@@ -192,6 +192,7 @@
       <div class="report-modal-body">
         <div class="report-field"><label for="cloudCutoff">云端专报</label><div>
           <input id="cloudCutoff" class="report-select" type="datetime-local" step="60" style="color-scheme:dark">
+          <div class="report-pub-meta" style="margin-top:5px">提示：只能选择当前时间或更早；未来时间会占用台账，影响其他人出报。</div>
           <div style="display:flex;gap:8px;margin-top:6px"><button id="cloudGenBtn" class="report-action" type="button" style="flex:1">生成并下载专报</button><button id="cloudLedgerBtn" class="report-cancel" type="button">查看台账</button></div>
           <div id="cloudStatus" class="report-pub-meta">直连专报服务，生成约需 20–60 秒。</div>
         </div></div>
@@ -219,6 +220,11 @@
     const CLOUD_REPORT_KEY=""; // 按《专报服务使用指南》如需带 Key：填在这里。注意公开页源码可见；服务当前未启用密钥校验，留空即可用；建议优先让专报服务提供免密钥公开入口。
     const CLOUD_REPORT_ERRORS={400:"截止时间早于上一期，请选择更晚的时间",401:"服务要求 API Key，当前页面未配置",422:"时间格式不正确",429:"生成任务较多，请稍后重试",500:"服务端生成失败，请稍后重试"};
     function localNowMinute(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes());}
+    let cloudCeiling="";
+    function cloudSetCeiling(value){
+      if(value&&value>cloudCeiling)cloudCeiling=value;
+      $("cloudCutoff").max=cloudCeiling;
+    }
     function cloudPing(){
       fetch(CLOUD_REPORT_BASE+"/api/v1/report/health",{cache:"no-store"}).then(async r=>{
         const j=await r.json();
@@ -229,12 +235,17 @@
       fetch(CLOUD_REPORT_BASE+"/api/v1/report/ledger",{cache:"no-store"}).then(r=>r.json()).then(j=>{
         const matches=String((j&&j.台账)||"").match(/截止\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/g);
         const latest=matches&&matches.length?matches[matches.length-1].replace(/^截止\s*/,""):"";
+        if(latest)cloudSetCeiling(latest);
         if(!$("cloudCutoff").value)$("cloudCutoff").value=latest||localNowMinute();
       }).catch(()=>{if(!$("cloudCutoff").value)$("cloudCutoff").value=localNowMinute();});
     }
     function cloudDownload(){
       const cutoff=$("cloudCutoff").value;
       if(!cutoff){$("cloudStatus").textContent="请先选择截至时间。";return;}
+      if(cloudCeiling&&cutoff>cloudCeiling){
+        $("cloudStatus").textContent="不能选择未来时间（"+cutoff.replace("T"," ")+"）；只能选择当前及更早时间——未来时间会占用台账，影响其他人出报。";
+        return;
+      }
       const btn=$("cloudGenBtn");btn.disabled=true;$("cloudStatus").textContent="正在生成专报（约 20–60 秒），请勿关闭页面…";
       const headers={};
       if(CLOUD_REPORT_KEY)headers["X-API-Key"]=CLOUD_REPORT_KEY;
@@ -277,6 +288,8 @@
     function openReportDialog(){
       $("reportModalMask").classList.add("open");
       $("cloudStatus").textContent="正在读取服务状态…";
+      cloudCeiling=localNowMinute();
+      $("cloudCutoff").max=cloudCeiling;
       cloudPing();
       cloudLedgerPrefill();
     }
